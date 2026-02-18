@@ -1,8 +1,11 @@
 BUN := bun
 
-.PHONY: all load project test health-record clean
+.PHONY: all setup load project test health-record clean
 
 all: load project test health-record
+
+setup:
+	./setup.sh
 
 load:
 	python3 load_sqlite.py
@@ -12,6 +15,7 @@ project:
 
 test:
 	$(BUN) run test_project.ts --db ehi_clean.db
+	$(BUN) run test_healthrecord.ts
 
 health-record:
 	$(BUN) run test_healthrecord.ts
