@@ -1,7 +1,7 @@
 /**
  * Epic EHI Patient Record — Runtime Domain Model
  *
- * Loads the flat JSON produced by project_json.py and hydrates it into a typed
+ * Loads the flat JSON produced by project.ts and hydrates it into a typed
  * object graph with index maps and cross-reference accessor methods.
  *
  * Usage:
@@ -17,6 +17,58 @@
 
 /** Any Epic row stored as raw key-value pairs */
 export type EpicRow = Record<string, unknown>;
+
+// ─── Structural types for high-value child arrays ──────────────────────────
+// These describe the *expected* shape of commonly-accessed EpicRow children.
+// They extend EpicRow so existing code doesn't break — the known fields are
+// just surfaced for type-checking and autocomplete.
+//
+// NOTE: These are transitional. The real column-access safety net is StrictRow
+// (runtime Proxy validation against actual DB schema). These interfaces give
+// autocomplete but can't catch typos that tsc doesn't see. See strict_row.ts.
+
+/** A diagnosis row (encounter diagnoses, problem diagnoses, charge diagnoses) */
+export interface EpicDiagnosisRow extends EpicRow {
+  DX_ID?: EpicID;
+  DX_NAME?: string;
+  _dx_name?: string;           // enriched name from dx_id lookup
+  PRIMARY_DX_YN?: string;      // 'Y' | 'N'
+  CURRENT_ICD10_LIST?: string;
+  LINE?: number;
+}
+
+/** An allergy reaction row */
+export interface EpicReactionRow extends EpicRow {
+  REACTION_NAME?: string;
+  REACTION_C_NAME?: string;
+  REACTION_TYPE_C_NAME?: string;
+}
+
+/** A note text line row */
+export interface EpicNoteTextRow extends EpicRow {
+  NOTE_TEXT?: string;
+  LINE?: number;
+  CONTACT_DATE_REAL?: number;
+}
+
+/** A medication row (medications are still EpicRow[] on PatientRecord) */
+export interface EpicMedicationRow extends EpicRow {
+  ORDER_MED_ID?: EpicID;
+  AMB_MED_DISP_NAME?: string;
+  DISPLAY_NAME?: string;
+  DESCRIPTION?: string;
+  HV_DISCRETE_DOSE?: string;
+  HV_DOSE_UNIT_C_NAME?: string;
+  MED_ROUTE_C_NAME?: string;
+  HV_DISCR_FREQ_ID_FREQ_NAME?: string;
+  SIG?: string;
+  START_DATE?: string;
+  END_DATE?: string;
+  ORDER_STATUS_C_NAME?: string;
+  ORD_CREATR_USER_ID_NAME?: string;
+  PHARMACY_ID_PHARMACY_NAME?: string;
+  associatedDiagnoses?: EpicDiagnosisRow[];
+}
 
 /** An Epic entity ID */
 export type EpicID = string | number;
@@ -76,7 +128,7 @@ export class Allergy {
   status?: string;
   certainty?: string;
   source?: string;
-  reactions: EpicRow[] = [];
+  reactions: EpicReactionRow[] = [];
   notedDuringEncounterCSN?: CSN;
 
   constructor(raw: EpicRow) {
@@ -90,7 +142,7 @@ export class Allergy {
     this.reaction = raw.REACTION as string;
     this.dateNoted = raw.DATE_NOTED as string;
     this.notedDuringEncounterCSN = raw.ALLERGY_PAT_CSN as CSN;
-    this.reactions = (raw.reactions as EpicRow[]) ?? [];
+    this.reactions = (raw.reactions as EpicReactionRow[]) ?? [];
   }
 
   notedDuringEncounter(record: PatientRecordRef): Encounter | undefined {
@@ -127,6 +179,12 @@ export class Problem {
 
 export class OrderResult {
   ORDER_PROC_ID: EpicID;
+  COMPONENT_ID?: EpicID;
+  LINE?: number;
+  REFERENCE_LOW?: string;
+  REFERENCE_HIGH?: string;
+  RESULT_FLAG_C_NAME?: string;
+  RESULT_DATE?: string;
   componentName?: string;
   value?: string;
   referenceUnit?: string;
@@ -138,6 +196,12 @@ export class OrderResult {
   constructor(raw: EpicRow) {
     Object.assign(this, raw);
     this.ORDER_PROC_ID = raw.ORDER_PROC_ID as EpicID;
+    this.COMPONENT_ID = raw.COMPONENT_ID as EpicID;
+    this.LINE = raw.LINE as number;
+    this.REFERENCE_LOW = raw.REFERENCE_LOW as string;
+    this.REFERENCE_HIGH = raw.REFERENCE_HIGH as string;
+    this.RESULT_FLAG_C_NAME = raw.RESULT_FLAG_C_NAME as string;
+    this.RESULT_DATE = raw.RESULT_DATE as string;
     this.componentName = raw.COMPONENT_ID_NAME as string;
     this.value = raw.ORD_VALUE as string;
     this.referenceUnit = raw.REFERENCE_UNIT as string;
@@ -170,7 +234,7 @@ export class Order {
   orderClass?: string;
   orderDate?: string;
   results: OrderResult[] = [];
-  diagnoses: EpicRow[] = [];
+  diagnoses: EpicDiagnosisRow[] = [];
   comments: EpicRow[] = [];
   narrative: EpicRow[] = [];
   statusHistory: EpicRow[] = [];
@@ -185,7 +249,7 @@ export class Order {
     this.orderClass = raw.ORDER_CLASS_C_NAME as string;
     this.orderDate = raw.ORDER_INST as string;
     this.results = ((raw.results as EpicRow[]) ?? []).map(r => new OrderResult(r));
-    this.diagnoses = (raw.diagnoses as EpicRow[]) ?? [];
+    this.diagnoses = (raw.diagnoses as EpicDiagnosisRow[]) ?? [];
     this.comments = (raw.comments as EpicRow[]) ?? [];
   }
 
@@ -224,7 +288,7 @@ export class Note {
   authorName?: string;
   createdDate?: string;
   encounterCSN?: CSN;
-  text: EpicRow[] = [];
+  text: EpicNoteTextRow[] = [];
   metadata: EpicRow[] = [];
   encounterInfo: EpicRow[] = [];
 
@@ -234,7 +298,7 @@ export class Note {
     this.noteType = raw.IP_NOTE_TYPE_C_NAME as string;
     this.noteStatus = raw.NOTE_STATUS_C_NAME as string;
     this.encounterCSN = raw.PAT_ENC_CSN_ID as CSN;
-    this.text = (raw.text as EpicRow[]) ?? [];
+    this.text = (raw.text as EpicNoteTextRow[]) ?? [];
     this.metadata = (raw.metadata as EpicRow[]) ?? [];
   }
 
@@ -260,7 +324,7 @@ export class Encounter {
   encounterType?: string;
   visitProviderName?: string;
   departmentName?: string;
-  diagnoses: EpicRow[] = [];
+  diagnoses: EpicDiagnosisRow[] = [];
   reasonsForVisit: EpicRow[] = [];
   orders: Order[] = [];
   notes: Note[] = [];
@@ -282,7 +346,7 @@ export class Encounter {
     this.contactDate = raw.CONTACT_DATE as string;
     this.encounterType = raw.ENC_TYPE_C_NAME as string;
     this.visitProviderName = raw._visit_provider as string;
-    this.diagnoses = (raw.diagnoses as EpicRow[]) ?? [];
+    this.diagnoses = (raw.diagnoses as EpicDiagnosisRow[]) ?? [];
     this.reasonsForVisit = (raw.reasons_for_visit as EpicRow[]) ?? [];
     this.orders = ((raw.orders as EpicRow[]) ?? []).map(o => new Order(o));
     this.notes = ((raw.notes as EpicRow[]) ?? []).map(n => new Note(n));
@@ -403,7 +467,7 @@ export class BillingTransaction {
   ACCOUNT_ID?: EpicID;
   VISIT_NUMBER?: EpicID;
   actions: EpicRow[] = [];
-  chargeDiagnoses: EpicRow[] = [];
+  chargeDiagnoses: EpicDiagnosisRow[] = [];
   eobInfo: EpicRow[] = [];
 
   constructor(raw: EpicRow) {
@@ -433,6 +497,8 @@ export class Message {
   senderName?: string;
   createdDate?: string;
   text: EpicRow[] = [];
+  rtf_text: EpicRow[] = [];
+  extracted_text?: string;
   threadId?: EpicID;
 
   constructor(raw: EpicRow) {
@@ -440,6 +506,8 @@ export class Message {
     this.MESSAGE_ID = raw.MESSAGE_ID as EpicID;
     this.messageType = raw.MSG_TYPE_C_NAME as string;
     this.text = (raw.text as EpicRow[]) ?? [];
+    this.rtf_text = (raw.rtf_text as EpicRow[]) ?? [];
+    if (typeof raw.extracted_text === 'string') this.extracted_text = raw.extracted_text;
   }
 
   linkedEncounters(record: PatientRecordRef): Encounter[] {
@@ -449,8 +517,11 @@ export class Message {
       .filter((e): e is Encounter => e !== undefined);
   }
 
+  /** Concatenated plain text — falls back to extracted RTF text if no MSG_TXT rows */
   get plainText(): string {
-    return this.text.map(t => t.MSG_TEXT as string).filter(Boolean).join('\n');
+    const txt = this.text.map(t => t.MSG_TXT as string).filter(Boolean).join('\n');
+    if (txt) return txt;
+    return this.extracted_text ?? '';
   }
 }
 
@@ -471,7 +542,7 @@ export class PatientRecord {
   patient: EpicRow;
   allergies: Allergy[];
   problems: Problem[];
-  medications: EpicRow[];
+  medications: EpicMedicationRow[];
   immunizations: EpicRow[];
   coverage: EpicRow[];
   referrals: EpicRow[];
@@ -507,7 +578,7 @@ export class PatientRecord {
     // Hydrate typed collections
     this.allergies = ((json.allergies as EpicRow[]) ?? []).map(r => new Allergy(r));
     this.problems = ((json.problems as EpicRow[]) ?? []).map(r => new Problem(r));
-    this.medications = (json.medications as EpicRow[]) ?? [];
+    this.medications = (json.medications as EpicMedicationRow[]) ?? [];
     this.immunizations = (json.immunizations as EpicRow[]) ?? [];
     this.coverage = (json.coverage as EpicRow[]) ?? [];
     this.referrals = (json.referrals as EpicRow[]) ?? [];
@@ -627,7 +698,7 @@ function buildTimeline(rows: EpicRow[]): HistoryTimeline<EpicRow> {
 // ─── Load function ─────────────────────────────────────────────────────────
 
 /**
- * Load a patient record from the JSON produced by project_json.py.
+ * Load a patient record from the JSON produced by project.ts.
  *
  * Usage:
  *   const json = await fetch('/patient_document.json').then(r => r.json());
