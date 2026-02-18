@@ -5,7 +5,7 @@
  */
 import { readFileSync } from "fs";
 
-const chunks = await Bun.file("review_chunks.json").json();
+const chunks = await Bun.file("review_chunks_v2.json").json();
 
 // Load methodology from standalone docs (not scraped from TS comments)
 const docFiles = [

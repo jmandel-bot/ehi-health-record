@@ -437,7 +437,7 @@ somehow both miss it** (layer 1).
 
 ## Your Task
 
-Analyze the mapping pipeline for **Medications: ORDER_MED (7 splits) → HealthRecord.medications** and identify every semantic error — places where a column is read successfully but the value means something different than the code assumes.
+Analyze the mapping pipeline for **Medications: ORDER_MED (splits) + children → medications** and identify every semantic error — places where a column is read successfully but the value means something different than the code assumes.
 
 You are looking for these specific error types:
 1. **Wrong column for the concept** — the code reads a column that exists but contains a different kind of data than intended (e.g., reading a category code integer instead of a display name string)
@@ -457,6 +457,53 @@ For each issue found, report:
 ## Epic Schema Descriptions
 
 These are Epic's official descriptions for each column. They are the ground truth for what a column means.
+
+### DUPMED_DISMISS_HH_INFO
+**Table**: This table stores data related to duplicate medications on the Home Health Remote Client.
+- **ORDER_ID**: The unique identifier for the order record.
+- **DUPMED_DISMISS_EMP_ID**: This item stores the user who dismissed the duplicate medication warning that the Remote Client showed after the medication was added.
+- **DUPMED_DISMISS_EMP_ID_NAME**: The name of the user record. This name may be hidden.
+- **DUPMED_DISMISS_CSN**: This item stores the patient contact serial number (CSN) associated with the update which dismissed the duplicate warning for this order on the Remote Client.
+- **DUPMED_DISMISS_UTC_DTTM**: This item stores the instant when the Remote Client was synchronized after the duplicate warning for this order was dismissed.
+
+### MEDS_REV_HX
+**Table**: This table lists all of the times that a user reviewed a patient's medication list. 
+
+
+
+
+
+The list of medications current at each review instance is in the MEDS_REV_HX_LIST table.
+
+
+
+
+
+Reviewing user and other information about the most recent review of medications is in the PATIENT table in columns MEDS_LAST_REV_TM, MEDS_LST_REV_USR_ID, and MEDS_LAST_REV_CSN.
+
+
+
+
+
+The list of medications at the most recent review instance is in the MEDS_REV_LAST_LIST table.
+- **PAT_ID**: The unique ID of the patient record for this row.
+- **LINE_COUNT**: The line number for the information associated with this record. Multiple pieces of information can be associated with this record.
+- **MEDS_HX_REV_INSTANT**: The date and time that the patient's medication list was marked as reviewed.
+- **MEDS_HX_REV_USER_ID**: The unique ID associated with the user that marked the patient's medication list as reviewed.
+- **MEDS_HX_REV_USER_ID_NAME**: The name of the user record. This name may be hidden.
+- **MEDS_HX_REV_CSN**: The unique contact serial number of the contact in which the patient's medication list was reviewed. This number is unique across all patient encounters in your system. If you use IntraConnect this is the Unique Contact Identifier (UCI).
+- **MEDS_HX_REV_COUNT**: Count of how many meds are found in the medication history review list (I EPT 17229).
+
+### ORDER_DX_MED
+**Table**: The ORDER_DX_MED table enables you to report on the diagnoses associated with medications ordered in clinical system (prescriptions). Since one medication order may be associated with multiple diagnoses, each row in this table is one medication - diagnosis relation. We have also included patient and contact identification information for each record. Note that system settings may or may not require that medications be associated with diagnoses.  This table contains only information for those medications and diagnoses that have been explicitly associated.  Check with your clinical system Application Administrator to determine how your organization has this set up.
+- **ORDER_MED_ID**: The unique ID of the medication order (prescription) record.
+- **LINE**: The line number for the information associated with this contact. Multiple pieces of information can be associated with this contact.
+- **PAT_ENC_DATE_REAL**: A unique, internal contact date in decimal format. The integer portion of the number indicates the date of the contact. The digits after the decimal distinguish different contacts on the same date and are unique for each contact on that date. For example, .00 is the first/only contact, .01 is the second contact, etc.
+- **PAT_ENC_CSN_ID**: The unique contact serial number for this contact. This number is unique across all patient encounters in your system. If you use IntraConnect this is the Unique Contact Identifier (UCI).
+- **DX_ID**: The unique ID of the diagnosis record associated with the medication order.
+- **DX_QUALIFIER_C_NAME**: The category ID of the qualifier associated with the diagnosis.
+- **DX_CHRONIC_YN**: Indicates whether the associated diagnosis is chronic.
+- **COMMENTS**: Free text comments added when the prescription was ordered or discontinued.
 
 ### ORDER_MED
 **Table**: The ORDER_MED table enables you to report on medications ordered in EpicCare (prescriptions). We have also included patient and contact identification information for each record.
@@ -576,6 +623,80 @@ These are Epic's official descriptions for each column. They are the ground trut
 - **ORD_TM_BSA**: The patient's last reviewed BSA at the time this order was placed.
 - **REVIEW_BSA**: The patient's last non-reviewed body surface areas (BSA) at the time the medication was ordered.
 - **LAST_DOSE_TIME**: Store the time that a PTA med was last taken.
+
+### ORDER_MEDINFO
+**Table**: The ORDER_MEDINFO table is an addendum table for ORDER_MED and enables you to report on detail medication information for each order in clinical system (prescriptions). We have also included patient and contact identification information for each record.
+- **ORDER_MED_ID**: The unique ID of the medication order (prescription) record.
+- **MED_LINKED_PROC_ID**: The linked procedure ID for the medication.  Depending on pharmacy billing configuration, you may have only one procedure ID (code) for all medications or many.
+- **MED_CNCT_DAT_REAL**: The real medication contact date (DAT) used in this order.
+- **LAST_ADMIN_INST**: The last instant that the medication order is administrated in the Medication Administration Record (MAR).
+- **NUMBER_OF_DOSES**: The total number of doses of the medication order that should be given to the patient.
+- **DOSES_REMAINING**: The total number of the medication order which has not been given to patient.
+- **RESUME_STATUS_C_NAME**: The resume status.
+- **MIN_RATE**: The minimum rate number.
+- **MAX_RATE**: The maximum rate number.
+- **RATE_UNIT_C_NAME**: The rate unit.
+- **MIN_DURATION**: The minimum duration.
+- **MAX_DURATION**: The maximum duration.
+- **MIN_VOLUME**: The minimum volume.
+- **MAX_VOLUME**: The maximum volume.
+- **VOLUME_UNIT_C_NAME**: The volume unit of measure associated with the order.
+- **CALC_VOLUME_YN**: Indicate if the volume is calculated.  "Y" means the volume is calculated. "N" means the volume is not calculated.  Default is "Y".
+- **STABILITY**: The stability value.
+- **MEDICATION_ID**: The ID of the medication prescribed for the patient.
+- **PAT_SUPP_MED_YN**: Indicates if the medication is patient-supplied.  'N' indicates the med is not supplied by the patient. 'Y' indicates the medication is supplied by the patient.
+- **PAT_SUPP_DOSES**: Specifies the number of doses the patient supplies if the medication is patient supplied.
+- **CALC_MIN_DOSE**: The minimum calculated administer dose.
+- **CALC_MAX_DOSE**: The maximum calculated administer dose.
+- **CALC_DOSE_UNIT_C_NAME**: The dose unit for calculated administer dose.
+- **CALC_DOSE_INFO**: The calculation steps to get calculated administer dose from the ordered dose.
+- **ADMIN_MIN_DOSE**: The minimum administer dose.
+- **ADMIN_MAX_DOSE**: The maximum administer dose.
+- **ADMIN_DOSE_UNIT_C_NAME**: The dose unit for administer dose.
+- **DONOT_DISP_YN**: Indicate if the medication is not dispensed.  'N' indicates the medication is dispensed. 'Y' indicates the medication is not dispensed.
+- **DONOT_DISP_DOSE**: It is to specify the number of doses which will not be dispensed if the DONOT_DISP_YN column is 'Y' for Yes.
+- **PAT_ENC_DATE_REAL**: This is a numeric representation of the date of this encounter in your system. The integer portion of the number specifies the date of the encounter. The digits after the decimal point indicate multiple visits on one day.
+- **PAT_ENC_CSN_ID**: The unique contact serial number for this contact. This number is unique across all patient encounters in your system. If you use IntraConnect, this is the Unique Contact Identifier (UCI).
+- **ORDERING_DATE**: The date the order was placed  in calendar format.
+- **ORDER_CLASS_C_NAME**: The order class category ID for the prescription, used to determine how the clinical system processes the order.
+- **CONC_NAME_C_NAME**: The concentration of this order (used only for fixed ratio mixture orders).
+- **LET_EXPIRE_USER_ID**: The ID of the user who marked order as Let Expire.
+- **LET_EXPIRE_USER_ID_NAME**: The name of the user record. This name may be hidden.
+- **TIME_LET_EXPIRE**: The time when the physician marked the order as Let Expire.
+- **EXP_AFT_START_TIME**: The date and time the order will expire, based on the amount of time a physician entered for the order to expire after the start time.
+- **EXP_BEF_END_TIME**: The date and time the order will expire, based on the amount of time a physician entered for the order to expire before the end time.
+- **ORD_COPIED_C_NAME**: The order copy status: If the order has been copied to another encounter or not.
+- **ORDER_SOURCE_C_NAME**: Where in the system the order was placed from.
+- **DFLT_DISCRETE_FREQ_NAME**: A flag to indicate if this order should default discrete ambulatory medication frequency information.
+- **DFLT_DISCRETE_DOSE_NAME**: A flag to indicate if this order should default discrete ambulatory medication dose information.
+- **REV_ORD_GRANU_YN**: Determines if an order is reviewed by day or by instant
+- **EXP_DAYS_YN**: Determines if an expiring order is by days or by instant
+- **MED_CONTACT_DT**: This is the order contact date in human readable form.
+- **DOSE_CALC_WARNING**: Contains the dose warning generated when the order was entered or verified.
+- **MIXTURE_TYPE_C_NAME**: Specifies the mixture type if the medication order is a mixture. This column will be empty if the medication is not a mixture.
+- **MED_DURATION_UNIT_C_NAME**: The duration unit.
+- **TPN_SITE_C_NAME**: The total parenteral nutrition (TPN) infusion site.
+- **STABILITY_UNIT_C_NAME**: The stability unit.
+- **DISP_INDIV_YN**: Indicate if the ingredients are dispensed individually. 'N' indicates the ingredients are dispensed together. 'Y' indicates the ingredients are dispensed individually.
+- **MR_IS_PERSISTENT_YN**: Indicates whether this order is set to persist after the encounter is closed. Yes indicates the order will not be discontinued; No or blank indicates it will be discontinued.
+- **MAR_ADMIN_TYPE_C_NAME**: Used for performance to determine the administration type of the order.  This gets set once the order has been administered.
+- **ORD_COMP_YN**: This item determines whether an order is completed or not.
+- **RATE_CALC_INFO**: Stores the rate calculation info.
+- **RATE_CALC_WARNING**: Contains the rate warning generated when the order was entered or verified.
+- **DFLT_DISCRETE_C_NAME**: A flag to indicate if this order�should default discrete ambulatory medication information.
+- **PT_SIG_SMARTTEXT_ID**: The unique identifier of the SmartText record used to generate medication instructions for the patient based on order details. A SmartText record is a text template that can contain text and dynamic data.
+- **PT_SIG_SMARTTEXT_ID_SMARTTEXT_NAME**: The name of the SmartText record.
+- **DISPENSABLE_MED_ID**: This is the unique ID of the medication that is the order's dispensable product. This column is frequently used to link to the CLARITY_MEDICATION table.  We recommend using this column in place of other similar columns to report on medication orders. Other columns that contain a medication ID in ORDER_MED and its addendum tables can contain orderable records or templates that do not represent real medications.  When Intelligent Medication Selection (IMS) runs for an order, this column will choose the medication record evaluated for IMS rather than the IMS mixture template.
+- **TIMELY_THRESHOLD**: Number of minutes between the scheduled time for an administration and the actual time given before the administration is considered Late/Early. This is a calculated value specific to each order, derived from settings in the ordered medication, ordered frequency, and System Definitions.
+- **IS_FAM_YN**: Indicates whether this order is ordered as a Facility-Administered Medication (FAM). 1 indicates the order is a FAM and will not be discontinued on closing the encounter; 0 or blank indicates it will be discontinued.
+- **ONE_STEP_MED_YN**: Indicates whether the order is a one-step medication, a medication whose administration is documented in one step.
+- **PRIOR_AUTH_STATUS_C_NAME**: Contains the authorization status of the order when it is released from a treatment plan.
+- **REFERRAL_AUTH_STATUS_C_NAME**: The referral status category ID of the order record when it is activated.
+- **RECIPE_AMOUNT**: The recipe quantity amount for a ratio-based mixture medication (a medication which consists of a drug diluted in a base at a fixed concentration).
+- **RECIPE_UNIT_C_NAME**: The med & dose unit category ID for the recipe quantity for a ratio-based mixture medication.
+- **ADMIN_INSTRUCTIONS_CHANGE_DTTM**: Tracks the instant when the administration instructions were changed from their system default.
+- **ADDL_DUES_REMAINING**: The count of due times that need to be accounted for before the order can be considered complete, in addition to those that represent ordered due times.
+- **HAS_COMPONENT_DATA_C_NAME**: The category ID for whether this order has any nutritional component data.
 
 ### ORDER_MED_2
 **Table**: This table enables you to report on medications ordered in EpicCare or Ambulatory Pharmacy (Prescriptions).
@@ -709,23 +830,295 @@ This table should be used with ORDER_MED.
 - **EPRES_DEST_C_NAME**: Indicates the destination of e-prescribing order. It will be set by an interface or the ambulatory pharmacy system. The item may not be populated for the old order records.
 - **CTRL_MED_YN**: Indicates whether the medication was controlled when the order was signed.
 
-### ORDER_DX_MED
-**Table**: The ORDER_DX_MED table enables you to report on the diagnoses associated with medications ordered in clinical system (prescriptions). Since one medication order may be associated with multiple diagnoses, each row in this table is one medication - diagnosis relation. We have also included patient and contact identification information for each record. Note that system settings may or may not require that medications be associated with diagnoses.  This table contains only information for those medications and diagnoses that have been explicitly associated.  Check with your clinical system Application Administrator to determine how your organization has this set up.
-- **ORDER_MED_ID**: The unique ID of the medication order (prescription) record.
-- **LINE**: The line number for the information associated with this contact. Multiple pieces of information can be associated with this contact.
-- **PAT_ENC_DATE_REAL**: A unique, internal contact date in decimal format. The integer portion of the number indicates the date of the contact. The digits after the decimal distinguish different contacts on the same date and are unique for each contact on that date. For example, .00 is the first/only contact, .01 is the second contact, etc.
-- **PAT_ENC_CSN_ID**: The unique contact serial number for this contact. This number is unique across all patient encounters in your system. If you use IntraConnect this is the Unique Contact Identifier (UCI).
-- **DX_ID**: The unique ID of the diagnosis record associated with the medication order.
-- **DX_QUALIFIER_C_NAME**: The category ID of the qualifier associated with the diagnosis.
-- **DX_CHRONIC_YN**: Indicates whether the associated diagnosis is chronic.
-- **COMMENTS**: Free text comments added when the prescription was ordered or discontinued.
+### ORDER_MED_4
+**Table**: This table enables you to report on medications ordered. This table should be used with ORDER_MED.
+- **ORDER_ID**: The unique identifier for the order record.
+- **E_PRES_EARLIEST_DAT**: This column stores the earliest date on which a prescription can be filled for a Schedule II controlled medication. The date must occur on or before the start date for the prescription. It can't be changed after the order is signed.
+- **ORDER_CONTEXT_ID**: The unique identifier of the order context record associated with the order, which contains additional information about when the order is intended to be used.
+- **PREV_ORD_CONTEXT_ID**: The unique identifier of the order context record associated with the order, which contains additional information about when the order is intended to be used.
+- **PARENT_ORDER_ID**: The unique ID of the parent order record for Home Health (HH) orders.  An HH order is an order which represents documentation by a user whose scope of practice doesn't include editing prescription data.  Furthermore, the child order created will not be an actual prescription, but merely represents new instructions to the patient regarding how to take a medication.
+- **LINKED_OP_MED_ID**: The unique ID of the orders record. When Home Health and Hospice clinicians need to document a medication administration against an inpatient medication, a copy of the medication is created with an order mode of inpatient to document the administration. This column holds a link to the original outpatient medication.
+- **INTERFACE_STAT_C_NAME**: This column stores the ID of the interface status of the order.
+- **PRESC_ORD_SIG**: The originally prescribed medication instructions for an order. This will be null if the original  and current medication instructions are identical or if the order is not for a controlled medication that was electronically prescribed.
+- **PRESC_ORD_MED_NAME**: The originally prescribed medication name for an order. This will be null if the original medication name and current medication name are identical or if the order is not for a controlled medication that was electronically prescribed.
+- **PRESC_ORD_REFILLS**: The originally prescribed refills for an order. This will be null if the original refills and current refills are identical or if the order is not for a controlled medication that was electronically prescribed.
+- **PRESC_ORD_QUANTITY**: The originally prescribed quantity for an order. This will be null if the original quantity and current quantity are identical or if the order is not for a controlled medication that was electronically prescribed.
+- **TXT_AUTHPROV_EXT_YN**: Indicates whether the order's authorizing provider is from an external provider database. 'Y' indicates that the provider does not have a provider record in this EHR system and is from an external provider database. 'N' or NULL indicates that the provider has a provider record in this EHR system.
+- **TXT_ORDPROV_EXT_YN**: Indicates whether the order's ordering provider is from an external provider database. 'Y' indicates that the provider does not have a provider record in this EHR system and is from an external provider database. 'N' or NULL indicates that the provider has a provider record in this EHR system.
+- **WAS_FMLY_CHECKED_YN**: Indicates whether the medication order was compared to a formulary during signing. 'Y' indicates that the medication was compared to a payor-plan formulary, external formulary, or hospital formulary. 'N' or NULL indicates that the medication was not compared to a formulary. This does not indicate that the medication is or is not on any formulary, only that a formulary was checked for the medication.
+- **SELECTED_CRCL_SRC_C_NAME**: The selected CrCl source category ID for the order record, indicating the source of the creatinine clearance (CrCl) value.
+- **CRCL_ORD_SPEC_VAL**: This column stores the creatinine clearance (CrCL) value in the order.
+- **SELECTED_SCR_SRC_C_NAME**: The selected sCr source category ID for the order record, indicating the source of the serum creatinine (sCr) value.
+- **SCR_ORD_SPEC_VAL**: The serum creatinine (sCr) value for the order record.
+- **TRANSIG_LANGUAGE_ID**: The unique identifier of the language record used for translating patient-facing information in this order record.
+- **TRANSIG_LANGUAGE_ID_LANGUAGE_NAME**: The language name. If the language is written and uses more than one script to represent it, the name will contain the script in parentheses after the language name.
+- **ORIG_DOSE_BEFORE_SWITCH**: The original dose of the medication before the dose was adjusted.
+- **ORIG_DOSE_UNIT_BEFORE_SWITCH_C_NAME**: The unit category ID for the order record.
+- **MAXDOSE_HARDSTOP_YN**: Indicate whether the max dose limit is a hard stop for this order. If "Yes", the max dose is a hard stop. Otherwise, the max dose is not a hard stop.
+- **TXT_AUTHPROV_DIST_C_NAME**: The district category ID associated with the authorizing provider for this order record.
+- **TXT_AUTHPROV_CTY_C_NAME**: The county category ID associated with the authorizing provider for this order record.
+- **TXT_AUTHPROV_CTRY_C_NAME**: The country category ID associated with the authorizing provider for this order record.
+- **TXT_ORDPROV_HOUSE**: The house number of the ordering provider for this order record.
+- **TXT_ORDPROV_DIST_C_NAME**: The district category ID associated with the ordering provider for this order record.
+- **TXT_ORDPROV_CNTY_C_NAME**: The county category ID associated with the ordering provider for this order record.
+- **TXT_ORDPROV_CNTRY_C_NAME**: The country category ID associated with the ordering provider for this order record.
+- **MAX_BSA**: The maximum Body Surface Area (BSA) for an order, if the selected BSA is greater than this BSA then the selected BSA will be capped at this value.
+- **MAX_DAILY_DOSE**: Max daily dose value entered by the provider or defaulted as the calculated daily dose
+- **MAX_DLY_DOSE_UNIT_C_NAME**: The unit category ID for the orders record
+- **TXT_AUTHPROV_HOUSE**: The house number of the authorizing provider for this order record.
+- **UNROUNDED_DOSE_MIN**: The unrounded dose of this order. If the dose has a range (e.g. 1-2 mg), this is the lower end of the range. If the dose does not have a range, then this will store the dose.
+- **UNROUNDED_DOSE_MAX**: The unrounded dose of this order. If the dose has a range (e.g. 1-2 mg), this is the upper end of the range. Otherwise, this is null.
+- **UNROUND_DOSE_UNIT_C_NAME**: The med & dose unit category ID for the unrounded dose of this order record.
+- **ION_SPEC_AC_AMT**: This column shows the amount of acetate that a provider entered in this order record. This column will be empty if a chloride:acetate ratio or maximize option was selected.
+- **ION_SPEC_AC_UNIT_C_NAME**: The med & dose unit category ID for the acetate amount that a provider entered in this order record. This column will be empty if a chloride:acetate ratio or maximize option was selected.
+- **ION_MAXIMIZE_C_NAME**: The ion maximize selection category ID for the order record.
+- **ION_RATIO**: This column shows the chloride:acetate ratio option that was selected. This column is empty when a specified acetate amount was entered or when a maximize option was selected.
+- **ION_BASED_TPN_YN**: This column indicates how users specify electrolyte amounts for a total parenteral nutrition (TPN) order. 'Y' indicates that users enter amounts for specific ions to add in the TPN. 'N' indicates that users enter amounts for specific salts to add in the TPN.
+- **CALC_CL_AC_RATIO**: This column stores the calculated chloride:acetate ratio for an ion-based total parenteral nutrition (TPN).
+- **ION_PRI_CALC_AMT_C_NAME**: This column indicates whether the primary calculated amount is a weight-based or non-weight-based value.
+- **USE_AUC_DOSE_YN**: Indicates whether the system should automatically update the dose for the order based on the area under the curve (AUC) calculations. 'Y' indicates that the system updates the dose based on AUC calculations. 'N' or NULL indicates that the system does not update the dose based on AUC calculations.
+- **EPRES_PHARMACY_ID**: This column stores the ID of the pharmacy that accepted the prescription.
+- **EPRES_PHARMACIST_ID**: This column stores the ID of the pharmacist or pharmacy technician who accepted the prescription.
+- **EPRES_PHARMACIST_ID_NAME**: The name of the user record. This name may be hidden.
+- **RX_ACCEPT_DTTM**: Stores the instant at which the prescription was accepted.
+- **RPTSIG_EXISTS_YN**: Indicates whether the patient has indicated that they are taking this med differently from how it was prescribed to them for this order. If yes, the patient reported that they are taking the med differently. If no or null, the patient did not report that they are taking the med differently.
+- **HOLD_PENDING_PA_YN**: This item indicates whether the order is waiting for a prior authorization request to be completed before being sent to its final destination.
+- **SEND_PA_REQ_YN**: Indicates whether a prior authorization request should be sent for a medication order when it is signed. 'Y' indicates that a prior authorization request should be sent. 'N' indicates that a prior authorization request should not be sent.
+- **PA_ORG_ID**: The unique ID of the data exchange organization associated with the order record, which specifies the payer that a prior authorization request should be sent to when a medication order is signed.
+- **PA_ORG_ID_EXTERNAL_NAME**: Organization's external name used as the display name on forms and user interfaces.
+- **SCRIPT_SUP_ID**: The unique identifier of the provider under whose supervision a prescription was placed.
+- **ONE_STEP_MEDPROC_ID**: The unique ID of the order record. This item points to a procedure order record for the procedure used to administer the medication. The item is populated when administering a medication that is documented as administered in an Ophthalmology or Orthopedic context.
+- **SPEC_DOSE_LMT_HR**: The number of hours the dosing limit represents.
+- **SPEC_MED_TYPE_C_NAME**: The special medication type category ID for this order. This indicates whether the medication uses special dosing parameters, such as for patient-controlled analgesia orders.
+- **RX_TRANSITION_ID**: The unique identifier for the patient follow-up tracking record, which stores information about how a patient is transitioning from one medication to another.
+- **RX_TRANSITION_STAT_C_NAME**: The medication transition status category ID for the order record.
+- **RX_TRANSITION_STAT_RSN_C_NAME**: The medication transition status change reason category ID for the order record.
+- **RX_TRANSITION_STAT_CMT**: This item stores any additional comments about why the medication transition status was changed.
+- **RX_TRANSITION_STAT_USR_ID**: The unique identifier of the user who changed the transition status of the medication.
+- **RX_TRANSITION_STAT_USR_ID_NAME**: The name of the user record. This name may be hidden.
+- **RX_TRANSITION_STAT_UTC_DTTM**: The date and time the medication transition status of the order was changed.
+- **DISCON_LOCAL_TIME**: This item stores the instant in the patient's local time zone that an order was discontinued.
+- **RX_REQUEST_TYPE_C_NAME**: The prescription request type category ID for the order record
+- **DISC_WAIT_PA_YN**: This column indicates whether an order was discontinued while waiting for prior authorization.
+- **ERX_ORD_NAME**: The name of an order that was electronically prescribed.
+
+### ORDER_MED_5
+**Table**: This table enables you to report on medications ordered. This table should be used with ORDER_MED.
+- **ORDER_ID**: The unique identifier for the order record.
+- **FREE_TXT_SUP_PROV_NAME**: This is the name of the supervising provider.
+- **FREE_TXT_SUP_PROV_IS_EXT_YN**: This indicates whether the supervising provider comes from an external provider database.
+- **FREE_TXT_SUP_PROV_DEA**: This is the Drug Enforcement Administration (DEA) number of the supervising provider.
+- **FREE_TXT_SUP_PROV_NPI**: This is the National Provider Identifier (NPI) of the supervising provider.
+- **FREE_TXT_SUP_PROV_PHONE**: This is the phone number of the supervising provider.
+- **FREE_TXT_SUP_PROV_FAX**: This is the fax number of the supervising provider.
+- **FREE_TXT_SUP_PROV_STREET**: This is the street address of the supervising provider.
+- **FREE_TXT_SUP_PROV_CITY**: This is the city of the supervising provider.
+- **FREE_TXT_SUP_PROV_STATE_C_NAME**: This is the state of the supervising provider.
+- **FREE_TXT_SUP_PROV_ZIP**: This is the zip code of the supervising provider.
+- **FREE_TXT_SUP_PROV_HOUSE**: This is the house number of the supervising provider for medication instructions.
+- **FREE_TXT_SUP_PROV_DISTRICT_C_NAME**: This is the district of the supervising provider.
+- **FREE_TXT_SUP_PROV_COUNTY_C_NAME**: This is the county of the supervising provider.
+- **FREE_TXT_SUP_PROV_COUNTRY_C_NAME**: This is the country of the supervising provider.
+- **MLSIG_SIGTYPE_C_NAME**: The multiline sig type category ID for the order record, indicating the relationship between multiple sets of medication instructions, each defined for a discrete period of time. '1' or NULL indicates that the order record only has one set of medication instructions.
+- **HOME_HEALTH_DUE_COMMENT**: The comments entered about the home health medication due time or the person responsible for home health medication administration.
+- **HH_RESP_PERS_C_NAME**: The home health responsible person category ID for the order record, indicating the person responsible for administering the medication.
+- **BASE_MED_ORDER_ID**: The unique identifier for the order record representing a multi-product prescription group, containing this order record and others which represent individual product prescriptions within the group.
+- **MULTI_PROD_IMS_YN**: Indicates whether the order uses multi-product prescription ordering, which selects multiple products to reach the total ordered dose. 'Y' indicates that the medication uses multi-product prescription ordering. 'N' or NULL indicates that the medication uses single-product prescription ordering.
+- **PA_DISP_OVERRIDE_YN**: This item indicates if prior authorization should be shown or hidden for this order, regardless of whether other data indicates that PA is needed.
+- **SELECTED_CRCL_SEX_C_NAME**: The sex assigned at birth category ID for the patient sex used in creatinine clearance (CrCl) calculations.
+- **RX_TYPE_C_NAME**: Flag used to determine how this prescription should be sent to the Finland prescription center.
+- **MED_PROVENANCE**: This item stores provenance information about medications from external health record systems.
+- **PAIN_AGREEMENT_YN**: Stores whether or not there is a pain agreement with the patient effective at the time the order was placed.
+- **HOME_HEALTH_GIVE_PRN_YN**: Indicates whether the home health medication should be given on an as-needed basis in addition to or in place of scheduled due times. 'Y' indicates that the medication should be given on an as-needed basis. 'N' or NULL indicates that the medication should only be given at scheduled due times.
+- **PCA_TOTAL_DOSE_FLO_ID**: The unique identifier of the flowsheet row record storing the total dose row of the order's linked PCA assessments. If the order is not for a PCA or it does not have a linked PCA assessment configured, the value will be null. A flowsheet row is a documentation tool used to track a specific piece of information over time.
+- **PCA_TOTAL_DOSE_FLO_ID_DISP_NAME**: The display name given to the flowsheet group/row.
+- **NO_RENEW_REASON_C_NAME**: The do not renew reason category ID for the order record.
+- **ORIG_RX_ORDER_CLASS_C_NAME**: For prescription orders created by the interface, this item holds the order class that was assigned at the time the order was created.
+- **ORDER_INST_UTC_DTTM**: The date and time the order was placed in UTC. This is the same as the data in ORDER_MED.ORDER_INST, but in UTC.
+- **HH_NOT_DAILY_YN**: Indicates whether a home health medication is not taken daily. 'Y' indicates that the home health medication is not taken daily. 'N' or NULL indicates that the home health medication is taken daily.
+- **CONFIDENTIALITY_FLAG_C_NAME**: The hide from proxies flag category ID for the order record, indicating whether the order should be hidden on medication lists shown to a patient's family or proxies.
+- **ORDERED_DAYS_SUPPLY_PER_FILL**: The calculated minimum days supply of the medication ordered. The value for this item is calculated when the order is signed, or when the order is edited by the pharmacy.
+- **PAUSE_START_DTTM**: The start instant for the pause period of a medication order.
+- **PAUSE_END_DTTM**: The end instant for the pause period of a medication order.
+- **PREVIOUS_INR_DATE**: The date of the patient's last INR assessment.
+- **NEXT_INR_DATE**: The next date on which a patient's international normalized ratio (INR) should be assessed.
+- **USER_SEL_ORDER_TEMPLATE_OTL_ID**: The unique ID of the order template record which a user selected to create the order record for this row.
+- **DISP_RECPNT_NAME**: This item holds the recipient name for the dispatch request.
+- **DISP_RECPNT_CITY**: This item holds the city for this dispatch request.
+- **DISP_RECPNT_STATE_C_NAME**: This item holds the state for this dispatch request.
+- **DISP_RECPNT_ZIP**: This item holds the zip code for this dispatch request.
+- **DISP_RECPNT_COUNTRY_2_C_NAME**: This item holds the country for this dispatch request.
+- **DISP_RECPNT_HOUSE**: This item holds the house number for this dispatch request.
+- **DISP_RECPNT_COUNTY_2_C_NAME**: This item holds the county for this dispatch request.
+- **DISP_RECPNT_DISTRICT_C_NAME**: This item holds the district for this dispatch request.
+- **HH_IN_BAG_YN**: Indicates whether a home health medication was marked by a clinician as prepacked in a bag. 'Y' indicates that the medication was prepacked in a bag. 'N' or NULL indicates that the medication was not prepacked in a bag.
+- **HH_IN_PILL_BOX_YN**: Indicates whether a home health medication was marked by a clinician as dispensed in a pill box. 'Y' indicates that the medication was dispensed in a pill box. 'N' or NULL indicates that the medication was not dispensed in a pill box.
+- **HH_BAG_START_DATE**: The start date of a home health medication prepacked in a bag.
+- **HH_BAG_END_DATE**: The end date of a home health medication prepacked in a bag.
+- **HH_PILL_START_DATE**: The start date of a home health medication dispensed in a pill box.
+- **HH_PILL_END_DATE**: The end date of a home health medication dispensed in a pill box.
+- **BRAND_SEL_RSN_C_NAME**: The brand selected reason category ID for the order, indicating why the brand medication was selected. This column is blank if the brand product was selected because a user specified the medication should be dispensed as written.
+- **DISCON_PAT_ENC_DATE_REAL**: The encounter or visit in which the medication was discontinued.
+- **UNIQUE_ORDER_IDENTIFIER**: Order identifier that is unique for all deployments
+- **REC_W_MAP_ERX_YN**: Flag that indicates if an ORD row was created in Reconcile Outside Information by a user manually choosing an ERX to match with an unmapped DXR prescription. 'Y' Indicates that an order was manually mapped by a user. 'N' indicates that the order was not manually mapped by a user. NULL indicates that the order was not created in Reconcile Outside Information or the item is not used in the current locale.
+
+### ORDER_MED_6
+**Table**: This table enables you to report on medications ordered. This table should be used with ORDER_MED.
+- **ORDER_MED_ID**: The unique identifier for the medication order record.
+- **AUTH_SER_ADDRESS_ID**: The unique ID for the address of the order's authorizing provider. It is used to identify an address using the address unique ID (I SER 21000) stored in the provider record.
+- **ORDER_SER_ADDR_ID**: The unique ID for the address of the order's ordering provider. It is used to identify an address using the address unique ID (I SER 21000) stored in the provider record.
+- **SUP_SER_ADDRESS_ID**: The unique ID for the address of the order's supervising provider. It is used to identify an address using the address unique ID (I SER 21000) stored in the provider record.
+- **TEMP_LONG_TERM_IN_C_NAME**: The category number for the temporary long-term indicator for unsigned orders.
+- **PRIORITIZED_INST_UTC_DTTM**: This item stores the prioritized instant (date and time) for an order in UTC time zone. It represents the most relevant date and time an action was taken on an order.
+- **PRIORITIZED_INST_DTTM**: This item stores the prioritized instant (date and time) for an order in local time zone. It represents the most relevant date and time an action was taken on an order.
+- **NEXT_SCH_INST_AT_DISCON_DTTM**: The next scheduled date and time for the order at the time of discontinue.
+- **NEXT_SCH_AT_DISCON_OFF_SCH_YN**: Indicates whether the next scheduled time of the order at the time of discontinue is off-schedule. 'Y' indicates that the next scheduled time was off-schedule. 'N' or NULL indicate that the next scheduled time was not off-schedule.
+- **ORD_SIG_HAS_IOU_YN**: Indicates whether Indications of Use are present in the patient sig. 'Y' indicates Indications of Use are present in the patient sig. 'N' or NULL indicate that Indications of Use are not present in the patient sig.
+- **MED_DIRECTIONS_LONG**: Contains the directions for taking a medication order.
+- **USER_CHANGED_END_TIME_YN**: Indicates whether the end time is entered by a user. This is only populated for unsigned medication orders. 'Y' indicates the end time is entered by a user. 'N' or NULL indicate that the end time is not entered by a user.
+- **ORIG_MED_DIRECTIONS_LONG**: Contains the original directions for taking a medication order.
+- **NO_REIMBURS_CODESET**: Holds the code set of the selected reimbursement code.
+- **STANDING_COUNT**: This item stores a numeric value for the count of the order that goes along with the standing count type, indicating the number of hours, days, weeks, or occurrences for which the order will take place.
+- **STANDING_COUNT_TP_C_NAME**: This count type goes along with the count from ORD-34040 to indicate the number of hours, days, weeks, or occurrences for which the order will take place.
+
+### ORDER_MED_7
+**Table**: This table enables you to report on medications ordered. This table should be used with ORDER_MED.
+- **ORDER_ID**: The unique identifier (.1 item) for the order record.
+- **MED_DOSAGE_END_DATE**: Stores the calculated end date of the order when using the wide end date feature
+- **FIRST_DOSE_EDU_PATIENT_CSN_ID**: The unique contact serial number of the patient encounter associated with first-dose education.
+- **PENDED_PREV_SIG**: For a pended medication order, this holds the contents (if any) of the "Sig (Previous)" display item from the order composer.  If populated, this is the sig (ORD 7055) of the source order at the time the reorder was created.
+- **DOSE_ADJ_ACCEPTED_YN**: Stores whether the dose adjustment is accepted.
+- **MED_DOSE_CALCULATION_DESC**: Stores medication dose override dose programming point calculation.
+- **NUM_DOSES_TO_SCHED**: Stores the number of doses that should actually be scheduled after reconciling a pre-existing OP order into an encounter which schedules OP meds
+- **DO_NOT_SCHED_PAST_DATE**: Stores the last date on which it is OK to schedule an OP order that has been reconciled into an encounter that schedules OP meds
+- **SCHED_FROM_PERIOD**: Stores the period to start scheduling from for an OP order that has been reconciled into an encounter that schedules OP meds
+- **SCHED_FROM_PERIOD_DURATION**: Stores the remaning number of days in the period to start scheduling from for an OP order that has been reconciled into an encounter that schedules OP meds
+- **SEND_TO_PHARM_REASON_C_NAME**: Reasons for sending a prescription directly to a pharmacy. For Australia e-prescribing.
+- **RX_MOBILE_NUM**: Patient's mobile phone number. For Australia e-prescribing.
+- **MED_PROV_ORDER_ID**: Links to the shadow order containing provisional verify data
+- **TAPER_TRIMMING_INCOMPLETE_C_NAME**: Set to Yes if the taper trimming UI's decision hasn't been made yet
+- **STARTED_TAKING_DATE**: The date the patient reports they started taking a medication
+- **RX_REQ_SUBTYPE_C_NAME**: This item specifies the subtype of the external change request this order represents. It is only set on orders created by external pharmacies, and is used in conjunction with ORD 7499.
+- **RESCARE_REORDER_C_NAME**: Response to a question that a user is shown when reordering or modifying an outpatient order while the patient is admitted to a residential care facility.
+- **DISCRETE_SIG_SOURCE_C_NAME**: The discrete sig source category ID for the order.
+- **MED_ORIG_DOSAGE_END_DATE**: Stores the original dosage end date for a medication order when using the wide end date feature if it was changed after the order was signed
+- **SCHED_FIRST_DOSE_DTTM**: Stores the date and time that the first dose in an admission should be scheduled
+- **LAST_REFILL_REQUEST_UTC_DTTM**: The datetime of when the patient last requested a refill for this medication order through MyChart. Used to determine when another refill can be requested for medications filled through non-integrated pharmacies.
+- **SCHEDULE_PAT_ENC_CSN_ID**: The unique contact serial number of the Patient contact for when Low Acuity scheduling information is saved to an order (SI 34570).
+- **SOURCE_SCHED_IN_PAT_ENC_CSN_ID**: The unique contact serial number for the low-acuity admission contact if the source order is schedulable in that admission when the current order is signed or released. This number is unique across all patient encounters in your system. If you use IntraConnect, this is the Unique Contact Identifier (UCI).
+- **SCHEDULE_USING_METHOD_C_NAME**: The schedule using method category ID for the order. This determines how the medication should schedule administration due times in an encounter that supports scheduling outpatient medications on the MAR.
+- **NEED_INTAKE_SCHED_YN**: Stores whether the medication needs intake to be scheduled, even if it was ordered directly on the low acuity encounter.
+- **RX_WRITTEN_UTC_DTTM**: The UTC instant of when the prescription was written
+- **REMAINING_DOSES_BEFORE_INTAKE**: The system will track the number of doses remaining for the order prior to the most recent intake into a low acuity medication management encounter.
+- **MED_CHG_REPLACE_YN_NAME**: Flag to determine if I ORD 7088 - Med change reorder ID is actually a replacement ID.
+
+### ORDER_MED_MORPHINE_EQUIV
+**Table**: This table stores virtual morphine equivalence items in ORD.
+- **ORDER_ID**: The unique identifier (.1 item) for the order record.
+- **PCA_MORPHINE_EQUIV_CONV_FACTOR**: This column stores the calculated morphine equivalent conversion factor of a patient-controlled analgesia (PCA) order. If the order is not for a PCA or it does not have a linked PCA assessment configured, the value will be null. The conversion factor is calculated as the equivalent amount of mg of morphine based on a 1-unit dose of the order. If the medication doesn't contain an opioid, the value will be zero. If there is an error calculating the morphine equivalency, the value will be 999999.
 
 ### ORDER_MED_SIG
 **Table**: The ORDER_MED_SIG table stores the patient instructions for a prescription as entered by the user. The table should be used in conjunction with the ORDER_MED table which contains related medication, patient, and contact identification information you can report on.
 - **ORDER_ID**: The unique ID of the order record associated with this medication order. This is an internal unique identifier for ORD master file records in this table and cannot be used to link to CLARITY_MEDICATION.
 - **SIG_TEXT**: Patient instructions for the prescription as entered by the user.
 
+### ORDER_MED_VITALS
+**Table**: This table stores historical patient vitals information for each medication order at the time the order was released. It should only be used for reporting on whether or not vitals information had been entered at that point in time.
+- **ORDER_ID**: The unique identifier for the order record.
+- **WEIGHT_AT_RELEASE**: The patient's recorded weight in kilograms at the time the order was released.
+- **WEIGHT_REL_SOURCE_C_NAME**: The source category ID for the patient's recorded weight at the time the order was released.
+- **HEIGHT_AT_RELEASE**: The patient's recorded height in centimeters at the time the order was released.
+- **HEIGHT_REL_SOURCE_C_NAME**: The source category ID for the patient's recorded height at the time the order was released.
+- **BSA_AT_RELEASE**: The patient's calculated body surface area (BSA) in meters squared at the time the order was released.
+- **BSA_REL_SOURCE_C_NAME**: The source category ID for the patient's recorded body surface area (BSA) at the time the order was released.
+
+### ORDER_RPTD_SIG_HX
+**Table**: This table contains a history of sig-related data for prescriptions, both what the provider initially prescribed and what the patient later reported taking. Most commonly, the first row for any prescription represents the sig as the prescription was written, and subsequent rows will represent changes in what the patient reports taking.
+- **ORDER_ID**: The unique identifier for the order record.
+- **LINE**: The line number for the information associated with this record. Multiple pieces of information can be associated with this record.
+- **PAT_ENC_CSN_ID**: The unique contact serial number for this contact. This number is unique across all patient encounters in your system. If you use IntraConnect, this is the Unique Contact Identifier (UCI).
+- **ENTRY_USER_ID**: The unique identifier of the user who entered the medication instructions.
+- **ENTRY_USER_ID_NAME**: The name of the user record. This name may be hidden.
+- **ENTRY_DTTM**: The date and time when these medication instructions were entered.
+- **ACTION_C_NAME**: The action represented by this sig - e.g. the initial prescription; the pharmacist has edited the sig; or the patient reports taking this medication differently from how it was prescribed.
+- **SOURCE_C_NAME**: The location from which this sig was entered.
+- **INFORMANT_C_NAME**: The relationship to patient category ID for the person (as related to the patient) who reported the medication instructions for this medication.
+- **REASON_C_NAME**: The reason given for why the patient is not taking the medication as prescribed.
+- **REASON_COMMENT**: Additional comments on the reason why the patient is not taking the medication as prescribed.
+- **DOSE_MIN**: The lower bound of the ranged dose for this medication's instructions.
+- **DOSE_UNIT_C_NAME**: The med & dose unit category ID for the dose of this medication's instructions.
+- **FREQUENCY_ID**: The unique identifier of the frequency record used in the medication instructions.
+- **FREQUENCY_ID_FREQ_NAME**: The name of the frequency record.
+- **PRN_COMMENT**: The as-needed comment for the medication instructions.
+- **ROUTE_C_NAME**: The route for this medication instructions.
+- **INDICATIONS_COMMENT**: Comments about the indications of use for the medication instructions.
+- **DOSE_MAX**: The upper bound of the ranged dose for this medication's instructions.
+- **BRUKSOMRADE**: Stores the patient-reported Bruksom�de in Norway
+- **BRUKSOMRADE_MEDICAL_COND_ID**: Stores the patient-reported Bruksom�de (Discrete) in Norway
+- **BRUKSOMRADE_MEDICAL_COND_ID_MEDICAL_COND_NAME**: This contains the name of the medical condition.
+
+### ORDER_RPTD_SIG_TEXT
+**Table**: For each row in ORDER_RPTD_SIG_HX, this table contains the complete sig for the data represented by that row. Depending on whether your organization uses discrete sigs or not, this text may be generated from the various discrete fields or entered directly.
+- **ORDER_ID**: The unique identifier for the order record.
+- **GROUP_LINE**: The line number for the information associated with the text of the sig of this medication.
+- **VALUE_LINE**: The line number of one of the multiple values associated with a specific group of text of a sig within this record.
+- **SIG_TEXT**: The text of the medication instructions for the order record.
+
+### ORD_DOSING_PARAMS
+**Table**: This table contains dosing parameters.
+- **ORDER_ID**: The unique identifier for the order record.
+- **ORD_DOSING_WEIGHT**: Weight used for dosing. Always stored in kilograms.
+- **ORD_DW_REC_DTTM**: The instant at which the weight was recorded.
+- **ORD_WT_SOURCE_C_NAME**: This column contains the source of the patient weight used for dosing patient-controlled analgesia (PCA) medication.
+- **ORD_WT_COMMENTS**: Generated comment for dosing weight.
+- **ORD_DOSING_HEIGHT**: This column contains the patient height used for dosing PCA medication. The value stored is in inches for all orders after weight-based dosing was turned on, or starting in Spring 2008, whichever came first. Values are stored in centimeters for treatment plan orders made prior to that.
+- **ORD_HT_REC_DTTM**: The instant at which the height was recorded.
+- **ORD_HT_SOURCE_C_NAME**: This column contains the source of the patient height used for dosing patient-controlled analgesia (PCA) medication.
+- **ORD_HT_COMMENTS**: Generated comment for dosing height.
+- **ORD_DOSING_BSA**: The body surface area used for dosing.
+- **ORD_BSA_SRC_C_NAME**: This column contains the source of the body surface area used for dosing patient-controlled analgesia (PCA) medication.
+- **ORD_BSA_CALC_DTL**: The dosing body surface area calculation details with weight, height and recorded instants.
+- **ORD_BSA_COMMENTS**: Generated comment for dosing body surface area.
+
+### ORD_DOSING_PARAMS_2
+**Table**: This table contains dosing parameters.
+- **ORDER_ID**: The unique identifier for the order record.
+- **ORD_DOSING_BSA_ORIG**: The original (uncapped) BSA of an order
+
+### ORD_MED_USER_ADMIN
+**Table**: This table contains user-entered administration instructions. This information is already contained as a part of the table ORD_MED_ADMININSTR so this table does not have to be extracted.
+- **ORDER_ID**: The unique ID of the medication order (prescription) record. NOTE: This is an internal unique identifier for order (ORD) master file records in this table and cannot be used to link to CLARITY_MEDICATION.rd.
+- **LINE**: The line number for each user-entered administration instruction line.
+- **MED_USER_ADMN_INSTR**: User-entered admin instructions converted to plain text. This item (I ORD 7226) replaces the functionality of I ORD 7220 for entering/changing admin instructions. I ORD 7220 is still used for displaying the admin instructions and is updated automatically from this item.
+- **ORDERING_DATE**: The date the order was placed in calendar format.
+
+### PRESC_ID
+**Table**: This table contains the prescription ID of an order that is populated by an interface.
+- **ORDER_ID**: The unique ID for the Order record for the prescription.
+- **LINE**: The line number for the prescription ID. Multiple pieces of information can be associated with this contact.
+- **PRESC_ID**: The prescription ID of the order populated by an interface.
+
 ## Sample Data (one representative non-null value per column)
+
+### DUPMED_DISMISS_HH_INFO
+- ORDER_ID = `439060604`
+
+### MEDS_REV_HX
+- PAT_ID = `Z7004242`
+- LINE_COUNT = `1`
+- MEDS_HX_REV_INSTANT = `8/9/2018 9:46:15 AM`
+- MEDS_HX_REV_USER_ID = `WENTZTC`
+- MEDS_HX_REV_USER_ID_NAME = `IRELAND, TRACY C`
+- MEDS_HX_REV_CSN = `720803470`
+- MEDS_HX_REV_COUNT = `0`
+
+### ORDER_DX_MED
+- ORDER_MED_ID = `772179261`
+- LINE = `1`
+- PAT_ENC_DATE_REAL = `66350`
+- PAT_ENC_CSN_ID = `948004323`
+- DX_ID = `108212`
+- DX_CHRONIC_YN = `N`
 
 ### ORDER_MED
 - ORDER_MED_ID = `772179261`
@@ -806,6 +1199,30 @@ This table should be used with ORDER_MED.
 - MED_DIS_DISP_UNIT_C_NAME = `capsule`
 - BSA_BASED_YN = `N`
 
+### ORDER_MEDINFO
+- ORDER_MED_ID = `772179261`
+- MED_LINKED_PROC_ID = `71168`
+- MED_CNCT_DAT_REAL = `64167`
+- CALC_VOLUME_YN = `Y`
+- MEDICATION_ID = `5674`
+- CALC_MIN_DOSE = `10`
+- CALC_DOSE_UNIT_C_NAME = `mg`
+- ADMIN_MIN_DOSE = `1`
+- ADMIN_DOSE_UNIT_C_NAME = `capsule`
+- PAT_ENC_DATE_REAL = `66444`
+- PAT_ENC_CSN_ID = `974614965`
+- ORDERING_DATE = `12/1/2022 12:00:00 AM`
+- ORDER_CLASS_C_NAME = `Normal`
+- ORDER_SOURCE_C_NAME = `OP Visit Taskbar`
+- DFLT_DISCRETE_FREQ_NAME = `Yes`
+- DFLT_DISCRETE_DOSE_NAME = `Yes`
+- MED_CONTACT_DT = `9/6/2016 12:00:00 AM`
+- DFLT_DISCRETE_C_NAME = `Yes`
+- PT_SIG_SMARTTEXT_ID = `40812090`
+- PT_SIG_SMARTTEXT_ID_SMARTTEXT_NAME = `RX PATIENT SIG DISPLAY`
+- DISPENSABLE_MED_ID = `5674`
+- ONE_STEP_MED_YN = `N`
+
 ### ORDER_MED_2
 - ORDER_ID = `772179261`
 - RX_WRITTEN_DATE = `8/29/2022 12:00:00 AM`
@@ -842,17 +1259,100 @@ This table should be used with ORDER_MED.
 - SIG_REVIEW_INS_DTTM = `12/22/2023 3:11:00 PM`
 - EPRES_DEST_C_NAME = `Outgoing Interface`
 
-### ORDER_DX_MED
+### ORDER_MED_4
+- ORDER_ID = `772179261`
+- INTERFACE_STAT_C_NAME = `ORDER CREATED FROM INTERFACE`
+- WAS_FMLY_CHECKED_YN = `Y`
+- UNROUNDED_DOSE_MIN = `10`
+- UNROUND_DOSE_UNIT_C_NAME = `mg`
+- SEND_PA_REQ_YN = `N`
+- DISCON_LOCAL_TIME = `9/28/2023 9:38:50 AM`
+- RX_REQUEST_TYPE_C_NAME = `Refill Request`
+- ERX_ORD_NAME = `Lisinopril 10 MG Oral Tablet`
+
+### ORDER_MED_5
+- ORDER_ID = `772179261`
+- PAIN_AGREEMENT_YN = `N`
+- ORDER_INST_UTC_DTTM = `8/29/2022 7:23:02 PM`
+- ORDERED_DAYS_SUPPLY_PER_FILL = `90`
+- DISCON_PAT_ENC_DATE_REAL = `66745`
+- UNIQUE_ORDER_IDENTIFIER = `772179261:0052526554`
+
+### ORDER_MED_6
 - ORDER_MED_ID = `772179261`
-- LINE = `1`
-- PAT_ENC_DATE_REAL = `66350`
-- PAT_ENC_CSN_ID = `948004323`
-- DX_ID = `108212`
-- DX_CHRONIC_YN = `N`
+- PRIORITIZED_INST_UTC_DTTM = `8/29/2022 7:23:02 PM`
+- PRIORITIZED_INST_DTTM = `8/29/2022 2:23:02 PM`
+- ORD_SIG_HAS_IOU_YN = `N`
+
+### ORDER_MED_7
+- ORDER_ID = `772179261`
+- RX_WRITTEN_UTC_DTTM = `12/22/2023 9:48:28 PM`
+
+### ORDER_MED_MORPHINE_EQUIV
+- ORDER_ID = `772179261`
 
 ### ORDER_MED_SIG
 - ORDER_ID = `772179261`
 - SIG_TEXT = `Take 1 (one) tablet by mouth daily.`
+
+### ORDER_MED_VITALS
+- ORDER_ID = `772179261`
+- WEIGHT_AT_RELEASE = `80.9`
+- WEIGHT_REL_SOURCE_C_NAME = `Most current measured weight (actual)`
+- HEIGHT_AT_RELEASE = `179.71`
+- HEIGHT_REL_SOURCE_C_NAME = `Most current measured height (Actual)`
+- BSA_AT_RELEASE = `2.01`
+- BSA_REL_SOURCE_C_NAME = `Based on most recent measured weight and height (actual)`
+
+### ORDER_RPTD_SIG_HX
+- ORDER_ID = `772179261`
+- LINE = `1`
+- PAT_ENC_CSN_ID = `948004323`
+- ENTRY_USER_ID = `RAMMELZL`
+- ENTRY_USER_ID_NAME = `RAMMELKAMP, ZOE L`
+- ENTRY_DTTM = `8/29/2022 2:23:00 PM`
+- ACTION_C_NAME = `Initial Prescription`
+- SOURCE_C_NAME = `Order Creation`
+- DOSE_MIN = `10`
+- DOSE_UNIT_C_NAME = `mg`
+- FREQUENCY_ID = `200001`
+- FREQUENCY_ID_FREQ_NAME = `DAILY`
+- ROUTE_C_NAME = `Oral`
+
+### ORDER_RPTD_SIG_TEXT
+- ORDER_ID = `772179261`
+- GROUP_LINE = `1`
+- VALUE_LINE = `1`
+- SIG_TEXT = `Take 1 (one) tablet by mouth daily.`
+
+### ORD_DOSING_PARAMS
+- ORDER_ID = `439060604`
+- ORD_DOSING_WEIGHT = `80.9`
+- ORD_DW_REC_DTTM = `8/29/2022 1:34:00 PM`
+- ORD_WT_SOURCE_C_NAME = `Most current measured weight (actual)`
+- ORD_WT_COMMENTS = `Weight as of 8/29/2022`
+- ORD_DOSING_HEIGHT = `70.75`
+- ORD_HT_REC_DTTM = `8/29/2022 1:34:00 PM`
+- ORD_HT_SOURCE_C_NAME = `Most current measured height (Actual)`
+- ORD_HT_COMMENTS = `Height: 179.7 cm as of 8/29/2022`
+- ORD_DOSING_BSA = `2.01`
+- ORD_BSA_SRC_C_NAME = `Based on most recent measured weight and height (actual)`
+- ORD_BSA_CALC_DTL = `BSA based on [Weight: 80.9 kg as of 8/29/2022] [Height: 179.7 cm as of 8/29/2022]`
+
+### ORD_DOSING_PARAMS_2
+- ORDER_ID = `439060604`
+- ORD_DOSING_BSA_ORIG = `2.01`
+
+### ORD_MED_USER_ADMIN
+- ORDER_ID = `772179266`
+- LINE = `1`
+- MED_USER_ADMN_INSTR = `Start with 10 mg at night; can increase to 20 mg after 1-2 weeks if no`
+- ORDERING_DATE = `12/1/2022 12:00:00 AM`
+
+### PRESC_ID
+- ORDER_ID = `772179269`
+- LINE = `1`
+- PRESC_ID = `6130|4010621|1|0|1::1621401998`
 
 ## Pipeline Code
 
@@ -873,11 +1373,28 @@ function projectMedications(patId: unknown): EpicRow[] {
   }
   return rows;
 }
+
+const medChildren: ChildSpec[] = [
+  { table: "ORDER_DX_MED", fkCol: "ORDER_MED_ID", key: "diagnoses" },
+  { table: "ORDER_MEDINFO", fkCol: "ORDER_MED_ID", key: "med_info" },
+  { table: "ORDER_MED_SIG", fkCol: "ORDER_ID", key: "signature" },
+  { table: "ORD_DOSING_PARAMS", fkCol: "ORDER_ID", key: "dosing_params", merged: true },
+  { table: "ORDER_RPTD_SIG_HX", fkCol: "ORDER_ID", key: "reported_sig_history" },
+  { table: "ORDER_RPTD_SIG_TEXT", fkCol: "ORDER_ID", key: "reported_sig_text" },
+  { table: "DUPMED_DISMISS_HH_INFO", fkCol: "ORDER_ID", key: "dup_dismiss" },
+  { table: "ORDER_MED_MORPHINE_EQUIV", fkCol: "ORDER_ID", key: "morphine_equiv" },
+  { table: "ORDER_MED_VITALS", fkCol: "ORDER_ID", key: "med_vitals" },
+  { table: "ORD_MED_USER_ADMIN", fkCol: "ORDER_ID", key: "user_admin" },
+  { table: "PRESC_ID", fkCol: "ORDER_ID", key: "prescription_ids" },
+]
+
+// ─── Inline in main() ───
+  medication_review_history: tableExists("MEDS_REV_HX") ? children("MEDS_REV_HX", "PAT_ID", patId) : [],
 ```
 
 ### Stage 2: Domain Model Hydration (PatientRecord.ts)
 ```typescript
-// Medications are raw EpicRow[] — no typed class
+// (raw EpicRow[], no typed class)
 ```
 
 ### Stage 3: Clean Projection (HealthRecord.ts → final output)
@@ -904,83 +1421,79 @@ function projectMedication(m: any): Medication {
 ## Actual Output (from health_record_full.json)
 
 ```json
-[
-  {
-    "id": "772179266",
-    "name": "nortriptyline (PAMELOR) 10 MG capsule",
-    "genericName": "NORTRIPTYLINE HCL 10 MG PO CAPS",
-    "dose": "10 mg",
-    "route": "Oral",
-    "frequency": "NIGHTLY",
-    "startDate": "2022-12-01",
-    "endDate": "2023-02-20",
-    "status": "Sent",
-    "prescriber": "RAMMELKAMP, ZOE L",
-    "pharmacy": "WALGREENS DRUG STORE #06130 - MADISON, WI - 3700 UNIVERSITY AVE AT NEC OF MIDVALE & UNIVERSITY",
-    "_epic": {
-      "ORDER_MED_ID": 772179266,
-      "PAT_ID": "Z7004242",
-      "PAT_ENC_DATE_REAL": 66444,
-      "PAT_ENC_CSN_ID": 974614965,
-      "ORDERING_DATE": "12/1/2022 12:00:00 AM",
-      "ORDER_CLASS_C_NAME": "Normal",
-      "PHARMACY_ID": 64308,
-      "PHARMACY_ID_PHARMACY_NAME": "WALGREENS DRUG STORE #06130 - MADISON, WI - 3700 UNIVERSITY AVE AT NEC OF MIDVALE & UNIVERSITY",
-      "ORD_CREATR_USER_ID": "RAMMELZL",
-      "ORD_CREATR_USER_ID_NAME": "RAMMELKAMP, ZOE L",
-      "MEDICATION_ID": 5674,
-      "DESCRIPTION": "NORTRIPTYLINE HCL 10 MG PO CAPS",
-      "QUANTITY": "90 capsule",
-      "REFILLS": "1",
-      "START_DATE": "12/1/2022 12:00:00 AM",
-      "END_DATE": "2/20/2023 12:00:00 AM",
-      "MED_PRESC_PROV_ID": "144590",
-      "UPDATE_DATE": "4/4/2023 4:11:00 PM",
-      "ORDER_INST": "12/1/2022 10:15:00 AM",
-      "DISPLAY_NAME": "nortriptyline (PAMELOR) capsule",
-      "HV_HOSPITALIST_YN": "N",
-      "ORDER_PRIORITY_C_NAME": "Routine",
-      "MED_ROUTE_C_NAME": "Oral",
-      "DISCON_USER_ID": "RAMMELZL",
-      "DISCON_USER_ID_NAME": "RAMMELKAMP, ZOE L",
-      "DISCON_TIME": "2/20/2023 7:27:00 PM",
-      "HV_DISCR_FREQ_ID": "200058",
-      "HV_DISCR_FREQ_ID_FREQ_NAME": "NIGHTLY",
-      "HV_DISCRETE_DOSE": "10",
-      "HV_DOSE_UNIT_C_NAME": "mg",
-      "ORDER_START_TIME": "12/1/2022 12:00:00 AM",
-      "ORDER_END_TIME": "2/20/2023 12:00:00 AM",
-      "ORDER_STATUS_C_NAME": "Sent",
-      "AUTHRZING_PROV_ID": "144590",
-      "ORD_PROV_ID": "144590",
-      "MIN_DISCRETE_DOSE": 10,
-      "DOSE_UNIT_C_NAME": "mg",
-      "PROVIDER_TYPE_C_NAME": "Authorizing",
-      "ACT_ORDER_C_NAME": "Active Medication",
-      "USER_SEL_MED_ID": 5674,
-      "USER_SEL_ERX_DAT": "9/6/2016 12:00:00 AM",
-      "MDL_ID": 73847702,
-      "AMB_MED_DISP_NAME": "nortriptyline (PAMELOR) 10 MG capsule",
-      "WEIGHT_BASED_YN": "N",
-      "REFILLS_REMAINING": 1,
-      "ORDERING_MODE_C_NAME": "Outpatient",
-      "EXT_ELG_SOURCE_ID": "P00000000001001",
-      "EXT_ELG_MEMBER_ID": "FA1000010XMWEJQ%602496879%001",
-      "EXT_FORMULARY_ID": "00935",
-      "EXT_COVERAGE_ID": "003171310000000000000000",
-      "EXT_PHARMACY_TYPE_C_NAME": "Retail+Mail",
-      "EXT_FORMULARY_STAT": "4",
-      "EXT_COV_AGE_LMT_YN": "N",
-      "EXT_COV_EXCLUS_YN": "N",
-      "EXT_COV_SEX_LMT_YN": "N",
-      "EXT_COV_MED_NCST_YN": "N",
-      "EXT_COV_PRI_AUTH_YN": "N",
-      "EXT_COV_QNTY_LMT_YN": "N",
-      "EXT_COV_LNK_DRUG_YN": "N",
-      "EXT_COV_LNK_SMRY_YN": "N",
-      "EXT_COV_STEP_MED_YN": "N",
-      "EXT_COV_STEP_THR_YN": "N",
-      "USR_SEL_IMS_YN":
+{
+  "medications": [
+    {
+      "id": "772179266",
+      "name": "nortriptyline (PAMELOR) 10 MG capsule",
+      "genericName": "NORTRIPTYLINE HCL 10 MG PO CAPS",
+      "dose": "10 mg",
+      "route": "Oral",
+      "frequency": "NIGHTLY",
+      "startDate": "2022-12-01",
+      "endDate": "2023-02-20",
+      "status": "Sent",
+      "prescriber": "RAMMELKAMP, ZOE L",
+      "pharmacy": "WALGREENS DRUG STORE #06130 - MADISON, WI - 3700 UNIVERSITY AVE AT NEC OF MIDVALE & UNIVERSITY",
+      "_epic": {
+        "ORDER_MED_ID": 772179266,
+        "PAT_ID": "Z7004242",
+        "PAT_ENC_DATE_REAL": 66444,
+        "PAT_ENC_CSN_ID": 974614965,
+        "ORDERING_DATE": "12/1/2022 12:00:00 AM",
+        "ORDER_CLASS_C_NAME": "Normal",
+        "PHARMACY_ID": 64308,
+        "PHARMACY_ID_PHARMACY_NAME": "WALGREENS DRUG STORE #06130 - MADISON, WI - 3700 UNIVERSITY AVE AT NEC OF MIDVALE & UNIVERSITY",
+        "ORD_CREATR_USER_ID": "RAMMELZL",
+        "ORD_CREATR_USER_ID_NAME": "RAMMELKAMP, ZOE L",
+        "MEDICATION_ID": 5674,
+        "DESCRIPTION": "NORTRIPTYLINE HCL 10 MG PO CAPS",
+        "QUANTITY": "90 capsule",
+        "REFILLS": "1",
+        "START_DATE": "12/1/2022 12:00:00 AM",
+        "END_DATE": "2/20/2023 12:00:00 AM",
+        "MED_PRESC_PROV_ID": "144590",
+        "UPDATE_DATE": "4/4/2023 4:11:00 PM",
+        "ORDER_INST": "12/1/2022 10:15:00 AM",
+        "DISPLAY_NAME": "nortriptyline (PAMELOR) capsule",
+        "HV_HOSPITALIST_YN": "N",
+        "ORDER_PRIORITY_C_NAME": "Routine",
+        "MED_ROUTE_C_NAME": "Oral",
+        "DISCON_USER_ID": "RAMMELZL",
+        "DISCON_USER_ID_NAME": "RAMMELKAMP, ZOE L",
+        "DISCON_TIME": "2/20/2023 7:27:00 PM",
+        "HV_DISCR_FREQ_ID": "200058",
+        "HV_DISCR_FREQ_ID_FREQ_NAME": "NIGHTLY",
+        "HV_DISCRETE_DOSE": "10",
+        "HV_DOSE_UNIT_C_NAME": "mg",
+        "ORDER_START_TIME": "12/1/2022 12:00:00 AM",
+        "ORDER_END_TIME": "2/20/2023 12:00:00 AM",
+        "ORDER_STATUS_C_NAME": "Sent",
+        "AUTHRZING_PROV_ID": "144590",
+        "ORD_PROV_ID": "144590",
+        "MIN_DISCRETE_DOSE": 10,
+        "DOSE_UNIT_C_NAME": "mg",
+        "PROVIDER_TYPE_C_NAME": "Authorizing",
+        "ACT_ORDER_C_NAME": "Active Medication",
+        "USER_SEL_MED_ID": 5674,
+        "USER_SEL_ERX_DAT": "9/6/2016 12:00:00 AM",
+        "MDL_ID": 73847702,
+        "AMB_MED_DISP_NAME": "nortriptyline (PAMELOR) 10 MG capsule",
+        "WEIGHT_BASED_YN": "N",
+        "REFILLS_REMAINING": 1,
+        "ORDERING_MODE_C_NAME": "Outpatient",
+        "EXT_ELG_SOURCE_ID": "P00000000001001",
+        "EXT_ELG_MEMBER_ID": "FA1000010XMWEJQ%602496879%001",
+        "EXT_FORMULARY_ID": "00935",
+        "EXT_COVERAGE_ID": "003171310000000000000000",
+        "EXT_PHARMACY_TYPE_C_NAME": "Retail+Mail",
+        "EXT_FORMULARY_STAT": "4",
+        "EXT_COV_AGE_LMT_YN": "N",
+        "EXT_COV_EXCLUS_YN": "N",
+        "EXT_COV_SEX_LMT_YN": "N",
+        "EXT_COV_MED_NCST_YN": "N",
+        "EXT_COV_PRI_AUTH_YN": "N",
+        "EXT_COV_QNTY_LMT_YN": "N"
 ```
 
 ## Instructions

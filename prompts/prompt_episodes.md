@@ -437,7 +437,7 @@ somehow both miss it** (layer 1).
 
 ## Your Task
 
-Analyze the mapping pipeline for **Messages: MYC_MESG + children → messages** and identify every semantic error — places where a column is read successfully but the value means something different than the code assumes.
+Analyze the mapping pipeline for **Episodes: EPISODE + CAREPLAN_INFO** and identify every semantic error — places where a column is read successfully but the value means something different than the code assumes.
 
 You are looking for these specific error types:
 1. **Wrong column for the concept** — the code reads a column that exists but contains a different kind of data than intended (e.g., reading a category code integer instead of a display name string)
@@ -458,268 +458,200 @@ For each issue found, report:
 
 These are Epic's official descriptions for each column. They are the ground truth for what a column means.
 
-### MSG_TXT
-**Table**: This table contains the text of MyChart messages.
-- **MESSAGE_ID**: The unique identifier for the message record.
+### CAREPLAN_ENROLLMENT_INFO
+**Table**: This table cotains the enrollment information for a care plan.
+- **CAREPLAN_ID**: The unique identifier (.1 item) for the care plan record.
+- **CP_ENROLL_WORKFLOW_C_NAME**: This item store the Care Companion workflow from where this care plan was applied to the patient.
+- **ALERT_CSN_ID**: BestPractice Advisory ALT CSN used to enroll the patient in the care plan.
+- **SIGNUP_MYPT_ID**: MyChart user ID who enrolled the patient in the care plan.
+- **PREG_SELF_EPISODE_ID**: Pregnancy episode ID (HSB) associated with the self-enrolled care plan.
+- **ENROLLING_USER_ID**: User who enrolled the patient in the care plan.
+- **ENROLLING_USER_ID_NAME**: The name of the user record. This name may be hidden.
+- **SURGICAL_PAT_ENC_CSN_ID**: Patient CSN linked to the surgical encounter where the enrollment was done
+
+### CAREPLAN_INFO
+**Table**: Contains information about care plan template records.
+- **CARE_INTG_ID**: The unique identifier for the care plan record.
+- **CAREPLAN_TYPE_C_NAME**: The category ID of the type of the care plan record (Collaborative or Home Health).
+- **PAT_ENC_CSN_ID**: The linked unique contact serial number for the patient. This number is unique across all patient encounters in your system. If you use IntraConnect, this is the Unique Contact Identifier (UCI). This column is frequently used to link to the PAT_ENC_HSP table.
+- **PATIENT_ID**: Links OP care plan (patient-level and episodic) to the associated patient
+- **LINKED_PAT_CAREPLAN_YN**: Indicates whether the outpatient care plan is linked at the patient level or the episode level. Yes means it is patient level, No means it is episode level.
+- **RFL_INSTR_NOTE_ID**: Stores the ID of the HNO record that contains the referral instructions
+- **READING_CAREPLAN_ID**: The link to the care plan reading Care Plan record.
+- **LAST_EDITED_DTTM**: The date and time when the care plan was last edited. This does not include documentation-only changes.
+- **RECORD_STATUS_2_C_NAME**: Record status flag. Used in conjunction with record archived flag for encounter archiving.
+- **PAT_ENROLL_DEPARTMENT_ID**: This item stores the department which enrolled the patient in MyChart care plan.
+
+### EPISODE
+**Table**: This table contains high-level information on the episodes recorded in the clinical system for your patients. When a provider sees a patient several times for an ongoing condition, such as prenatal care, these encounters can be linked to a single Episode of Care. It does not contain episodes linked to an inpatient encounter.
+- **EPISODE_ID**: The unique ID of the episode of care record.
+- **NAME**: The name of the episode.
+- **SUM_BLK_TYPE_ID**: The episode type.
+- **START_DATE**: The date the episode was initiated.
+- **END_DATE**: The date the episode was resolved in calendar format. This field is called "Resolved" on the clinical system screen.
+- **COMMENTS**: Any free text comments about the episode.
+- **PREGRAVID_WEIGHT**: This field contains the pre-pregnancy weight maintained before this episode.
+- **NUMBER_OF_BABIES**: Prior to delivery, this column is expected to contain the number of fetuses that the patient is carrying. This can be manually documented, such as in the Prenatal Vitals section, or the value can be automatically set by creating or removing fetal result tabs in the ultrasound activity.  If your organization documents on the Delivery Summary then after the Delivery Summary is signed, this column is expected to contain the number of viable deliveries associated with the pregnancy. Specifically, this is the number of delivery records attached to the pregnancy. This expectation is based on Epic's recommendation that only viable deliveries should be documented on the Delivery Summary. Your organization may follow a different policy for when to create a delivery record. The behavior of this column containing the number of delivery records may be overridden at the profile level in system definitions, in which case it will continue to contain the number of fetuses that were being carried unless the number of deliveries is manually documented in its place.
+- **PRIMARY_LPL_ID**: The primary problem linked to the episode.
+- **STATUS_C_NAME**: The status category number for the episode.
+- **L_UPDATE_USER_ID**: The ID of the last user that updated the episode of care record.
+- **L_UPDATE_USER_ID_NAME**: The name of the user record. This name may be hidden.
+- **PATERNITY_ACK_C_NAME**: Whether a paternity acknowledgement has been signed by the biological father of the baby if the parents are not married. This column may not be applicable depending on the identity of the second parent and the two parents' relationship.
+- **SMOKE_3_MO_BEF**: The number of cigarettes/packs smoked per day 3 months before the pregnancy by the mother.
+- **SMOKE_3_MO_BEF_C_NAME**: The unit of measurement for the quantity of cigarettes being smoked 3 months before the pregnancy by the mother.
+- **SMOKE_1ST_3_MO**: The number of cigarettes/packs smoked per day in the first 3 months of the pregnancy by the mother.
+- **SMOKE_1ST_3_MO_C_NAME**: The unit of measurement for the quantity of cigarettes being smoked the first three months of the pregnancy by the mother.
+- **SMOKE_2ND_3_MO**: The number of cigarettes/packs smoked per day in the second 3 months of the pregnancy by the mother.
+- **SMOKE_2ND_3_MO_C_NAME**: The unit of measurement for the quantity of cigarettes being smoked the second three months of the pregnancy by the mother.
+- **SMOKE_3RD_TRI**: The number of cigarettes/packs smoked per day in the third trimester of the pregnancy by the mother.
+- **SMOKE_3RD_TRI_C_NAME**: The unit of measurement for the quantity of cigarettes being smoked the third trimester of the pregnancy by the mother.
+- **DRINK_3_MO_BEF**: The number of alcoholic drinks consumed per week 3 months before the pregnancy by the mother.
+- **DRINK_1ST_3_MO**: The number of alcoholic drinks consumed per week in the first three months of the pregnancy by the mother.
+- **DRINK_2ND_3_MO**: The number of alcoholic drinks consumed per week in the second three months of the pregnancy by the mother.
+- **DRINK_3RD_TRI**: The number of alcoholic drinks consumed per week in the third trimester of the pregnancy by the mother.
+- **IN_CITY_LIMITS_YN**: Whether the address of the mother is inside the city limits.
+- **WIC_FOODS_YN**: Did the mother receive WIC foods during this pregnancy?
+- **TOTAL_PNC**: Override value to be used in situations where not all prenatal care was given at the same Epic provider and so not all prenatal care visits are in the system.
+- **MONTH_1ST_PNC**: Override value to be used in situations where not all prenatal care was given at the same Epic provider and so first date of prenatal care is not in the system and the month of the pregnancy when prenatal care began cannot be calculated.
+- **LIVE_BIRTHS_LIVING**: Override value to be used in situations where not all prenatal care was given at the same Epic provider, and consequently, other pregnancy information is not available. The number of children born alive which are still living not including children born at this birth.
+- **LIVE_BIRTHS_DEAD**: Override value to be used in situations where not all prenatal care was given at the same Epic provider, and consequently, other pregnancy information is not available. The number of other children born alive which are now deceased not including any born alive and deceased at this birth.
+- **MOTHER_MARRIED_YN**: Whether the mother is married at birth, conception, or any time in between.
+- **OB_PREGRAVID_BMI**: The patient's pre-pregnancy BMI for this pregnancy episode.
+- **FIRST_PNT_LOC_C_NAME**: This item stores who the patient's first prenatal care was with.
+- **SERV_AREA_ID**: The unique ID of the episode's service area. This column is used for DBC episodes, which are specific to a service area.
+- **OB_WRK_EDD_DT**: The estimated date of delivery for a pregnancy episode.
+- **EXPECTED_DEL_LOC_C_NAME**: Location where the woman plans to deliver her baby.
+- **DEL_LOC_CHANGE_C_NAME**: Why the delivery location changed from the expected delivery location (EXPECTED_DEL_LOC_C) for a pregnancy episode.
+- **OB_FEEDING_INTENTIONS_C_NAME**: Mother's intended feeding method for the baby.
+- **INTENT_TREAT_C_NAME**: The intended treatment for an implanted Mechanical Circulatory Device.
+- **INTENT_TREAT_OTHR**: The free text intended treatment for an implanted Mechanical Circulatory Device.
+- **MCS_DISCHARGE_DT**: Date a Mechanical Circulatory Device patient is discharged.
+- **MCS_EVAL_DT**: The start date of the Mechanical Circulatory Device evaluation.
+- **MCS_REV_DT**: The date when the Mechanical Circulatory Device case was reviewed by the evaluation committee.
+- **MCS_ADMISSION_DT**: Date of the admission for the Mechanical Circulatory Device procedure.
+- **MCS_SURG_DT**: The date of the Mechanical Circulatory Device surgery.
+- **MCS_IS_HISTORIC_YN**: Flag indicating a historic Mechanical Circulatory Device episode. This is intended to flag if the Device was implanted at another center than the Center that is currently following the patient.
+- **MCS_EVAL_END_DT**: The date on which the Mechanical Circulatory Device evaluation was completed.
+- **MCS_NEXT_REVIEW_DT**: The date on which both the Mechanical Circulatory Device episode and the patient chart should be reviewed.
+- **MCS_REFERRAL_DT**: The date the patient was referred for the Mechanical Circulatory Device.
+- **MCS_TXPORT_MTHD_C_NAME**: The method of transportation to the implantation center.
+
+### EPISODE_2
+**Table**: This table supplements the EPISODE table. It contains additional information about episodes. When a provider sees a patient several times for an ongoing condition, such as prenatal care, these encounters can be linked to a single Episode of Care.
+- **EPISODE_ID**: The unique ID of the episode of care record. NOTE: This table is filtered to include only non-inpatient episodes. Inpatient episode data can be found in the table IP_EPISODE_LINK (first released with system 2002).
+- **DEPT_ID**: The unique identifier for the department primarily responsible for managing the episode.
+- **RXENROLL_LAST_EDIT_USER_ID**: The user ID for whoever last updated the pharmacy enrollment.
+- **RXENROLL_LAST_EDIT_USER_ID_NAME**: The name of the user record. This name may be hidden.
+- **RXENROLL_LAST_EDIT_DTTM**: The date and time the pharmacy enrollment was last updated.
+- **ENROLL_PROG_C_NAME**: The current enrollment program for the pharmacy.
+- **RXENROLL_NOTE_ID**: Summary note documented on this episode
+- **RXENROLL_ENROLLMENT_DATE**: The date the patient was enrolled in the program
+- **RXENROLL_DISENROLL_DATE**: The date the patient was unenrolled from the program.
+- **RXENROLL_DECLINE_DATE**: The date the patient was declined enrollment (or declined to enroll) in the program
+- **RXENROLL_STATUS_C_NAME**: The current enrollment status
+- **CRT_PAT_ENC_CSN_ID**: The patient contact serial number that auto created this episode.
+- **CMGMT_STATUS_C_NAME**: Stores the status of the case episode.  Enrolling - The manager is working to enroll the patient in a case management program. Open - The manager is performing ongoing outreach with the patient. Closed - The patient is no longer enrolled in case management, or they opted out of case management.
+- **CMGMT_SENSITIVITY_C_NAME**: Store the sensitivity flag for security restricted case episodes. If your organization has implemented break-the-glass, this sensitivity flag can be used to restrict access to the case episode.
+- **CMGMT_ENROLLMENT_RSN_C_NAME**: Stores the reason the patient was enrolled in case management.
+- **CMGMT_ENROLLING_STEP_C_NAME**: Stores the enrolling step that specifies the current step of enrollment for the case episode.
+- **CMGMT_CLOSED_REASON_C_NAME**: Stores the reason the case episode is closed.
+- **ENROLL_ID**: The research study-patient association (LAR) record ID for this episode.
+- **PREG_CHORIONIC_C_NAME**: For a pregnancy with multiple fetuses, indicates if the fetuses have individual or a shared chorionic and amniotic sacs.
+- **PLAN_ADOPT_TYPE_C_NAME**: This item indicates if the mother plans to give the baby up for adoption and if so, what type of adoption or arrangement is planned.
+- **SUSPECTED_FD_YN**: This item indicates whether a suspected fetal demise has occurred in the pregnancy.
+- **PLAN_CIRCUMCISION_C_NAME**: This item is used to indicate whether the parents have requested a circumcision after the baby is born.
+- **PLAN_DELIVER_BY_GA**: This item represents the gestational age (in weeks of pregnancy) at when the patient and provider expect the delivery to occur.
+- **PLAN_DEL_METHOD_C_NAME**: This item captures the planned method of delivery as documented prior to labor.
+- **CMGMT_DECLINE_REASON_C_NAME**: Documents the reason a patient/client refused coordinated case management services.
+- **HSPC_ADD_DISCUSSED_WITH_PAT_YN**: This item indicates whether or not a hospice election addendum was discussed with the patient for this episode.
+- **HSPC_ADD_REQUESTED_WITH_PAT_YN**: This item indicates whether or not a hospice election addendum was requested for this episode.
+- **HSPC_ADD_DISCUSSED_USER_ID**: The unique user record ID that is frequently used to link to the CLARITY_EMP table.
+- **HSPC_ADD_DISCUSSED_USER_ID_NAME**: The name of the user record. This name may be hidden.
+- **HSPC_ADD_DISCUSSED_DATE**: The date the addendum was discussed with the patient.
+- **CMGMT_ENROLL_DATE**: Documents the enrollment date, which is the date on which a patient or client's status becomes active and the patient or client starts receiving Coordinated Care Management services. Refer to CMGMT_CALC_ENROLL_DATE for more robust reporting.
+- **CMGMT_ENROLL_CALC_DATE**: This virtual item contains a calculated enrollment date determined from the user- documented enrollment date (CMGMT_ENROLL_DATE, HSB-18030) or the Case Management History related group (I HSB 18400).  If the overall episode status (CMGMT_STATUS_C, I HSB 18010) is 1-Enrolling, the value will be blank.  If the overall status is anything besides 1-Enrolling, the value will be set to the user- documented Enrollment Date, if it exists. Otherwise, the value will be set to the date (ACTION_UTC_DTTM) the status (ASSOC_CMGMT_STATUS_C) originally changed to 2-Active, unless the status was changed to 1-Enrolling more recently.
+- **CMGMT_TRIGGERING_CLASSIFIER_ID**: The classifier (CFR record) that triggered the creation of this case.
+- **CMGMT_TRIGGERING_CLASSIFIER_ID_CLASSIFIER_NAME**: The title of the classifier record.
+- **CMGMT_TRIGGERING_CLAIM_ID**: The claim that caused the creation of this case.
+- **PREG_CORD_BLOOD_PLANS_C_NAME**: This item indicates the patient's plans for umbilical cord blood.
+- **LINKED_SERVICE_PLAN_ID**: The service plan associated with this episode.
+- **MC_TG_RSLV_DATE**: Stores the resolve date for this Tapestry bundle.
+- **BPC_ID**: Stores the bundled episode terms id.
+- **BPC_ID_BPC_NAME**: The name of the bundled episode terms record.
+- **BPC_CSN_ID**: Stores the bundled episode terms contact serial number.
+
+### PAT_EPISODE
+**Table**: The PAT_EPISODE table links patient ID numbers to Episodes of Care records. This is especially helpful for connecting patients to episodes of care when there are no linked encounters on an episode record. When this is the case, the PAT_ID column in the EPISODE table may be null.
+- **PAT_ID**: The unique ID assigned to the patient record. This ID may be encrypted if you have elected to use enterprise reporting�s encryption utility.
 - **LINE**: The line number for the information associated with this record. Multiple pieces of information can be associated with this record.
-- **MSG_TXT**: Stores the body text in the message.
-
-### MYC_MESG
-**Table**: This table contains information on messages sent to and from web-based chart system patients.
-- **MESSAGE_ID**: The unique ID used to identify a web-based chart system message record. A new record is created each time a patient sends a message from a web-based chart system to a system user and each time a system user sends a message to a web-based chart system patient.
-- **CREATED_TIME**: The date and time the web-based chart system message record was created in local time.
-- **PARENT_MESSAGE_ID**: The unique ID of the original message in a chain of web-based chart system messages between patients and system users.
-- **INBASKET_MSG_ID**: The unique ID of the system message associated with the web-based chart system message. An example is when a patient sends a message to a system user.
-- **PAT_ID**: The unique ID of the patient record for this row. This column is frequently used to link to the PATIENT table.
-- **PAT_ENC_DATE_REAL**: A unique, internal contact date in decimal format. The integer portion of the number indicates the date of the contact. The digits after the decimal distinguish different contacts on the same date and are unique for each contact on that date. For example, .00 is the first/only contact, .01 is the second contact, etc.
-- **FROM_USER_ID**: The unique ID of the system user who sent a web-based chart system message to a patient.
-- **FROM_USER_ID_NAME**: The name of the user record. This name may be hidden.
-- **TO_USER_ID**: The unique ID of the system user who was sent a web-based chart system message from a patient.
-- **TO_USER_ID_NAME**: The name of the user record. This name may be hidden.
-- **TOFROM_PAT_C_NAME**: The message direction category number for the web-based chart system message. 1 corresponds to "To patient". 2 corresponds to "From patient".
-- **ORIGINAL_TO**: If a message sent from a web-based chart system patient is re-routed from its intended destination, then the ID of the original recipient is stored in the field. Most commonly this occurs when a system user does not accept messages directly from web-based chart system patients. In this case, the message will be re-routed to a pool, but the employee ID of the system user will be stored here. The ID of the final destination is stored in MODIFIED_TO.
-- **RQSTD_PHARMACY_ID**: The unique ID of the pharmacy selected by the patient from the drop down list when sending a Medication Renewal Request message.
-- **RQSTD_PHARMACY_ID_PHARMACY_NAME**: The name of the pharmacy.
-- **UPDATE_DATE**: The date and time that this web-based chart system message record was pulled into enterprise reporting.
-- **REQUEST_SUBJECT**: This field is only used for medical advice request messages and indicates the subject selected by the patient from the drop down list.
-- **PROV_ID**: The provider that was used in routing the patient access message. The provider may vary depending on message type.
-- **DEPARTMENT_ID**: The department used in routing the patient access message. The department may vary depending on message type.
-- **RESP_INFO**: Some response types will include additional information, such as a phone number.  If such data exists for the chosen response method, it will be stored in this field.
-- **SUBJECT**: The subject line of the web-based chart system message.
-- **PAT_ENC_CSN_ID**: The unique contact serial number for this contact. This number is unique across all patient encounters in your system. If you use IntraConnect, this is the Unique Contact Identifier (UCI).
-- **EOW_READ_STATUS_C_NAME**: The read status category number for the web-based chart system message.
-- **BILL_ACCT_ID**: The unique ID of the guarantor account associated with this web-based chart system message.
-- **BILL_ACCT_TYPE_C_NAME**: The billing account type category number for the web-based chart system message. Only billing-specific customer service messages have a value specified for this column.
-- **BILL_ACCT_HAR_ID**: The unique ID of the hospital account associated with this web-based chart system message.
-- **RELATED_MESSAGE_ID**: The unique ID of the parent message of the original message chain. This applies only when the system is configured to allow patients to reply to messages associated with closed encounters by creating a new message chain. This item is populated for the message that starts a new chain.
-- **WPR_OWNER_WPR_ID**: The unique ID of the web-based chart system patient who owns this message.
-- **CR_TX_CARD_ID**: The unique ID of the credit card used for this transaction.
-- **CR_TX_MYPT_ID**: The unique ID of the web-based chart system patient associated with this transaction.
-- **CR_TX_AMOUNT_AUTH**: The amount authorized for this transaction.
-- **PAT_HX_QUESR_ID**: The unique ID of the history questionnaire associated with this message.
-- **PAT_HX_QUESR_ID_RECORD_NAME**: The name of the Visit Navigator (VN) History Template Definition (LQH) record.
-- **HX_QUESR_CONTEXT_C_NAME**: The history questionnaire context category number for the web-based chart system message.
-- **HX_QUESR_PROV_ID**: The unique ID of the provider associated with the questionnaire.
-- **HX_QUESR_ENCPROV_ID**: The unique ID of the provider associated with the appointment that the questionnaire is linked to.
-- **HX_QUESR_APPT_DAT**: The appointment contact date (DAT) if the questionnaire is linked to an appointment.
-- **HX_QUESR_FILED_YN**: Indicates whether the history questionnaire has been filed for this web-based chart system message. Y indicates that the history questionnaire has been filed. N or a null value indicates that the history questionnaire has not been filed.
-- **DELIVERY_DTTM**: The instant that this message is scheduled for delivery to the patient. This item may not be populated. In the event that this item is not populated, then the instant the message is created is used to determine when the patient can view the message.
-- **RECORD_STATUS_C_NAME**: The category title of the status of the message. If not populated, then the message is active; Soft deleted is set when a message is revoked.
-- **CR_TX_TYPE_C_NAME**: Stores the type of transaction (E-Visit or Copay).
-- **HX_QUESR_REVIEW_YN**: Indicates whether the history questionnaire has been viewed by a provider in edit mode for this web-based chart system message. Y indicates that the history questionnaire has been viewed, N or a null value indicates that the history questionnaire has not been viewed.
-- **HX_QUESR_ENC_CSN_ID**: The unique contact serial number for the appt contact if questionnaire is linked to an appt. This number is unique across all patient encounters in your system. If you use IntraConnect, this is the Unique Contact Identifier (UCI).
-- **OUTREACH_RUN_ID**: This is the campaign outreach configuration template associated with this message.
-- **RENEWAL_REQ_SRC_C_NAME**: This item stores the request source of a medication renewal request. The  default is 2-Web.
-- **REQ_PHARM_FREE_TEXT**: If the selected pharmacy was entered by the user as free-text, then it is stored here.
-- **HX_QUESR_EDIT_MYPT_ID**: Stores the Patient Access Account (WPR) record for the user who last made changes to an in progress history questionnaire
-- **HX_QUESR_EDIT_INST_DTTM**: Stores the time at which changes were last made to an in progress history questionnaire
-- **REFERRAL_ID**: The unique ID of the referral this message is associated with.
-- **COMM_ID**: The customer service record ID corresponding to the message
-- **AUTH_REQUEST_ID**: The authorization request this message is associated with.
-- **INFO_REQ_CSN_ID**: The Information Request this message is associated with.
-- **NON_HX_QUESR_WITH_HX_DATA_YN**: 1 - If WMG stores history data even though the WMG type is not 22 - HISTORY Questionnaire.
-
-### MYC_MESG_CHILD
-**Table**: The MYC_MESG_CHILD table contains information about the child message of Secure Patient Message records. Child messages are replies to a Secure Patient Message.
-- **MESSAGE_ID**: The unique identifier for the message record.
-- **LINE**: The line number for the information associated with this record. Multiple pieces of information can be associated with this record.
-- **CHILD_MSG_ID**: The child messages for the web based chart system message record. Child messages are replies to the current message.
-
-### MYC_MESG_QUESR_ANS
-**Table**: This table stores information on questionnaire answers that have been attached to web based chart system (WMG) messages.  When a patient fills out a message with an attached questionnaire, the resulting message back to the provider will have Questionnaire Answer (HQA) records attached. This table shows those HQA records.
-- **MESSAGE_ID**: The unique ID used to identify a web based chart system message record.
-- **LINE**: The line number used to identify each row of read data associated with an individual web based chart system message record.
-- **QUESR_ANS_ID**: This stores the IDs of the questionnaire answers associated with this message.
-
-### MYC_MESG_RTF_TEXT
-**Table**: Patient message content, in RTF format. Replaces item 100 (plain text message body). Further, this content contains only the current message, whereas the plain text item might have appended previous messages in addition to the current message.
-- **MESSAGE_ID**: The unique identifier for the message record.
-- **LINE**: The line number for the information associated with this record. Multiple pieces of information can be associated with this record.
-- **RTF_TXT**: The text of a message, in RTF format.
+- **EPISODE_ID**: The unique ID number associated with an Episode of Care.
 
 ## Sample Data (one representative non-null value per column)
 
-### MSG_TXT
-- MESSAGE_ID = `19025649`
-- LINE = `1`
-- MSG_TXT = `Appointment Information:`
+### CAREPLAN_ENROLLMENT_INFO
+- CAREPLAN_ID = `7498035`
 
-### MYC_MESG
-- MESSAGE_ID = `19025649`
-- CREATED_TIME = `3/4/2022 4:09:00 PM`
-- PARENT_MESSAGE_ID = `27919516`
-- INBASKET_MSG_ID = `710695166`
-- PAT_ID = `Z7004242`
-- PAT_ENC_DATE_REAL = `66179`
-- FROM_USER_ID = `MYCHARTG`
-- FROM_USER_ID_NAME = `MYCHART, GENERIC`
-- TO_USER_ID = `KLL403`
-- TO_USER_ID_NAME = `LOUGH, KAREN L`
-- TOFROM_PAT_C_NAME = `To Patient`
-- ORIGINAL_TO = `KLL403`
-- UPDATE_DATE = `3/4/2022 5:04:00 PM`
-- REQUEST_SUBJECT = `5`
-- PROV_ID = `E1011`
-- DEPARTMENT_ID = `1`
-- SUBJECT = `Appointment Reminder`
+### CAREPLAN_INFO
+- CARE_INTG_ID = `7498035`
+- CAREPLAN_TYPE_C_NAME = `Collaborative`
 - PAT_ENC_CSN_ID = `922942674`
-- EOW_READ_STATUS_C_NAME = `Read`
-- WPR_OWNER_WPR_ID = `389635`
-- RENEWAL_REQ_SRC_C_NAME = `Web`
+- PATIENT_ID = `Z7004242`
+- LINKED_PAT_CAREPLAN_YN = `N`
+- READING_CAREPLAN_ID = `7498036`
+- LAST_EDITED_DTTM = `3/11/2022 8:11:27 AM`
 
-### MYC_MESG_CHILD
-- MESSAGE_ID = `19025649`
-- LINE = `1`
-- CHILD_MSG_ID = `7981677`
+### EPISODE
+- EPISODE_ID = `200498750`
+- NAME = `OT Neuro TBI`
+- SUM_BLK_TYPE_ID = `151`
+- START_DATE = `3/11/2022 12:00:00 AM`
+- END_DATE = `4/21/2022 12:00:00 AM`
+- STATUS_C_NAME = `Resolved`
+- L_UPDATE_USER_ID = `ALG006`
+- L_UPDATE_USER_ID_NAME = `GILMOUR, AARON K`
+- SERV_AREA_ID = `10`
 
-### MYC_MESG_QUESR_ANS
-- MESSAGE_ID = `25521747`
-- LINE = `1`
-- QUESR_ANS_ID = `24387916`
+### EPISODE_2
+- EPISODE_ID = `200498750`
 
-### MYC_MESG_RTF_TEXT
-- MESSAGE_ID = `33704267`
+### PAT_EPISODE
+- PAT_ID = `Z7004242`
 - LINE = `1`
-- RTF_TXT = `{\rtf1\epic10403\ansi\spltpgpar\jexpand\noxlattoyen\deff0{\fonttbl{\f0 Segoe UI;}}{\colortbl ;}\pape`
+- EPISODE_ID = `200498750`
 
 ## Pipeline Code
 
 ### Stage 1: SQL Projection (project.ts → raw JSON)
 ```typescript
-function projectMessages(patId: unknown): EpicRow[] {
-  const rows = q(`SELECT * FROM MYC_MESG WHERE PAT_ID = ?`, [patId]);
-  for (const msg of rows) {
-    msg.text = children("MSG_TXT", "MESSAGE_ID", msg.MESSAGE_ID);
-    if (tableExists("MYC_MESG_CHILD")) {
-      msg.child_messages = children("MYC_MESG_CHILD", "MESSAGE_ID", msg.MESSAGE_ID);
-    }
-    if (tableExists("MYC_MESG_RTF_TEXT")) {
-      msg.rtf_text = children("MYC_MESG_RTF_TEXT", "MESSAGE_ID", msg.MESSAGE_ID);
-    }
-    if (tableExists("MYC_MESG_QUESR_ANS")) {
-      msg.questionnaire_answers = children("MYC_MESG_QUESR_ANS", "MESSAGE_ID", msg.MESSAGE_ID);
-    }
-  }
-  return rows;
+function projectEpisodes(patId: unknown): EpicRow[] {
+  if (!tableExists("EPISODE")) return [];
+  // Episodes link via PAT_EPISODE bridge
+  const epIds = tableExists("PAT_EPISODE")
+    ? q(`SELECT EPISODE_ID FROM PAT_EPISODE WHERE PAT_ID = ?`, [patId])
+    : [];
+  return epIds.map((e) => {
+    const ep = mergeQuery("EPISODE", `b."EPISODE_ID" = ?`, [e.EPISODE_ID])[0] ?? e;
+    if (tableExists("CAREPLAN_INFO")) ep.care_plans = children("CAREPLAN_INFO", "PAT_ENC_CSN_ID", ep.EPISODE_ID);
+    if (tableExists("CAREPLAN_ENROLLMENT_INFO")) ep.enrollments = children("CAREPLAN_ENROLLMENT_INFO", "CAREPLAN_ID", ep.EPISODE_ID);
+    return ep;
+  });
 }
 ```
 
 ### Stage 2: Domain Model Hydration (PatientRecord.ts)
 ```typescript
-export class Message {
-  MESSAGE_ID: EpicID;
-  messageType?: string;
-  senderName?: string;
-  createdDate?: string;
-  text: EpicRow[] = [];
-  threadId?: EpicID;
-
-  constructor(raw: EpicRow) {
-    Object.assign(this, raw);
-    this.MESSAGE_ID = raw.MESSAGE_ID as EpicID;
-    this.messageType = raw.MSG_TYPE_C_NAME as string;
-    this.text = (raw.text as EpicRow[]) ?? [];
-  }
-
-  linkedEncounters(record: PatientRecordRef): Encounter[] {
-    return record.encounterMessageLinks
-      .filter(l => l.MESSAGE_ID === this.MESSAGE_ID)
-      .map(l => record.encounterByCSN(l.PAT_ENC_CSN_ID))
-      .filter((e): e is Encounter => e !== undefined);
-  }
-
-  get plainText(): string {
-    return this.text.map(t => t.MSG_TEXT as string).filter(Boolean).join('\n');
-  }
-}
+// (raw EpicRow[], no typed class)
 ```
 
 ### Stage 3: Clean Projection (HealthRecord.ts → final output)
 ```typescript
-function projectMessage(m: any): Message {
-  return {
-    id: sid(m.MESSAGE_ID),
-    date: toISODateTime(m.CREATED_TIME ?? m.CONTACT_DATE),
-    from: str(m.FROM_USER_ID_NAME),
-    to: str(m.TO_USER_ID_NAME),
-    subject: str(m.SUBJECT), body: str(m.MESSAGE_TEXT),
-    status: str(m.MSG_STATUS_C_NAME),
-    threadId: str(m.THREAD_ID),
-    _epic: epic(m),
-  };
-}
+// (no HealthRecord projection yet)
 ```
 
 ## Actual Output (from health_record_full.json)
 
 ```json
-{
-  "messages": [
-    {
-      "id": "53360694",
-      "date": "2022-03-04T16:09:00.000Z",
-      "from": "MYCHART, GENERIC",
-      "subject": "Appointment Reminder",
-      "_epic": {
-        "MESSAGE_ID": "53360694",
-        "CREATED_TIME": "3/4/2022 4:09:00 PM",
-        "INBASKET_MSG_ID": "710695166",
-        "PAT_ID": "Z7004242",
-        "PAT_ENC_DATE_REAL": 66179,
-        "FROM_USER_ID": "MYCHARTG",
-        "FROM_USER_ID_NAME": "MYCHART, GENERIC",
-        "TOFROM_PAT_C_NAME": "To Patient",
-        "UPDATE_DATE": "3/4/2022 5:04:00 PM",
-        "PROV_ID": "E1011",
-        "DEPARTMENT_ID": 1,
-        "SUBJECT": "Appointment Reminder",
-        "PAT_ENC_CSN_ID": 922942674
-      }
-    },
-    {
-      "id": "25505522",
-      "date": "2020-07-14T09:54:00.000Z",
-      "from": "MYCHART, GENERIC",
-      "subject": "Appointment Rescheduled",
-      "_epic": {
-        "MESSAGE_ID": "25505522",
-        "CREATED_TIME": "7/14/2020 9:54:00 AM",
-        "INBASKET_MSG_ID": "530638879",
-        "PAT_ID": "Z7004242",
-        "PAT_ENC_DATE_REAL": 65574,
-        "FROM_USER_ID": "MYCHARTG",
-        "FROM_USER_ID_NAME": "MYCHART, GENERIC",
-        "TOFROM_PAT_C_NAME": "To Patient",
-        "UPDATE_DATE": "7/15/2020 11:07:00 AM",
-        "PROV_ID": "E1011",
-        "DEPARTMENT_ID": 1700801002,
-        "SUBJECT": "Appointment Rescheduled",
-        "PAT_ENC_CSN_ID": 829213099
-      }
-    },
-    {
-      "id": "19034115",
-      "date": "2019-12-23T08:45:00.000Z",
-      "from": "MYCHART, GENERIC",
-      "subject": "Appointment Scheduled",
-      "_epic": {
-        "MESSAGE_ID": "19034115",
-        "CREATED_TIME": "12/23/2019 8:45:00 AM",
-        "INBASKET_MSG_ID": "480451771",
-        "PAT_ID": "Z7004242",
-        "PAT_ENC_DATE_REAL": 65387,
-        "FROM_USER_ID": "MYCHARTG",
-        "FROM_USER_ID_NAME": "MYCHART, GENERIC",
-        "TOFROM_PAT_C_NAME": "To Patient",
-        "UPDATE_DATE": "3/11/2020 10:42:00 AM",
-        "PROV_ID": "E1011",
-        "DEPARTMENT_ID": 1700801002,
-        "SUBJECT": "Appointment Scheduled",
-        "PAT_ENC_CSN_ID": 799951565
-      }
-    }
-  ]
-}
+null
 ```
 
 ## Instructions

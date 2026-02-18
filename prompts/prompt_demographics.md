@@ -437,7 +437,7 @@ somehow both miss it** (layer 1).
 
 ## Your Task
 
-Analyze the mapping pipeline for **Demographics: PATIENT (6 splits) + PATIENT_RACE + PAT_ADDRESS → HealthRecord.demographics** and identify every semantic error — places where a column is read successfully but the value means something different than the code assumes.
+Analyze the mapping pipeline for **Demographics: PATIENT (splits) + race + addresses + extensions** and identify every semantic error — places where a column is read successfully but the value means something different than the code assumes.
 
 You are looking for these specific error types:
 1. **Wrong column for the concept** — the code reads a column that exists but contains a different kind of data than intended (e.g., reading a category code integer instead of a display name string)
@@ -457,6 +457,14 @@ For each issue found, report:
 ## Epic Schema Descriptions
 
 These are Epic's official descriptions for each column. They are the ground truth for what a column means.
+
+### IDENTITY_ID
+**Table**: The IDENTITY_ID table contains the system master person index ID numbers for your patients. Each patient may have multiple master person index IDs; therefore, a line number is used to identify each identification number for a patient.
+- **PAT_ID**: The unique ID assigned to the patient record internally and links to the patient table. This ID may be encrypted if you have elected to use enterprise reporting�s encryption utility.
+- **LINE**: The line number of the patient ID within the patient�s record.
+- **IDENTITY_ID**: The identification number associated with the patient. This ID may be encrypted. NOTE: This is the identification number that corresponds to the IDENTITY_TYPE_ID column listed in this same record.
+- **IDENTITY_TYPE_ID**: The system master person index ID type corresponding to this identification number for the patient. Master person index distinguishes ID numbers from different locations and service areas based on their type. Type can also be used to designate non-system IDs to be populated and used to interface with data from other systems.
+- **IDENTITY_TYPE_ID_ID_TYPE_NAME**: The name of the ID Type.
 
 ### PATIENT
 **Table**: The PATIENT table contains one record for each patient in your system. The data contained in each record consists of demographics, PCP and primary location information, registration information, and other information.
@@ -801,6 +809,47 @@ These are Epic's official descriptions for each column. They are the ground trut
 - **IMAGING_WILL_CALL_YN**: Holds a "Will Call" status for the patient. This is a status toggled by a Radiology user (eg. Technologist) to flag the availability of the patient for further processing.
 - **SEX_FOR_MELD_C_NAME**: The patient's sex for adult Model for End-Stage Liver Disease (MELD) calculation.
 
+### PATIENT_ALIAS
+**Table**: The PATIENT_ALIAS table contains the aliases and soundex data for your patients. Each patient may have multiple aliases; therefore, a line number is used to uniquely identify each alias for a patient.
+- **PAT_ID**: The unique ID number assigned to the patient record.
+- **LINE**: The line number associated with the alias information associated with this row. Multiple pieces of information can be associated with this row.
+- **ALIAS**: The alias on the patient record.
+
+### PATIENT_DOCS
+**Table**: The PATIENT_DOCS table contains information about each document that is attached to a patient record, including scanned and electronically signed documents.
+- **PAT_ID**: The unique ID of the patient record for this row. This column is frequently used to link to the PATIENT table.
+- **LINE**: The unique ID of the patient with this document.
+- **DOC_INFO_ID**: The ID of the document for this patient.
+
+### PATIENT_GOALS
+**Table**: The list of goals (IGO) record IDs for this patient.
+- **PAT_ID**: The unique ID of the patient record for this row. This column is frequently used to link to the PATIENT table.
+- **LINE**: The line number for the information associated with this record. Multiple pieces of information can be associated with this record.
+- **GOAL_ID**: The unique ID of the Discrete Goal for this patient.
+
+### PATIENT_MYC
+**Table**: This table contains web-based chart system-related data items that are stored in the Patient (EPT) master file. These items generally relate to web-based chart system account activation and account status, and also include the last verification date for different types of patient information that can be verified through the web-based chart system.
+- **PAT_ID**: The unique ID of the patient record for this row. This column is frequently used to link to the PATIENT table.
+- **PAT_ACCESS_CODE**: The patient's current web-based chart system access code. This value is checked when a patient attempts to log in to the web-based chart system for the first time.
+- **PAT_ACCESS_CODE_TM**: This is a timestamp indicating when the access code in field PAT_ACCESS_CODE was created.
+- **PAT_ACCESS_STAT_C_NAME**: The access code status category number for the patient. 0 corresponds to "Not Used". 1 corresponds to "Used".
+- **MYCHART_STATUS_C_NAME**: The web-based chart system status category number for the patient.
+- **ACCESSCODE_STAT_C_NAME**: The access code generation status category number for the patient.
+- **DEACT_ACCT_YN**: Indicates whether the patient's web-based chart system account is deactivated. Y indicates that the account is deactivated. N or a null value indicates that the account is active.
+- **CODE_FOR_PROXY_YN**: Indicates whether the access code was generated for a proxy to use on behalf of the patient. Y indicates that the access code was generated. N or a null value indicates that the access code was not generated.
+- **MYCHART_EXP_DATE**: The expiration date (if one has been set) of the web-based chart system account. When this date is reached, the web-based chart system user is no longer allowed to login to the system.
+- **MYPT_ID**: The unique ID of the web-based chart system patient account.
+- **LAST_MERGE_FROM**: If this patient record is the destination of a previous merging, and the source record has web-based chart system activity, then this item stores the time instant of the merging.
+- **ALT_WEBSTE_STAT_C_NAME**: The alternate website activation status category number for the patient.
+- **MYC_PAT_TYPE_C_NAME**: The web-based chart system patient type category number for the patient.
+- **DEM_VERIF_DT**: Date of last demographics verification by patient or his/her proxy from MyChart.
+- **INS_VERIF_DT**: Date of last insurance verification by patient or his/her proxy from MyChart
+- **R_E_L_PAT_VERIF_DT**: The date when race, ethnicity, and language information was last verified by the patient online using the patient portal.
+- **PCP_PAT_VERIF_DT**: The date that patients last used Welcome to verify and/or update their primary care provider.
+- **HCA_PAT_VERIF_DT**: The date that the patient last used MyChart or Welcome to verify and/or update their health care agents.
+- **PAT_MYC3_ENR_STAT_C_NAME**: Returns the status of enrollment in MyChart Care Companion.
+- **LAST_LABS_VIEW_DTTM**: The last time when the patient or proxies viewed patient's result list (including IP results) in MyChart.
+
 ### PATIENT_RACE
 **Table**: This table contains information on a patient's race.
 - **PAT_ID**: The unique ID of the patient record for this row. This column is frequently used to link to the PATIENT table.
@@ -813,7 +862,117 @@ These are Epic's official descriptions for each column. They are the ground trut
 - **LINE**: The line number for the information associated with this record. Multiple pieces of information can be associated with this record.
 - **ADDRESS**: This column contains the patient's permanent address. Each PAT_ID value represents a different patient, and each LINE value represents a different line of that patient's address.
 
+### PAT_ADDR_CHNG_HX
+**Table**: This table keeps track of changes in the patient's address.
+- **PAT_ID**: Patient ID for whom address is changed.
+- **LINE**: Line count in the address change history.
+- **ADDR_HX_LINE1**: First line of patient's home address, current between dates recorded in columns EFF_START_DATE and EFF_END_DATE.
+- **ADDR_HX_LINE2**: Second line of patient's home address, current between dates recorded in columns EFF_START_DATE and EFF_END_DATE.
+- **ADDR_HX_LN_EXTRA**: Additional line of patient's home address, current between dates recorded in columns EFF_START_DATE and EFF_END_DATE.
+- **CITY_HX**: Patient's home city, current between dates recorded in columns EFF_START_DATE and EFF_END_DATE.
+- **COUNTY_HX_C_NAME**: Patient's home county, current between dates recorded in columns EFF_START_DATE and EFF_END_DATE.
+- **ZIP_HX**: Patient's home ZIP, current between dates recorded in columns EFF_START_DATE and EFF_END_DATE.
+- **ADDR_CHNG_SOURCE_C_NAME**: Source of address changes.
+- **EFF_START_DATE**: Effective start date of changed address (date when address was changed).
+- **EFF_END_DATE**: Effective end date of changed address (date of the next address change or NULL if this is the last address change).
+- **PREV_HOUSE_NUM**: Audit trail item used to store the previous house number when a new house number is entered or if the current primary address is edited.
+- **PREV_DISTRICT_C_NAME**: Audit trail item used to store the previous district when a new district is entered or if the current primary address is edited.
+- **SIGNIFICANT_CHANGE_YN**: Audit trail item used to store whether the address change should be considered significant when a new address is entered or if the current primary address is edited.
+- **ADDR_HX_VALID_YN**: This columns specifies if the historical address stored on the patient record is invalid or incorrect. A blank value means historical address is a valid older address. Use this item to indicate a patient's address was captured due to error, for example, in the case of a patient overlay.
+- **PREV_FLOOR**: Audit trail item used to store the previous floor number when a new floor number is entered or if the current primary address is edited.
+- **PREV_UNIT**: Audit trail item used to store the previous unit number when a new unit number is entered or if the current primary address is edited.
+- **PREV_BLDG_NAM**: Audit trail item used to store the previous building name when a new building is entered or if the current primary address is edited.
+- **COUNTRY_C_NAME**: Audit trail item used to store the previous country when a new country is entered or if the current primary address is edited.
+
+### PAT_EMAILADDRESS
+**Table**: This table stores the patient's email addresses.
+- **PAT_ID**: Internal ID of the patient (.1 record ID)
+- **LINE**: The Line Count.  Each line stores one of the patient's e-mail addresses.
+- **EMAIL_ADDRESS**: Email address for this patient.
+
+### PAT_PCP
+**Table**: This table contains the Primary Care Provider (PCP) information for your patients over time. It can also contain data about providers that are not PCPs but are still on the patients' EpicCare-Ambulatory care teams.
+- **PAT_ID**: The unique ID of the patient record for this row. This column is frequently used to link to the PATIENT table.
+- **LINE**: The line number for the information associated with this record. Multiple pieces of information can be associated with this record.
+- **PCP_PROV_ID**: The unique ID associated with the provider record for this row. This column is frequently used to link to the CLARITY_SER table.
+- **EFF_DATE**: The date from which the provider is in effect as the member�s PCP.
+- **TERM_DATE**: The last date for which the provider was the member�s PCP.
+- **PCP_TYPE_C_NAME**: The category value associated with the type of the PCP. This is only populated when the provider is a patient's PCP and is null otherwise.
+- **SPECIALTY_C_NAME**: The specialty category ID for the patient care team member.
+- **RESULTS_C_NAME**: The results to receive category ID for the patient care team member.
+- **PCP_MESSAGE_YN**: Indicates whether a provider on a patient's care team wishes to be included as a recipient of messages sent to the patient's PCP. A �Y� indicates that the provider wishes to receive messages, a �N� indicates that the provider does not wish to receive the messages.
+- **RELATIONSHIP_C_NAME**: The relationship to patient category ID for the patient care team member.
+- **OTHER_NAME**: The name for patient care team members that don't have a provider and resource record.
+- **OTHER_ADDRESS**: The address for patient care team members that don't have a provider and resource record.  Lines are delimited with character 9s.
+- **OTHER_PHONE**: The phone number for patient care team members that don't have a provider and resource record.
+- **OTHER_PAGER**: The pager number for patient care team members that don't have a provider and resource record.
+- **OTHER_FAX**: The fax number for patient care team members that don't have a provider and resource record.
+- **OTHER_EMAIL**: The email address for patient care team members that don't have a provider and resource record.
+- **PCP_HX_COMMENTS**: Free text comments that can be entered for a provider that is part of the care team for this patient.
+- **PCP_ADDRESS_ID**: The unique ID of the address in the provider record that should be used to contact the patient's PCP. This column is frequently used in conjunction with the PCP_PROV_ID column to link to the CLARITY_SER_ADDR table.
+
+### PAT_PREF_PHARMACY
+**Table**: This table contains information on a patient's pharmacy preferences.
+- **PAT_ID**: The unique ID of the patient record for this row. This column is frequently used to link to the PATIENT table.
+- **LINE**: The line number associated with the list of preferred pharmacy selected
+- **PREF_PHARMACY_ID**: The preferred pharmacy ID
+- **PREF_PHARMACY_ID_PHARMACY_NAME**: The name of the pharmacy.
+
+### PAT_RCNT_USD_PHRMS
+**Table**: This table extracts a patient's most recently selected pharmacies.
+- **PAT_ID**: The unique ID of the patient record for this row. This column is frequently used to link to the PATIENT table.
+- **LINE**: The line number for the information associated with this record. Multiple pieces of information can be associated with this record.
+- **RECENT_PHARM_ID**: Patient's recent selected pharmacy
+- **RECENT_PHARM_ID_PHARMACY_NAME**: The name of the pharmacy.
+
+### PAT_RELATIONSHIPS
+**Table**: Demographic information for patient contacts.
+- **PAT_ID**: The unique ID of the patient record for this row. This column is frequently used to link to the PATIENT table.
+- **LINE**: The line number for the information associated with this record. Multiple pieces of information can be associated with this record.
+- **PAT_REL_NAME**: The name of the patient's contact.
+- **PAT_REL_CITY**: Contact's city of residence
+- **PAT_REL_ZIP**: The ZIP code of the patient's contact.
+- **PAT_REL_COUNTY_C_NAME**: Contact's county of residence
+- **PAT_REL_COUNTRY_C_NAME**: Contact's country of residence
+- **PAT_REL_HOME_PHONE**: Contact's home phone
+- **PAT_REL_WORK_PHONE**: Contact's work phone
+- **PAT_REL_MOBILE_PHNE**: Contact's mobile phone
+- **PAT_REL_LGL_GUAR_YN**: Whether this contact is the patient's legal guardian
+- **PAT_REL_REC_LINK_ID**: Links this contact to a patient record
+- **PAT_REL_RELATION_C_NAME**: Contact's relation to patient
+- **PAT_REL_PRIM_PH_C_NAME**: Which of the contact's phone numbers should be considered primary
+- **PAT_REL_GEN_STR_1**: Customer labeled string item
+- **PAT_REL_GEN_STR_2**: Customer labeled string item
+- **PAT_REL_GEN_STR_3**: Customer labeled string item
+- **PAT_REL_GEN_STR_4**: Customer labeled string item
+- **PAT_REL_GEN_CAT_1_C_NAME**: Customer labeled category item
+- **PAT_REL_GEN_CAT_2_C_NAME**: Customer labeled category item
+- **PAT_REL_GEN_CAT_3_C_NAME**: Customer labeled category item
+- **PAT_REL_GEN_CAT_4_C_NAME**: Customer labeled category item
+- **PAT_REL_HOUSE_NUM**: Contact's House Number
+- **PAT_REL_DISTRICT_C_NAME**: The district category ID for the patient's contact.
+- **PAT_REL_HEARING_YN**: Capture if patient's relative has hearing impairment
+- **PAT_REL_VISUALLY_YN**: Capture if patient's relative has visual impairment
+- **PAT_REL_IMP_NEEDS_C_NAME**: Capture the patient's emergency contact's special needs for hearing and visual impairment.
+- **PAT_REL_SPOKEN_C_NAME**: Capture the patient's emergency contact's spoken language.
+- **PAT_REL_WRITTEN_C_NAME**: Capture the patient's emergency contact's written language.
+- **PAT_REL_PREF_LANG_C_NAME**: Capture the patient's emergency contact's preferred language.
+- **PAT_REL_INTERPRET_YN**: Capture if the patient's emergency contact needs an interpreter.
+- **PAT_REL_SPL_NEEDS_C_NAME**: Capture the patient's emergency contact's special needs.
+- **PAT_REL_NOTIFY_YN**: Capture if the patient's emergency contact should be notified on patient's admission.
+- **PAT_LEGAL_REL_C_NAME**: Specifies the category for the legal relationship
+- **PAT_REL_ACT_AGNT_YN**: Specifies if the health care agent is active or not
+- **PAT_REL_EMAIL**: Primary email address of the patient's emergency contact.
+- **PAT_REL_RLA_ID**: Links this patient contact to the associated Patient Relationships (RLA) patient relationship record.
+
 ## Sample Data (one representative non-null value per column)
+
+### IDENTITY_ID
+- PAT_ID = `Z7004242`
+- LINE = `1`
+- IDENTITY_ID = `E7004467`
+- IDENTITY_TYPE_ID = `0`
+- IDENTITY_TYPE_ID_ID_TYPE_NAME = `EPI`
 
 ### PATIENT
 - PAT_ID = `Z7004242`
@@ -892,6 +1051,30 @@ These are Epic's official descriptions for each column. They are the ground trut
 ### PATIENT_6
 - PAT_ID = `Z7004242`
 
+### PATIENT_ALIAS
+- PAT_ID = `Z7004242`
+- LINE = `1`
+- ALIAS = `MANDEL,JOSH`
+
+### PATIENT_DOCS
+- PAT_ID = `Z7004242`
+- LINE = `1`
+- DOC_INFO_ID = `135806699`
+
+### PATIENT_GOALS
+- PAT_ID = `Z7004242`
+- LINE = `1`
+- GOAL_ID = `19345887`
+
+### PATIENT_MYC
+- PAT_ID = `Z7004242`
+- PAT_ACCESS_STAT_C_NAME = `Used`
+- MYCHART_STATUS_C_NAME = `Activated`
+- MYPT_ID = `389635`
+- DEM_VERIF_DT = `9/27/2023 12:00:00 AM`
+- INS_VERIF_DT = `9/27/2023 12:00:00 AM`
+- R_E_L_PAT_VERIF_DT = `9/27/2023 12:00:00 AM`
+
 ### PATIENT_RACE
 - PAT_ID = `Z7004242`
 - LINE = `1`
@@ -901,6 +1084,60 @@ These are Epic's official descriptions for each column. They are the ground trut
 - PAT_ID = `Z7004242`
 - LINE = `1`
 - ADDRESS = `REDACTED`
+
+### PAT_ADDR_CHNG_HX
+- PAT_ID = `Z7004242`
+- LINE = `1`
+- ADDR_HX_LINE1 = `REDACTED`
+- CITY_HX = `MADISON`
+- COUNTY_HX_C_NAME = `DANE`
+- ZIP_HX = `REDACTED`
+- ADDR_CHNG_SOURCE_C_NAME = `Cadence`
+- EFF_START_DATE = `7/17/2018 12:00:00 AM`
+- EFF_END_DATE = `8/9/2018 12:00:00 AM`
+- SIGNIFICANT_CHANGE_YN = `Y`
+- COUNTRY_C_NAME = `United States of America`
+
+### PAT_EMAILADDRESS
+- PAT_ID = `Z7004242`
+- LINE = `1`
+- EMAIL_ADDRESS = `jmandel@alum.mit.edu`
+
+### PAT_PCP
+- PAT_ID = `Z7004242`
+- LINE = `1`
+- PCP_PROV_ID = `802011`
+- EFF_DATE = `7/17/2018 12:00:00 AM`
+- TERM_DATE = `8/28/2022 12:00:00 AM`
+- PCP_TYPE_C_NAME = `General`
+- SPECIALTY_C_NAME = `Internal Medicine`
+- RESULTS_C_NAME = `No results`
+- PCP_ADDRESS_ID = `144590-5000002`
+
+### PAT_PREF_PHARMACY
+- PAT_ID = `Z7004242`
+- LINE = `1`
+- PREF_PHARMACY_ID = `64981`
+- PREF_PHARMACY_ID_PHARMACY_NAME = `COSTCO PHARMACY # 1020 - MIDDLETON, WI - 2150 DEMING WAY`
+
+### PAT_RCNT_USD_PHRMS
+- PAT_ID = `Z7004242`
+- LINE = `1`
+- RECENT_PHARM_ID = `64981`
+- RECENT_PHARM_ID_PHARMACY_NAME = `COSTCO PHARMACY # 1020 - MIDDLETON, WI - 2150 DEMING WAY`
+
+### PAT_RELATIONSHIPS
+- PAT_ID = `Z7004242`
+- LINE = `1`
+- PAT_REL_NAME = `REDACTED,REDACTED`
+- PAT_REL_CITY = `Madison`
+- PAT_REL_ZIP = `REDACTED`
+- PAT_REL_COUNTY_C_NAME = `DANE`
+- PAT_REL_COUNTRY_C_NAME = `United States of America`
+- PAT_REL_MOBILE_PHNE = `REDACTED`
+- PAT_REL_RELATION_C_NAME = `Spouse`
+- PAT_REL_PRIM_PH_C_NAME = `Mobile phone`
+- PAT_REL_RLA_ID = `31533871`
 
 ## Pipeline Code
 
@@ -920,30 +1157,40 @@ function projectPatient(): EpicRow {
 
   return pat;
 }
+
+// ─── Inline in main() ───
+  race: tableExists("PATIENT_RACE") ? children("PATIENT_RACE", "PAT_ID", patId) : [],
+
+  addresses: tableExists("PAT_ADDRESS") ? children("PAT_ADDRESS", "PAT_ID", patId) : [],
+
+  email_addresses: tableExists("PAT_EMAILADDRESS") ? children("PAT_EMAILADDRESS", "PAT_ID", patId) : [],
+
+  address_change_history: tableExists("PAT_ADDR_CHNG_HX") ? children("PAT_ADDR_CHNG_HX", "PAT_ID", patId) : [],
+
+  identity_ids: tableExists("IDENTITY_ID") ? children("IDENTITY_ID", "PAT_ID", patId) : [],
+
+  aliases: tableExists("PATIENT_ALIAS") ? children("PATIENT_ALIAS", "PAT_ID", patId) : [],
+
+  primary_care_providers: tableExists("PAT_PCP") ? children("PAT_PCP", "PAT_ID", patId) : [],
+
+  preferred_pharmacies: tableExists("PAT_PREF_PHARMACY") ? children("PAT_PREF_PHARMACY", "PAT_ID", patId) : [],
+
+  recent_pharmacies: tableExists("PAT_RCNT_USD_PHRMS") ? children("PAT_RCNT_USD_PHRMS", "PAT_ID", patId) : [],
+
+  relationships: tableExists("PAT_RELATIONSHIPS") ? children("PAT_RELATIONSHIPS", "PAT_ID", patId) : [],
+
+  goals: tableExists("PATIENT_GOALS") ? children("PATIENT_GOALS", "PAT_ID", patId) : [],
+
+  patient_documents: tableExists("PATIENT_DOCS") ? children("PATIENT_DOCS", "PAT_ID", patId) : [],
 ```
 
 ### Stage 2: Domain Model Hydration (PatientRecord.ts)
 ```typescript
-// Patient is stored as raw EpicRow on PatientRecord.patient
+// (raw EpicRow[], no typed class)
 ```
 
 ### Stage 3: Clean Projection (HealthRecord.ts → final output)
 ```typescript
-    demographics: projectDemographics(r),
-    allergies: r.allergies.map(projectAllergy),
-    problems: r.problems.map(projectProblem),
-    medications: r.medications.map(projectMedication),
-    immunizations: r.immunizations.map(projectImmunization),
-    visits: r.visits().map((v: any) => projectVisit(v, r)),
-    labResults: projectAllLabResults(r),
-    socialHistory: projectSocialHistory(r),
-    surgicalHistory: projectSurgicalHistory(r),
-    familyHistory: projectFamilyHistory(r),
-    messages: r.messages.map(projectMessage),
-    billing: projectBilling(r),
-  };
-}
-
 function projectDemographics(r: R): Demographics {
   const p = r.patient;
   return {
@@ -956,97 +1203,100 @@ function projectDemographics(r: R): Demographics {
       street: str(p.ADD_LINE_1), city: str(p.CITY),
       state: str(p.STATE_C_NAME), zip: str(p.ZIP), country: str(p.COUNTRY_C_NAME),
     } : null,
+    phone: str(p.HOME_PHONE), email: str(p.EMAIL_ADDRESS),
+    mrn: String(p.PAT_MRN_ID ?? ''),
+    primaryCareProvider: str(p.CUR_PCP_PROV_ID_NAME),
+    _epic: epic(p),
+  };
+}
 ```
 
 ## Actual Output (from health_record_full.json)
 
 ```json
 {
-  "name": "MANDEL, JOSHUA C",
-  "firstName": "Joshua",
-  "lastName": "Mandel",
-  "dateOfBirth": "1982-10-26",
-  "sex": "Male",
-  "ethnicity": "Not Hispanic or Latino",
-  "language": "English",
-  "address": {
-    "city": "MADISON",
-    "state": "Wisconsin",
-    "zip": "REDACTED",
-    "country": "United States of America"
-  },
-  "phone": "617-894-1015",
-  "email": "jmandel@alum.mit.edu",
-  "mrn": "APL324672",
-  "_epic": {
-    "PAT_ID": "Z7004242",
-    "PAT_NAME": "MANDEL,JOSHUA C",
-    "CITY": "MADISON",
-    "STATE_C_NAME": "Wisconsin",
-    "COUNTY_C_NAME": "DANE",
-    "COUNTRY_C_NAME": "United States of America",
-    "ZIP": "REDACTED",
-    "HOME_PHONE": "617-894-1015",
-    "EMAIL_ADDRESS": "jmandel@alum.mit.edu",
-    "BIRTH_DATE": "10/26/1982 12:00:00 AM",
-    "ETHNIC_GROUP_C_NAME": "Not Hispanic or Latino",
-    "RELIGION_C_NAME": "None",
-    "LANGUAGE_C_NAME": "English",
-    "SSN": "REDACTED",
-    "ADV_DIRECTIVE_YN": "N",
-    "CUR_PCP_PROV_ID": "144590",
-    "CUR_PRIM_LOC_ID": 1700801,
-    "CREATE_USER_ID": "BETTSMR",
-    "CREATE_USER_ID_NAME": "BETTS, MINDY R",
-    "PAT_MRN_ID": "APL324672",
-    "REC_CREATE_PAT_ID": "BETTSMR",
-    "REC_CREATE_PAT_ID_NAME": "BETTS, MINDY R",
-    "PAT_LAST_NAME": "Mandel",
-    "PAT_FIRST_NAME": "Joshua",
-    "PAT_MIDDLE_NAME": "C",
-    "EMPLOYER_ID": "1000",
-    "EMPLOYER_ID_EMPLOYER_NAME": "OTHER",
-    "EMPY_STATUS_C_NAME": "Full Time",
-    "INTRPTR_NEEDED_YN": "N",
-    "MEDS_LAST_REV_TM": "9/28/2023 9:38:00 AM",
-    "MEDS_LST_REV_USR_ID": "MBS403",
-    "MEDS_LST_REV_USR_ID_NAME": "SMITH, MARY B",
-    "SELF_EC_VERIF_DATE": "2/15/2024 12:00:00 AM",
-    "EMPR_ID_CMT": "Microsoft",
-    "PAT_STATUS_C_NAME": "Alive",
-    "MEDS_LAST_REV_CSN": 991225117,
-    "SEX_C_NAME": "Male",
-    "IS_ADOPTED_YN": "N",
-    "ALRGY_UPD_INST": "9/28/2023 9:39:00 AM",
-    "PAT_NAME_RECORD_ID": "7745095",
-    "COMM_METHOD_C_ZC_COMM_METHOD_NAME": "Mail Service",
-    "DEF_ADDRESS_C_NAME": "Home Address",
-    "EMPR_COUNTRY_C_NAME": "United States of America",
-    "PAT_VERIFICATION_ID": 67506213,
-    "ALRGY_REV_STAT_C_NAME": "Review Complete",
-    "REVERSE_NATL_ID": "4499-26-330",
-    "ALRG_LAST_UPDA_DTTM": "8/29/2022 1:32:00 PM",
-    "PREFERRED_NAME": "Josh",
-    "TXP_PAT_YN": "N",
-    "ALRGY_REV_EPT_CSN": 991225117,
-    "PAT_LIVING_STAT_C_NAME": "Alive",
-    "GENDER_IDENTITY_C_NAME": "Male",
-    "PREFERENCES_ID": 1079221,
-    "ADDR_CHG_USER_ID": "MYCHARTG",
-    "ADDR_CHG_USER_ID_NAME": "MYCHART, GENERIC",
-    "ADDR_CHG_INSTANT_DTTM": "7/14/2020 2:01:43 PM",
-    "ADDR_CHG_SOURCE": "(EPT) MANDEL,JOSHUA C [  Z7004242]",
-    "CONGREGATE_CARE_RESIDENT_YN": "N",
-    "SEEN_DOMESTIC_TRAVEL_ALERT_YN": "Y",
-    "PREFERRED_NAME_TYPE_C_NAME": "First Name, Preferred",
-    "PAT_ACCESS_STAT_C_NAME": "Used",
-    "MYCHART_STATUS_C_NAME": "Activated",
-    "MYPT_ID": "389635",
-    "DEM_VERIF_DT": "9/27/2023 12:00:00 AM",
-    "INS_VERIF_DT": "9/27/2023 12:00:00 AM",
-    "R_E_L_PAT_VERIF_DT": "9/27/2023 12:00:00 AM"
-  }
-}
+  "demographics": {
+    "name": "MANDEL, JOSHUA C",
+    "firstName": "Joshua",
+    "lastName": "Mandel",
+    "dateOfBirth": "1982-10-26",
+    "sex": "Male",
+    "ethnicity": "Not Hispanic or Latino",
+    "language": "English",
+    "address": {
+      "city": "MADISON",
+      "state": "Wisconsin",
+      "zip": "REDACTED",
+      "country": "United States of America"
+    },
+    "phone": "617-894-1015",
+    "email": "jmandel@alum.mit.edu",
+    "mrn": "APL324672",
+    "_epic": {
+      "PAT_ID": "Z7004242",
+      "PAT_NAME": "MANDEL,JOSHUA C",
+      "CITY": "MADISON",
+      "STATE_C_NAME": "Wisconsin",
+      "COUNTY_C_NAME": "DANE",
+      "COUNTRY_C_NAME": "United States of America",
+      "ZIP": "REDACTED",
+      "HOME_PHONE": "617-894-1015",
+      "EMAIL_ADDRESS": "jmandel@alum.mit.edu",
+      "BIRTH_DATE": "10/26/1982 12:00:00 AM",
+      "ETHNIC_GROUP_C_NAME": "Not Hispanic or Latino",
+      "RELIGION_C_NAME": "None",
+      "LANGUAGE_C_NAME": "English",
+      "SSN": "REDACTED",
+      "ADV_DIRECTIVE_YN": "N",
+      "CUR_PCP_PROV_ID": "144590",
+      "CUR_PRIM_LOC_ID": 1700801,
+      "CREATE_USER_ID": "BETTSMR",
+      "CREATE_USER_ID_NAME": "BETTS, MINDY R",
+      "PAT_MRN_ID": "APL324672",
+      "REC_CREATE_PAT_ID": "BETTSMR",
+      "REC_CREATE_PAT_ID_NAME": "BETTS, MINDY R",
+      "PAT_LAST_NAME": "Mandel",
+      "PAT_FIRST_NAME": "Joshua",
+      "PAT_MIDDLE_NAME": "C",
+      "EMPLOYER_ID": "1000",
+      "EMPLOYER_ID_EMPLOYER_NAME": "OTHER",
+      "EMPY_STATUS_C_NAME": "Full Time",
+      "INTRPTR_NEEDED_YN": "N",
+      "MEDS_LAST_REV_TM": "9/28/2023 9:38:00 AM",
+      "MEDS_LST_REV_USR_ID": "MBS403",
+      "MEDS_LST_REV_USR_ID_NAME": "SMITH, MARY B",
+      "SELF_EC_VERIF_DATE": "2/15/2024 12:00:00 AM",
+      "EMPR_ID_CMT": "Microsoft",
+      "PAT_STATUS_C_NAME": "Alive",
+      "MEDS_LAST_REV_CSN": 991225117,
+      "SEX_C_NAME": "Male",
+      "IS_ADOPTED_YN": "N",
+      "ALRGY_UPD_INST": "9/28/2023 9:39:00 AM",
+      "PAT_NAME_RECORD_ID": "7745095",
+      "COMM_METHOD_C_ZC_COMM_METHOD_NAME": "Mail Service",
+      "DEF_ADDRESS_C_NAME": "Home Address",
+      "EMPR_COUNTRY_C_NAME": "United States of America",
+      "PAT_VERIFICATION_ID": 67506213,
+      "ALRGY_REV_STAT_C_NAME": "Review Complete",
+      "REVERSE_NATL_ID": "4499-26-330",
+      "ALRG_LAST_UPDA_DTTM": "8/29/2022 1:32:00 PM",
+      "PREFERRED_NAME": "Josh",
+      "TXP_PAT_YN": "N",
+      "ALRGY_REV_EPT_CSN": 991225117,
+      "PAT_LIVING_STAT_C_NAME": "Alive",
+      "GENDER_IDENTITY_C_NAME": "Male",
+      "PREFERENCES_ID": 1079221,
+      "ADDR_CHG_USER_ID": "MYCHARTG",
+      "ADDR_CHG_USER_ID_NAME": "MYCHART, GENERIC",
+      "ADDR_CHG_INSTANT_DTTM": "7/14/2020 2:01:43 PM",
+      "ADDR_CHG_SOURCE": "(EPT) MANDEL,JOSHUA C [  Z7004242]",
+      "CONGREGATE_CARE_RESIDENT_YN": "N",
+      "SEEN_DOMESTIC_TRAVEL_ALERT_YN": "Y",
+      "PREFERRED_NAME_TYPE_C_NAME": "First Name, Preferred",
+      "PAT_ACCESS_STAT_C_NAME": "Used",
+      "MYCHART_STATUS_C_NAME": "Activated",
+      "MYPT_ID": "389635",
+   
 ```
 
 ## Instructions

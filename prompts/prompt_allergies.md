@@ -437,7 +437,7 @@ somehow both miss it** (layer 1).
 
 ## Your Task
 
-Analyze the mapping pipeline for **Allergies: ALLERGY → Allergy → HealthRecord.allergies** and identify every semantic error — places where a column is read successfully but the value means something different than the code assumes.
+Analyze the mapping pipeline for **Allergies: ALLERGY → Allergy → allergies** and identify every semantic error — places where a column is read successfully but the value means something different than the code assumes.
 
 You are looking for these specific error types:
 1. **Wrong column for the concept** — the code reads a column that exists but contains a different kind of data than intended (e.g., reading a category code integer instead of a display name string)
@@ -485,6 +485,19 @@ These are Epic's official descriptions for each column. They are the ground trut
 - **LINE**: The line number for the information associated with this record. Multiple pieces of information can be associated with this record.
 - **REACTION_C_NAME**: The integer category value corresponding to the type of allergy reaction. To display names and/or abbreviations, link to the associated ZC lookup table.
 
+### PATIENT_ALG_UPD_HX
+**Table**: The PATIENT_ALG_UPD_HX table contains one record for each update of a patient's allergy information.
+- **PAT_ID**: The unique ID assigned to the patient record.
+- **LINE**: The line number of a specific allergy update in the patient's allergy update history. This is the second column in the primary key and, in addition to the patient ID, uniquely identifies a patient allergy update.
+- **ALRG_UPDT_DATE**: The date on which the patient's allergy history was updated.
+- **ALRG_UPDT_USER_ID**: The user who last updated the patient's allergy history.
+- **ALRG_UPDT_USER_ID_NAME**: The name of the user record. This name may be hidden.
+- **ALRG_UPDT_TIME**: The time at which the patient's allergy history was updated.
+- **ALRG_HX_REV_STAT_C_NAME**: This item stores the history of the status of the review of allergies.
+- **ALRG_HX_REV_REAS_C_NAME**: This item stores the history of the review reason of allergies.
+- **ALRG_UPDT_DTTM**: The date and time at which the patient's allergy history was updated.
+- **ALRG_HX_REV_EPT_CSN**: This column contains historical entries for the source encounter where allergies were reviewed. If allergies were reviewed outside the context of an encounter, the value is null.
+
 ### PAT_ALLERGIES
 **Table**: The allergies that are associated with a patient are stored on this table. This table also provides a link from the Patient (EPT) based tables to the Problem List (LPL) based tables.
 - **PAT_ID**: The unique ID of the patient record for this row. This column is frequently used to link to the PATIENT table.
@@ -511,6 +524,17 @@ These are Epic's official descriptions for each column. They are the ground trut
 - ALLERGY_ID = `30689238`
 - LINE = `1`
 - REACTION_C_NAME = `Hives`
+
+### PATIENT_ALG_UPD_HX
+- PAT_ID = `Z7004242`
+- LINE = `1`
+- ALRG_UPDT_DATE = `8/9/2018 12:00:00 AM`
+- ALRG_UPDT_USER_ID = `WENTZTC`
+- ALRG_UPDT_USER_ID_NAME = `IRELAND, TRACY C`
+- ALRG_UPDT_TIME = `1/1/1900 9:44:00 AM`
+- ALRG_HX_REV_STAT_C_NAME = `Review Complete`
+- ALRG_UPDT_DTTM = `8/9/2018 9:44:00 AM`
+- ALRG_HX_REV_EPT_CSN = `720803470`
 
 ### PAT_ALLERGIES
 - PAT_ID = `Z7004242`
@@ -541,6 +565,13 @@ function projectAllergies(patId: unknown): EpicRow[] {
   }
   return rows;
 }
+
+const allergyChildren: ChildSpec[] = [
+  { table: "ALLERGY_REACTIONS", fkCol: "ALLERGY_ID", key: "reactions" },
+]
+
+// ─── Inline in main() ───
+  allergy_update_history: tableExists("PATIENT_ALG_UPD_HX") ? children("PATIENT_ALG_UPD_HX", "PAT_ID", patId) : [],
 ```
 
 ### Stage 2: Domain Model Hydration (PatientRecord.ts)
@@ -598,110 +629,88 @@ function projectAllergy(a: any): Allergy {
 ## Actual Output (from health_record_full.json)
 
 ```json
-[
-  {
-    "id": "30689238",
-    "allergen": "TREE NUT",
-    "reactions": [
-      "Hives"
-    ],
-    "severity": "Allergy",
-    "status": "Active",
-    "dateNoted": "2018-08-09",
-    "_epic": {
-      "ALLERGY_ID": 30689238,
-      "allergenName": "TREE NUT",
-      "dateNoted": "8/9/2018 12:00:00 AM",
-      "severity": "High",
+{
+  "allergies": [
+    {
+      "id": "30689238",
+      "allergen": "TREE NUT",
+      "reactions": [
+        "Hives"
+      ],
+      "severity": "Allergy",
       "status": "Active",
-      "ALLERGEN_ID": 48968,
-      "ALLERGEN_ID_ALLERGEN_NAME": "TREE NUT",
-      "DATE_NOTED": "8/9/2018 12:00:00 AM",
-      "ENTRY_USER_ID": "WENTZTC",
-      "ENTRY_USER_ID_NAME": "IRELAND, TRACY C",
-      "SEVERITY_C_NAME": "Allergy",
-      "ALLERGY_SEVERITY_C_NAME": "High",
-      "ALRGY_STATUS_C_NAME": "Active",
-      "ALRGY_ENTERED_DTTM": "8/9/2018 9:45:00 AM"
+      "dateNoted": "2018-08-09",
+      "_epic": {
+        "ALLERGY_ID": 30689238,
+        "allergenName": "TREE NUT",
+        "dateNoted": "8/9/2018 12:00:00 AM",
+        "severity": "High",
+        "status": "Active",
+        "ALLERGEN_ID": 48968,
+        "ALLERGEN_ID_ALLERGEN_NAME": "TREE NUT",
+        "DATE_NOTED": "8/9/2018 12:00:00 AM",
+        "ENTRY_USER_ID": "WENTZTC",
+        "ENTRY_USER_ID_NAME": "IRELAND, TRACY C",
+        "SEVERITY_C_NAME": "Allergy",
+        "ALLERGY_SEVERITY_C_NAME": "High",
+        "ALRGY_STATUS_C_NAME": "Active",
+        "ALRGY_ENTERED_DTTM": "8/9/2018 9:45:00 AM"
+      }
+    },
+    {
+      "id": "30689295",
+      "allergen": "SULFA ANTIBIOTICS",
+      "reactions": [
+        "Hives"
+      ],
+      "severity": "Allergy",
+      "status": "Active",
+      "dateNoted": "2018-08-09",
+      "_epic": {
+        "ALLERGY_ID": 30689295,
+        "allergenName": "SULFA ANTIBIOTICS",
+        "dateNoted": "8/9/2018 12:00:00 AM",
+        "severity": "High",
+        "status": "Active",
+        "ALLERGEN_ID": 33,
+        "ALLERGEN_ID_ALLERGEN_NAME": "SULFA ANTIBIOTICS",
+        "DATE_NOTED": "8/9/2018 12:00:00 AM",
+        "ENTRY_USER_ID": "WENTZTC",
+        "ENTRY_USER_ID_NAME": "IRELAND, TRACY C",
+        "SEVERITY_C_NAME": "Allergy",
+        "ALLERGY_SEVERITY_C_NAME": "High",
+        "ALRGY_STATUS_C_NAME": "Active",
+        "ALRGY_ENTERED_DTTM": "8/9/2018 9:45:00 AM"
+      }
+    },
+    {
+      "id": "30689317",
+      "allergen": "PENICILLINS",
+      "reactions": [
+        "Hives"
+      ],
+      "severity": "Allergy",
+      "status": "Active",
+      "dateNoted": "2018-08-09",
+      "_epic": {
+        "ALLERGY_ID": 30689317,
+        "allergenName": "PENICILLINS",
+        "dateNoted": "8/9/2018 12:00:00 AM",
+        "severity": "High",
+        "status": "Active",
+        "ALLERGEN_ID": 25,
+        "ALLERGEN_ID_ALLERGEN_NAME": "PENICILLINS",
+        "DATE_NOTED": "8/9/2018 12:00:00 AM",
+        "ENTRY_USER_ID": "WENTZTC",
+        "ENTRY_USER_ID_NAME": "IRELAND, TRACY C",
+        "SEVERITY_C_NAME": "Allergy",
+        "ALLERGY_SEVERITY_C_NAME": "High",
+        "ALRGY_STATUS_C_NAME": "Active",
+        "ALRGY_ENTERED_DTTM": "8/9/2018 9:46:00 AM"
+      }
     }
-  },
-  {
-    "id": "30689295",
-    "allergen": "SULFA ANTIBIOTICS",
-    "reactions": [
-      "Hives"
-    ],
-    "severity": "Allergy",
-    "status": "Active",
-    "dateNoted": "2018-08-09",
-    "_epic": {
-      "ALLERGY_ID": 30689295,
-      "allergenName": "SULFA ANTIBIOTICS",
-      "dateNoted": "8/9/2018 12:00:00 AM",
-      "severity": "High",
-      "status": "Active",
-      "ALLERGEN_ID": 33,
-      "ALLERGEN_ID_ALLERGEN_NAME": "SULFA ANTIBIOTICS",
-      "DATE_NOTED": "8/9/2018 12:00:00 AM",
-      "ENTRY_USER_ID": "WENTZTC",
-      "ENTRY_USER_ID_NAME": "IRELAND, TRACY C",
-      "SEVERITY_C_NAME": "Allergy",
-      "ALLERGY_SEVERITY_C_NAME": "High",
-      "ALRGY_STATUS_C_NAME": "Active",
-      "ALRGY_ENTERED_DTTM": "8/9/2018 9:45:00 AM"
-    }
-  },
-  {
-    "id": "30689317",
-    "allergen": "PENICILLINS",
-    "reactions": [
-      "Hives"
-    ],
-    "severity": "Allergy",
-    "status": "Active",
-    "dateNoted": "2018-08-09",
-    "_epic": {
-      "ALLERGY_ID": 30689317,
-      "allergenName": "PENICILLINS",
-      "dateNoted": "8/9/2018 12:00:00 AM",
-      "severity": "High",
-      "status": "Active",
-      "ALLERGEN_ID": 25,
-      "ALLERGEN_ID_ALLERGEN_NAME": "PENICILLINS",
-      "DATE_NOTED": "8/9/2018 12:00:00 AM",
-      "ENTRY_USER_ID": "WENTZTC",
-      "ENTRY_USER_ID_NAME": "IRELAND, TRACY C",
-      "SEVERITY_C_NAME": "Allergy",
-      "ALLERGY_SEVERITY_C_NAME": "High",
-      "ALRGY_STATUS_C_NAME": "Active",
-      "ALRGY_ENTERED_DTTM": "8/9/2018 9:46:00 AM"
-    }
-  },
-  {
-    "id": "58599837",
-    "allergen": "PEANUT (DIAGNOSTIC)",
-    "reactions": [
-      "Hives"
-    ],
-    "severity": "Allergy",
-    "status": "Active",
-    "dateNoted": "2020-07-14",
-    "_epic": {
-      "ALLERGY_ID": 58599837,
-      "allergenName": "PEANUT (DIAGNOSTIC)",
-      "dateNoted": "7/14/2020 12:00:00 AM",
-      "severity": "High",
-      "status": "Active",
-      "notedDuringEncounterCSN": 829213099,
-      "ALLERGEN_ID": 49007,
-      "ALLERGEN_ID_ALLERGEN_NAME": "PEANUT (DIAGNOSTIC)",
-      "DATE_NOTED": "7/14/2020 12:00:00 AM",
-      "ENTRY_USER_ID": "PICONEMA",
-      "ENTRY_USER_ID_NAME": "PICONE, MARY A",
-      "SEVERITY_C_NAME": "Allergy",
-      "ALLERGY_SEVERITY_C_NAME": "High",
-      "ALRGY_STATUS_C_NAME": "Active",
-      "ALRGY_ENTERED_DTTM": "7/14/2020 
+  ]
+}
 ```
 
 ## Instructions
