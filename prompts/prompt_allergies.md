@@ -5,473 +5,434 @@ You are reviewing an Epic EHI data mapping for semantic correctness. Before anal
 The following is extracted from the projector's documentation. It defines the three relationship types (structural child, cross-reference, provenance stamp), explains CSN semantics, the order parent→child chain, billing as a parallel hierarchy, and the mapping philosophy. **Use this to evaluate whether structural decisions in the code below are correct.**
 
 <methodology>
-/**
- * project.ts — Bun + native SQLite projector for Epic EHI → PatientRecord
- *
- * Usage:
- *   bun run spike/project.ts [--db path/to/ehi_clean.db] [--out patient.json]
- *
- *
- * ═══════════════════════════════════════════════════════════════════════════
- * PART 1: UNDERSTANDING THE EPIC EHI DATA MODEL
- * ═══════════════════════════════════════════════════════════════════════════
- *
- * Epic's EHI (Electronic Health Information) export is a flat dump of the
- * Clarity/Caboodle reporting database. A single patient's export contains
- * 500-600 TSV files, each representing one database table. There are no
- * foreign key constraints in the export — relationships are implicit.
- *
- *
- * 1. TABLE SPLITTING
- * ──────────────────
- * Epic splits wide tables across multiple files with _2, _3, ... suffixes.
- * PATIENT has 6 files (PATIENT, PATIENT_2..6), PAT_ENC has 7, ORDER_MED
- * has 7, etc. 27 base tables produce 62 additional split files.
- *
- * CRITICAL GOTCHA: The primary key column name often changes across splits!
- *   - ACCOUNT.ACCOUNT_ID → ACCOUNT_2.ACCT_ID → ACCOUNT_3.ACCOUNT_ID
- *   - ORDER_MED.ORDER_MED_ID → ORDER_MED_2.ORDER_ID
- *   - COVERAGE.COVERAGE_ID → COVERAGE_2.CVG_ID
- *   - PAT_ENC base PK is PAT_ID (multi-row) but splits join on PAT_ENC_CSN_ID
- *     except PAT_ENC_3 which uses PAT_ENC_CSN (no _ID suffix)
- *
- * The VALUES match, the NAMES don't. split_config.json documents every join
- * column for all 27 groups. Don't try to infer them — look them up.
- *
- *
- * 2. THREE RELATIONSHIP TYPES
- * ───────────────────────────
- * Every table in the export fits one of three roles:
- *
- * a) STRUCTURAL CHILD — lives inside its parent, joined on parent PK.
- *    Examples: ORDER_RESULTS under ORDER_PROC (on ORDER_PROC_ID),
- *    ALLERGY_REACTIONS under ALLERGY (on ALLERGY_ID).
- *    These nest naturally: order.results = [...]
- *
- * b) CROSS-REFERENCE — has its own identity, points to another entity.
- *    Example: ARPB_VISITS.PRIM_ENC_CSN_ID points to an encounter.
- *    The billing visit is NOT owned by the encounter — it's a separate
- *    entity in a parallel hierarchy. Model as typed ID + accessor method:
- *      encounter.billingVisit(record) / billingVisit.encounter(record)
- *
- * c) PROVENANCE STAMP — a CSN on a patient-level record that means
- *    "this was edited during encounter X", NOT "this belongs to encounter X".
- *    Example: ALLERGY.ALLERGY_PAT_CSN records which encounter the allergy
- *    was noted in. Don't nest allergies under encounters — they belong to
- *    the patient. The CSN is metadata about when/where, not ownership.
- *
- * The hardest part of mapping a new table is deciding which type it is.
- * When in doubt, read the Epic column description from schemas/*.json.
- *
- *
- * 3. CONTACTS, SERIAL NUMBERS, AND THE CSN
- * ─────────────────────────────────────────
- *
- * TERMINOLOGY:
- *   "Contact"       = any recorded interaction with the health system.
- *                     A clinical visit is a contact. But so is a history
- *                     review, a phone call, a MyChart message, an admin
- *                     task, or a lab processing event.
- *   "Serial Number" = a unique integer Epic assigns to each contact.
- *   "CSN"           = Contact Serial Number. The unique ID of a contact.
- *
- * CRITICAL MENTAL MODEL:
- *
- *   PAT_ENC is the table of ALL contacts — not just clinical visits.
- *   Each row in PAT_ENC gets a unique CSN (PAT_ENC_CSN_ID). But the
- *   111 rows in our test patient's PAT_ENC break down as:
- *
- *     ~30  Clinical visits (have diagnoses, orders, or reasons for visit)
- *       5  History review contacts (SOCIAL_HX, SURGICAL_HX records)
- *      76  Other contacts (phone calls, MyChart, admin, metadata-only)
- *
- *   When a clinician reviews social history during a visit, Epic creates
- *   TWO contacts on the same date, same provider, same department:
- *
- *     CSN 799951565  — the clinical visit (3 diagnoses, 1 order, 2 reasons)
- *     CSN 802802103  — the social history review (0 diagnoses, 0 orders)
- *
- *   Both are rows in PAT_ENC. The history contact exists to record WHEN
- *   the history was reviewed. SOCIAL_HX links to both:
- *     - PAT_ENC_CSN_ID = 802802103 (the history's own contact)
- *     - HX_LNK_ENC_CSN = 799951565 (the clinical visit it was part of)
- *
- *   This is why you cannot treat PAT_ENC as "the visits table." Many
- *   CSNs are system-generated contacts with no clinical content.
- *
- * WHERE CSN COLUMNS APPEAR AND WHAT THEY MEAN:
- *
- *   PAT_ENC_CSN_ID    Standard FK to a contact. On child tables
- *                     (PAT_ENC_DX, ORDER_PROC, HNO_INFO), it means
- *                     "this record belongs to contact X." On history
- *                     tables (SOCIAL_HX), it means "this IS contact X."
- *                     Found on 28+ tables.
- *
- *   PRIM_ENC_CSN_ID   "Primary encounter CSN." Used in billing (ARPB_VISITS,
- *                     HAR_ALL). Points to the clinical visit contact,
- *                     not a system-generated one. This is how billing
- *                     connects to clinical data.
- *
- *   HX_LNK_ENC_CSN    "History link encounter CSN." On SOCIAL_HX,
- *                     SURGICAL_HX, FAMILY_HX_STATUS. Points to the
- *                     clinical visit where the history was reviewed.
- *                     Different from PAT_ENC_CSN_ID on the same row.
- *
- *   NOTE_CSN_ID        The note's OWN contact serial number. Different
- *                     from PAT_ENC_CSN_ID on HNO_INFO, which tells you
- *                     which clinical encounter the note belongs to.
- *
- *   ALLERGY_PAT_CSN    Provenance stamp on ALLERGY: "this allergy was
- *                     noted during contact X." NOT structural ownership —
- *                     allergies belong to the patient, not the encounter.
- *
- *   IMM_CSN            Immunization contact. The contact during which
- *                     the immunization was administered or recorded.
- *
- *   MEDS_LAST_REV_CSN  On PATIENT: "encounter where meds were last
- *                     reviewed." A timestamp-style provenance stamp.
- *
- *   ALRG_HX_REV_EPT_CSN  "Encounter where allergy history was reviewed."
- *
- * THE KEY QUESTION WHEN YOU SEE A CSN COLUMN: does it mean
- *   (a) "this record BELONGS TO this contact"  → structural child
- *   (b) "this record IS this contact"           → the contact itself
- *   (c) "this record was TOUCHED during this contact" → provenance stamp
- *   (d) "this links to the CLINICAL VISIT contact"   → cross-reference
- * The column name alone doesn't tell you — read the schema description.
- *
- *
- * 4. THE ORDER PARENT→CHILD CHAIN (LAB RESULTS)
- * ──────────────────────────────────────────────
- * When a provider orders labs, Epic creates a parent ORDER_PROC. When
- * the lab runs, Epic spawns a child ORDER_PROC with a different
- * ORDER_PROC_ID. Results attach to the CHILD order, not the parent.
- *
- *   ORDER_PROC_ID 945468368  (parent, "LIPID PANEL")
- *     → ORDER_RESULTS: empty
- *   ORDER_PROC_ID 945468371  (child, same test)
- *     → ORDER_RESULTS: CHOLESTEROL=159, HDL=62, LDL=84, TRIG=67, VLDL=13
- *
- *   ORDER_PARENT_INFO links them:
- *     PARENT_ORDER_ID=945468368  ORDER_ID=945468371
- *
- * In our test data, parent and child orders share the same CSN (both
- * live on the same contact). In larger institutions, the child order
- * may land on a separate lab-processing contact with a different CSN.
- * Either way, the ORDER_PROC_ID is always different, and results always
- * attach to the child's ORDER_PROC_ID.
- *
- * Without following ORDER_PARENT_INFO, lab results appear disconnected
- * from the ordering encounter. The Order.allResults(record) method
- * handles this automatically.
- *
- *
- * 5. NOTE LINKING IS INDIRECT
- * ───────────────────────────
- * HNO_INFO (notes) has both PAT_ENC_CSN_ID and its own contact CSN.
- *   - PAT_ENC_CSN_ID = the clinical encounter this note belongs to
- *   - NOTE_CSN_ID = the note's own contact serial number (internal)
- *
- * Some notes have NULL PAT_ENC_CSN_ID — these are standalone MyChart
- * messages, system notifications, or notes not tied to a visit.
- * Only 57 of 152 notes in our test data link to encounters.
- * Only 21 of 152 have plain text — the rest may be in RTF format,
- * were redacted, or are system-generated stubs with metadata only.
- *
- *
- * 6. HISTORY TABLES ARE VERSIONED SNAPSHOTS
- * ─────────────────────────────────────────
- * SOCIAL_HX, SURGICAL_HX, FAMILY_HX_STATUS each have two CSN columns:
- *   - PAT_ENC_CSN_ID = the history record's own contact CSN (gets own encounter)
- *   - HX_LNK_ENC_CSN = the clinical encounter where history was reviewed
- *
- * Each row is a point-in-time snapshot, not a child of any encounter.
- * They are patient-level versioned records. We model them as
- * HistoryTimeline<T> with .latest(), .asOfEncounter(csn), .asOfDate(date).
- *
- *
- * 7. BRIDGE TABLES FOR PATIENT LINKAGE
- * ─────────────────────────────────────
- * Several entity tables store one record per entity (not per patient)
- * and link to patients through bridge tables:
- *
- *   ALLERGY ←─── PAT_ALLERGIES ───→ PATIENT (via PAT_ID)
- *   PROBLEM_LIST ← PAT_PROBLEM_LIST → PATIENT
- *   IMMUNE ←──── PAT_IMMUNIZATIONS → PATIENT
- *   ACCOUNT ←─── ACCT_GUAR_PAT_INFO → PATIENT
- *   HSP_ACCOUNT ← HAR_ALL ──────────→ PATIENT (via PAT_ID + ACCT_ID)
- *
- * In single-patient exports, you CAN SELECT * and get correct results,
- * but always join through the bridge for multi-patient correctness.
- *
- *
- * 8. CLARITY_* TABLES ARE SHARED LOOKUPS
- * ──────────────────────────────────────
- * ~23 tables starting with CLARITY_ are reference/dimension tables:
- *   CLARITY_EDG = diagnoses (DX_ID → DX_NAME)
- *   CLARITY_SER = providers (PROV_ID → PROV_NAME)
- *   CLARITY_DEP = departments (DEPARTMENT_ID → DEPARTMENT_NAME)
- *   CLARITY_EAP = procedures (PROC_ID → PROC_NAME)
- *   CLARITY_EMP = employees
- *
- * They're shared across the whole graph — don't nest them anywhere.
- * Use lookupName() to resolve IDs to display names at projection time.
- *
- *
- * 9. BILLING IS A PARALLEL HIERARCHY
- * ──────────────────────────────────
- * Clinical data (PAT_ENC → orders → results) and billing data
- * (ARPB_TRANSACTIONS → actions → diagnoses → EOB) are parallel trees
- * connected by cross-references:
- *
- *   Clinical tree:                    Billing tree:
- *   PAT_ENC                           ARPB_TRANSACTIONS
- *     ├── ORDER_PROC                    ├── ARPB_TX_ACTIONS
- *     │   └── ORDER_RESULTS             ├── ARPB_CHG_ENTRY_DX
- *     ├── HNO_INFO                      ├── TX_DIAG
- *     └── PAT_ENC_DX                   └── PMT_EOB_INFO_I/II
- *                                     ACCOUNT
- *                 cross-ref:           ├── ACCOUNT_CONTACT
- *   ARPB_VISITS.PRIM_ENC_CSN_ID       └── ACCT_TX
- *        ↔ PAT_ENC_CSN_ID           HSP_ACCOUNT
- *                                      ├── HSP_TRANSACTIONS
- *                                      └── buckets → payments
- *                                    CLM_VALUES (claims)
- *                                      └── SVC_LN_INFO
- *                                    CL_REMIT (remittances)
- *                                      └── 14 child tables
- *
- * Don't stuff billing under encounters — it's its own tree.
- *
- *
- * 10. EPIC COLUMN DESCRIPTIONS ARE THE ROSETTA STONE
- * ──────────────────────────────────────────────────
- * The schemas/*.json files (from open.epic.com) contain natural-language
- * descriptions for every column. These often include explicit relationship
- * hints: "frequently used to link to the PATIENT table", "The unique ID of
- * the immunization record", "The contact serial number associated with the
- * primary patient contact."
- *
- * When extending to a new table, ALWAYS read the schema description first.
- * A human (or LLM) reading descriptions + one sample row can make correct
- * placement judgments where heuristic FK matching fails.
- *
- *
- * ═══════════════════════════════════════════════════════════════════════════
- * PART 2: OUR MAPPING PHILOSOPHY
- * ═══════════════════════════════════════════════════════════════════════════
- *
- * 1. NESTING EXPRESSES OWNERSHIP, NOT ALL RELATIONSHIPS
- *    Structural children (ORDER_RESULTS under ORDER_PROC) nest directly.
- *    Cross-references (billing ↔ encounters) use typed IDs + accessor methods.
- *    Provenance stamps (ALLERGY.ALLERGY_PAT_CSN) are metadata fields.
- *
- * 2. CONVENIENCE METHODS LIVE ON THE ENTITY THAT HOLDS THE FK
- *    encounter.billingVisit(record) — encounter has the CSN, billing visit
- *    points to it. billingVisit.encounter(record) — reverse direction.
- *    Both entities carry their own accessor for the relationship.
- *
- * 3. THE `record` PARAMETER IS THE INDEX
- *    Cross-reference accessors take PatientRecord as a parameter so they
- *    can use O(1) index lookups (encounterByCSN, orderByID). This keeps
- *    entities serializable and the dependency explicit.
- *
- * 4. EpicRow AS ESCAPE HATCH
- *    We can't type all 550 tables immediately. EpicRow = Record<string, unknown>
- *    lets child tables land somewhere even before they're fully typed.
- *    The ChildSpec[] arrays attach children systematically — typing comes later.
- *
- * 5. PAT_ID FILTERING FOR MULTI-PATIENT CORRECTNESS
- *    Every top-level query traces back to PAT_ID, even if the path goes
- *    through bridge tables (PAT_ALLERGIES, HAR_ALL, ACCT_GUAR_PAT_INFO).
- *    Single-patient exports happen to work without this, but multi-patient
- *    databases require it.
- *
- * 6. FALLBACK GRACEFULLY
- *    Every query checks tableExists() before running. If a bridge table is
- *    missing, fall back to SELECT * (correct for single-patient exports).
- *    If a child table is absent, skip it. The projection should work for
- *    partial exports and different Epic versions.
- *
- *
- * ═══════════════════════════════════════════════════════════════════════════
- * PART 3: HOW TO EXTEND TO MORE TABLES
- * ═══════════════════════════════════════════════════════════════════════════
- *
- * We currently cover 294/550 tables (53%). Extending is mechanical:
- *
- * STEP 1: IDENTIFY THE TABLE
- *   Run: SELECT name, COUNT(*) FROM sqlite_master ... to find unplaced
- *   tables with data. Group by likely parent using FK column names.
- *
- * STEP 2: READ THE SCHEMA DESCRIPTION
- *   Open schemas/{TABLE_NAME}.json. Read the column descriptions.
- *   Pay attention to phrases like:
- *     "...link to the PATIENT table"  → patient-level entity
- *     "...contact serial number"      → CSN reference
- *     "...unique ID of the order"     → structural child of ORDER_PROC
- *     "...the encounter in which"     → provenance stamp, NOT structural parent
- *
- * STEP 3: EXAMINE SAMPLE DATA
- *   SELECT * FROM {TABLE} LIMIT 5
- *   Check: what does the first column look like? (Usually the PK or FK)
- *   Do the ID values match a known parent table?
- *
- * STEP 4: DECIDE THE RELATIONSHIP TYPE
- *   Ask yourself:
- *   a) Does this table "belong to" its parent? (ORDER_RESULTS belongs to ORDER_PROC)
- *      → Structural child. Add a ChildSpec.
- *   b) Does it have its own identity and just reference the parent?
- *      (ARPB_VISITS references encounters but is its own entity)
- *      → Cross-reference. Model separately with accessor methods.
- *   c) Is the CSN column a "when was this touched" stamp?
- *      (ALLERGY.ALLERGY_PAT_CSN = encounter where allergy was noted)
- *      → Provenance. Store as a field, not a nesting relationship.
- *
- * STEP 5: ADD THE CHILDSPEC
- *   For structural children, add an entry to the appropriate *Children array:
- *     { table: "NEW_TABLE", fkCol: "PARENT_FK_COL", key: "descriptive_name" }
- *   That's it — attachChildren() handles the rest.
- *
- * STEP 6: VERIFY JOIN INTEGRITY
- *   Run test_project.ts. Add a new fkChecks entry for the table:
- *     { table: "NEW_TABLE", fkCol: "FK_COL", parentTable: "PARENT", parentCol: "PK_COL" }
- *   Check: are there orphans? Some orphans are expected (results on child
- *   orders), but 100% orphans means your FK mapping is wrong.
- *
- * STEP 7: ADD TO PatientRecord.ts
- *   Add a typed field to the appropriate entity class. If you're adding a
- *   new entity type (not just a child of an existing one), create a new
- *   class in PatientRecord.ts with its own constructor and accessors.
- *
- *
- * COMMON PATTERNS WHEN EXTENDING:
- *
- *   111-row tables with PAT_ENC_CSN_ID
- *     These have exactly one row per encounter. They're encounter-level
- *     metadata extensions. Add them as encounter children.
- *     Examples: PAT_ENC_BILLING_ENC, PAT_REVIEW_DATA, AN_RELINK_INFO
- *
- *   Tables keyed on ORDER_ID (not ORDER_PROC_ID)
- *     ORDER_PROC_ID and ORDER_ID are usually the same value but from
- *     different column definitions. Some child tables use ORDER_ID,
- *     others use ORDER_PROC_ID. Check the actual column name.
- *
- *   Tables keyed on DOCUMENT_ID
- *     DOCUMENT_ID can mean different things: it's the immunization record
- *     ID in IMM_ADMIN, the document ID in DOC_INFORMATION, etc.
- *     Always check which parent it actually points to.
- *
- *   Tables with IMAGE_ID
- *     In the billing domain, IMAGE_ID = remittance record ID.
- *     All CL_RMT_* tables use IMAGE_ID as their FK to CL_REMIT.
- *
- *
- * ═══════════════════════════════════════════════════════════════════════════
- * PART 4: TESTING AND DEBUGGING
- * ═══════════════════════════════════════════════════════════════════════════
- *
- * test_project.ts validates the database and projection at multiple levels:
- *
- * 1. DATABASE INTEGRITY
- *    - All 550 tables loaded, 10,974 rows
- *    - Every split table's join values match the base table
- *
- * 2. STRUCTURAL CORRECTNESS
- *    - Every child table's FK column exists
- *    - FK values resolve to the parent (orphan count)
- *    - Lookup tables resolve references (CLARITY_EDG 13/13, etc.)
- *
- * 3. CROSS-REFERENCE INTEGRITY
- *    - Billing visits → encounters (12/12 resolve)
- *    - History snapshot CSNs → encounters (5/5, 5/5, 25/25)
- *
- * 4. HYDRATION + ACCESSOR TESTS
- *    - PatientRecord loads from JSON
- *    - encounter.billingVisit(record) returns correct data
- *    - order.allResults(record) follows parent→child chain
- *    - HistoryTimeline.latest() returns most recent snapshot
- *    - Index lookups (encounterByCSN, orderByID) work
- *
- * DEBUGGING STRATEGIES:
- *
- *   "Column not found" errors
- *     Check if the column exists in the base table vs. a split table.
- *     Check if you're querying the right table (IP_DATA_STORE doesn't
- *     have PAT_ENC_CSN_ID — you need PAT_ENC_HSP as a bridge).
- *
- *   Zero results for a known-populated table
- *     The PAT_ID filter may be wrong. Check if the table has PAT_ID
- *     directly or needs a bridge table (PAT_ALLERGIES, ACCT_GUAR_PAT_INFO).
- *
- *   Orphaned child rows
- *     Some orphans are expected: PROB_UPDATES has 46/50 orphans because
- *     PROBLEM_LIST only has active problems while PROB_UPDATES includes
- *     edits to deleted problems (they're in PROBLEM_LIST_ALL).
- *     ORDER_RESULTS on child orders won't match ORDER_PROC directly
- *     because the child order is on a different encounter.
- *
- *   Split table join mismatches
- *     The split_config.json may have the wrong join column. Run:
- *       SELECT s.{join_col} FROM {split} s LIMIT 5
- *       SELECT b.{base_pk} FROM {base} b LIMIT 5
- *     If values don't match, find the column that does match.
- *     NOTE_ENC_INFO_2 was originally mapped to NOTE_CSN_ID (wrong) —
- *     the correct join is on NOTE_ID.
- *
- *   "All my billing data is empty"
- *     Billing tables don't have PAT_ID. They link through:
- *     ARPB_TRANSACTIONS → ACCOUNT_ID → ACCT_GUAR_PAT_INFO.PAT_ID
- *     ARPB_VISITS → PRIM_ENC_CSN_ID → PAT_ENC.PAT_ID
- *     HSP_ACCOUNT → HAR_ALL.ACCT_ID where HAR_ALL.PAT_ID
- *
- * QUALITY CRITERIA:
- *
- *   ✓ test_project.ts passes: 146+ db tests, 0 failures
- *   ✓ Hydration test passes: 15+ accessor tests, 0 failures
- *   ✓ Row counts match: allergies, problems, immunizations, encounters,
- *     medications, messages, billing transactions all match expected values
- *   ✓ Cross-references resolve: billing visits → encounters, history → encounters
- *   ✓ Parent→child chain works: lab results reachable from ordering encounter
- *   ✓ No "SELECT * FROM table" without PAT_ID filtering (unless bridge is absent)
- *   ✓ New ChildSpecs have a corresponding fkChecks entry in test_project.ts
- *
- *
- * ═══════════════════════════════════════════════════════════════════════════
- * PART 5: FIELD NAMING AND INTERPRETATION
- * ═══════════════════════════════════════════════════════════════════════════
- *
- * Common Epic column suffixes and what they mean:
- *
- *   _C_NAME     Category value. Epic stores categories as integers internally
- *               and provides the human-readable name in the _C_NAME column.
- *               Example: TX_TYPE_C_NAME = "Charge" (not the raw category ID)
- *
- *   _YN         Yes/No flag. Values are "Y" or "N" (strings, not booleans).
- *
- *   _ID         A foreign key or primary key. May point to another table
- *               (DX_ID → CLARITY_EDG) or be an internal Epic identifier.
- *
- *   _ID_NAME    A denormalized name column. When Epic exports TABLE.FK_ID,
- *               it often includes TABLE.FK_ID_NAME with the resolved name.
- *               Example: ALLERGEN_ID + ALLERGEN_ID_ALLERGEN_NAME
- *
- *   _DTTM       Datetime (format: "9/28/2023 9:38:00 AM")
- *
- *   _DATE_REAL  Epic's internal date format (a float: days since epoch).
- *               Usually accompanied by a human-readable CONTACT_DATE.
- *
- *   _CSN        Contact serial number. See "CSN Column Name Chaos" above.
- *
- *   LINE        Multi-row child record line number. Tables like PAT_ENC_DX
- *               use LINE to number multiple diagnoses per encounter.
- *               The combination of (parent FK + LINE) is the composite key.
- *
- *   PAT_ENC_DATE_REAL  Almost always in the first column of encounter child
- *                      tables. Not useful for joining — use PAT_ENC_CSN_ID.
- *
- * ═══════════════════════════════════════════════════════════════════════════
- */
+# Epic EHI Data Model
+
+500-600 TSV files, each representing one database table. There are no
+foreign key constraints in the export — relationships are implicit.
+
+
+## 1. TABLE SPLITTING
+Epic splits wide tables across multiple files with _2, _3, ... suffixes.
+PATIENT has 6 files (PATIENT, PATIENT_2..6), PAT_ENC has 7, ORDER_MED
+has 7, etc. 27 base tables produce 62 additional split files.
+
+CRITICAL GOTCHA: The primary key column name often changes across splits!
+  - ACCOUNT.ACCOUNT_ID → ACCOUNT_2.ACCT_ID → ACCOUNT_3.ACCOUNT_ID
+  - ORDER_MED.ORDER_MED_ID → ORDER_MED_2.ORDER_ID
+  - COVERAGE.COVERAGE_ID → COVERAGE_2.CVG_ID
+  - PAT_ENC base PK is PAT_ID (multi-row) but splits join on PAT_ENC_CSN_ID
+    except PAT_ENC_3 which uses PAT_ENC_CSN (no _ID suffix)
+
+The VALUES match, the NAMES don't. split_config.json documents every join
+column for all 27 groups. Don't try to infer them — look them up.
+
+
+## 2. THREE RELATIONSHIP TYPES
+Every table in the export fits one of three roles:
+
+a) STRUCTURAL CHILD — lives inside its parent, joined on parent PK.
+   Examples: ORDER_RESULTS under ORDER_PROC (on ORDER_PROC_ID),
+   ALLERGY_REACTIONS under ALLERGY (on ALLERGY_ID).
+   These nest naturally: order.results = [...]
+
+b) CROSS-REFERENCE — has its own identity, points to another entity.
+   Example: ARPB_VISITS.PRIM_ENC_CSN_ID points to an encounter.
+   The billing visit is NOT owned by the encounter — it's a separate
+   entity in a parallel hierarchy. Model as typed ID + accessor method:
+     encounter.billingVisit(record) / billingVisit.encounter(record)
+
+c) PROVENANCE STAMP — a CSN on a patient-level record that means
+   "this was edited during encounter X", NOT "this belongs to encounter X".
+   Example: ALLERGY.ALLERGY_PAT_CSN records which encounter the allergy
+   was noted in. Don't nest allergies under encounters — they belong to
+   the patient. The CSN is metadata about when/where, not ownership.
+
+The hardest part of mapping a new table is deciding which type it is.
+When in doubt, read the Epic column description from schemas/*.json.
+
+
+## 3. CONTACTS, SERIAL NUMBERS, AND THE CSN
+
+TERMINOLOGY:
+  "Contact"       = any recorded interaction with the health system.
+                    A clinical visit is a contact. But so is a history
+                    review, a phone call, a MyChart message, an admin
+                    task, or a lab processing event.
+  "Serial Number" = a unique integer Epic assigns to each contact.
+  "CSN"           = Contact Serial Number. The unique ID of a contact.
+
+CRITICAL MENTAL MODEL:
+
+  PAT_ENC is the table of ALL contacts — not just clinical visits.
+  Each row in PAT_ENC gets a unique CSN (PAT_ENC_CSN_ID). But the
+  111 rows in our test patient's PAT_ENC break down as:
+
+    ~30  Clinical visits (have diagnoses, orders, or reasons for visit)
+      5  History review contacts (SOCIAL_HX, SURGICAL_HX records)
+     76  Other contacts (phone calls, MyChart, admin, metadata-only)
+
+  When a clinician reviews social history during a visit, Epic creates
+  TWO contacts on the same date, same provider, same department:
+
+    CSN 799951565  — the clinical visit (3 diagnoses, 1 order, 2 reasons)
+    CSN 802802103  — the social history review (0 diagnoses, 0 orders)
+
+  Both are rows in PAT_ENC. The history contact exists to record WHEN
+  the history was reviewed. SOCIAL_HX links to both:
+    - PAT_ENC_CSN_ID = 802802103 (the history's own contact)
+    - HX_LNK_ENC_CSN = 799951565 (the clinical visit it was part of)
+
+  This is why you cannot treat PAT_ENC as "the visits table." Many
+  CSNs are system-generated contacts with no clinical content.
+
+WHERE CSN COLUMNS APPEAR AND WHAT THEY MEAN:
+
+  PAT_ENC_CSN_ID    Standard FK to a contact. On child tables
+                    (PAT_ENC_DX, ORDER_PROC, HNO_INFO), it means
+                    "this record belongs to contact X." On history
+                    tables (SOCIAL_HX), it means "this IS contact X."
+                    Found on 28+ tables.
+
+  PRIM_ENC_CSN_ID   "Primary encounter CSN." Used in billing (ARPB_VISITS,
+                    HAR_ALL). Points to the clinical visit contact,
+                    not a system-generated one. This is how billing
+                    connects to clinical data.
+
+  HX_LNK_ENC_CSN    "History link encounter CSN." On SOCIAL_HX,
+                    SURGICAL_HX, FAMILY_HX_STATUS. Points to the
+                    clinical visit where the history was reviewed.
+                    Different from PAT_ENC_CSN_ID on the same row.
+
+  NOTE_CSN_ID        The note's OWN contact serial number. Different
+                    from PAT_ENC_CSN_ID on HNO_INFO, which tells you
+                    which clinical encounter the note belongs to.
+
+  ALLERGY_PAT_CSN    Provenance stamp on ALLERGY: "this allergy was
+                    noted during contact X." NOT structural ownership —
+                    allergies belong to the patient, not the encounter.
+
+  IMM_CSN            Immunization contact. The contact during which
+                    the immunization was administered or recorded.
+
+  MEDS_LAST_REV_CSN  On PATIENT: "encounter where meds were last
+                    reviewed." A timestamp-style provenance stamp.
+
+  ALRG_HX_REV_EPT_CSN  "Encounter where allergy history was reviewed."
+
+THE KEY QUESTION WHEN YOU SEE A CSN COLUMN: does it mean
+  (a) "this record BELONGS TO this contact"  → structural child
+  (b) "this record IS this contact"           → the contact itself
+  (c) "this record was TOUCHED during this contact" → provenance stamp
+  (d) "this links to the CLINICAL VISIT contact"   → cross-reference
+The column name alone doesn't tell you — read the schema description.
+
+
+## 4. THE ORDER PARENT→CHILD CHAIN (LAB RESULTS)
+When a provider orders labs, Epic creates a parent ORDER_PROC. When
+the lab runs, Epic spawns a child ORDER_PROC with a different
+ORDER_PROC_ID. Results attach to the CHILD order, not the parent.
+
+  ORDER_PROC_ID 945468368  (parent, "LIPID PANEL")
+    → ORDER_RESULTS: empty
+  ORDER_PROC_ID 945468371  (child, same test)
+    → ORDER_RESULTS: CHOLESTEROL=159, HDL=62, LDL=84, TRIG=67, VLDL=13
+
+  ORDER_PARENT_INFO links them:
+    PARENT_ORDER_ID=945468368  ORDER_ID=945468371
+
+In our test data, parent and child orders share the same CSN (both
+live on the same contact). In larger institutions, the child order
+may land on a separate lab-processing contact with a different CSN.
+Either way, the ORDER_PROC_ID is always different, and results always
+attach to the child's ORDER_PROC_ID.
+
+Without following ORDER_PARENT_INFO, lab results appear disconnected
+from the ordering encounter. The Order.allResults(record) method
+handles this automatically.
+
+
+## 5. NOTE LINKING IS INDIRECT
+HNO_INFO (notes) has both PAT_ENC_CSN_ID and its own contact CSN.
+  - PAT_ENC_CSN_ID = the clinical encounter this note belongs to
+  - NOTE_CSN_ID = the note's own contact serial number (internal)
+
+Some notes have NULL PAT_ENC_CSN_ID — these are standalone MyChart
+messages, system notifications, or notes not tied to a visit.
+Only 57 of 152 notes in our test data link to encounters.
+Only 21 of 152 have plain text — the rest may be in RTF format,
+were redacted, or are system-generated stubs with metadata only.
+
+
+## 6. HISTORY TABLES ARE VERSIONED SNAPSHOTS
+SOCIAL_HX, SURGICAL_HX, FAMILY_HX_STATUS each have two CSN columns:
+  - PAT_ENC_CSN_ID = the history record's own contact CSN (gets own encounter)
+  - HX_LNK_ENC_CSN = the clinical encounter where history was reviewed
+
+Each row is a point-in-time snapshot, not a child of any encounter.
+They are patient-level versioned records. We model them as
+HistoryTimeline<T> with .latest(), .asOfEncounter(csn), .asOfDate(date).
+
+
+## 7. BRIDGE TABLES FOR PATIENT LINKAGE
+Several entity tables store one record per entity (not per patient)
+and link to patients through bridge tables:
+
+  ALLERGY ←─── PAT_ALLERGIES ───→ PATIENT (via PAT_ID)
+  PROBLEM_LIST ← PAT_PROBLEM_LIST → PATIENT
+  IMMUNE ←──── PAT_IMMUNIZATIONS → PATIENT
+  ACCOUNT ←─── ACCT_GUAR_PAT_INFO → PATIENT
+  HSP_ACCOUNT ← HAR_ALL ──────────→ PATIENT (via PAT_ID + ACCT_ID)
+
+In single-patient exports, you CAN SELECT * and get correct results,
+but always join through the bridge for multi-patient correctness.
+
+
+## 8. CLARITY_* TABLES ARE SHARED LOOKUPS
+~23 tables starting with CLARITY_ are reference/dimension tables:
+  CLARITY_EDG = diagnoses (DX_ID → DX_NAME)
+  CLARITY_SER = providers (PROV_ID → PROV_NAME)
+  CLARITY_DEP = departments (DEPARTMENT_ID → DEPARTMENT_NAME)
+  CLARITY_EAP = procedures (PROC_ID → PROC_NAME)
+  CLARITY_EMP = employees
+
+They're shared across the whole graph — don't nest them anywhere.
+Use lookupName() to resolve IDs to display names at projection time.
+
+
+## 9. BILLING IS A PARALLEL HIERARCHY
+Clinical data (PAT_ENC → orders → results) and billing data
+(ARPB_TRANSACTIONS → actions → diagnoses → EOB) are parallel trees
+connected by cross-references:
+
+  Clinical tree:                    Billing tree:
+  PAT_ENC                           ARPB_TRANSACTIONS
+    ├── ORDER_PROC                    ├── ARPB_TX_ACTIONS
+    │   └── ORDER_RESULTS             ├── ARPB_CHG_ENTRY_DX
+    ├── HNO_INFO                      ├── TX_DIAG
+    └── PAT_ENC_DX                   └── PMT_EOB_INFO_I/II
+                                    ACCOUNT
+                cross-ref:           ├── ACCOUNT_CONTACT
+  ARPB_VISITS.PRIM_ENC_CSN_ID       └── ACCT_TX
+       ↔ PAT_ENC_CSN_ID           HSP_ACCOUNT
+                                     ├── HSP_TRANSACTIONS
+                                     └── buckets → payments
+                                   CLM_VALUES (claims)
+                                     └── SVC_LN_INFO
+                                   CL_REMIT (remittances)
+                                     └── 14 child tables
+
+Don't stuff billing under encounters — it's its own tree.
+
+
+## 10. EPIC COLUMN DESCRIPTIONS ARE THE ROSETTA STONE
+The schemas/*.json files (from open.epic.com) contain natural-language
+descriptions for every column. These often include explicit relationship
+hints: "frequently used to link to the PATIENT table", "The unique ID of
+the immunization record", "The contact serial number associated with the
+primary patient contact."
+
+When extending to a new table, ALWAYS read the schema description first.
+A human (or LLM) reading descriptions + one sample row can make correct
+placement judgments where heuristic FK matching fails.
+
+
+---
+
+# Mapping Philosophy
+
+## 1. NESTING EXPRESSES OWNERSHIP, NOT ALL RELATIONSHIPS
+   Structural children (ORDER_RESULTS under ORDER_PROC) nest directly.
+   Cross-references (billing ↔ encounters) use typed IDs + accessor methods.
+   Provenance stamps (ALLERGY.ALLERGY_PAT_CSN) are metadata fields.
+
+## 2. CONVENIENCE METHODS LIVE ON THE ENTITY THAT HOLDS THE FK
+   encounter.billingVisit(record) — encounter has the CSN, billing visit
+   points to it. billingVisit.encounter(record) — reverse direction.
+   Both entities carry their own accessor for the relationship.
+
+## 3. THE `record` PARAMETER IS THE INDEX
+   Cross-reference accessors take PatientRecord as a parameter so they
+   can use O(1) index lookups (encounterByCSN, orderByID). This keeps
+   entities serializable and the dependency explicit.
+
+## 4. EpicRow AS ESCAPE HATCH
+   We can't type all 550 tables immediately. EpicRow = Record<string, unknown>
+   lets child tables land somewhere even before they're fully typed.
+   The ChildSpec[] arrays attach children systematically — typing comes later.
+
+## 5. PAT_ID FILTERING FOR MULTI-PATIENT CORRECTNESS
+   Every top-level query traces back to PAT_ID, even if the path goes
+   through bridge tables (PAT_ALLERGIES, HAR_ALL, ACCT_GUAR_PAT_INFO).
+   Single-patient exports happen to work without this, but multi-patient
+   databases require it.
+
+## 6. FALLBACK GRACEFULLY
+   Every query checks tableExists() before running. If a bridge table is
+   missing, fall back to SELECT * (correct for single-patient exports).
+   If a child table is absent, skip it. The projection should work for
+   partial exports and different Epic versions.
+
+
+---
+
+# Field Naming and Interpretation
+
+Common Epic column suffixes and what they mean:
+
+  _C_NAME     Category value. Epic stores categories as integers internally
+              and provides the human-readable name in the _C_NAME column.
+              Example: TX_TYPE_C_NAME = "Charge" (not the raw category ID)
+
+  _YN         Yes/No flag. Values are "Y" or "N" (strings, not booleans).
+
+  _ID         A foreign key or primary key. May point to another table
+              (DX_ID → CLARITY_EDG) or be an internal Epic identifier.
+
+  _ID_NAME    A denormalized name column. When Epic exports TABLE.FK_ID,
+              it often includes TABLE.FK_ID_NAME with the resolved name.
+              Example: ALLERGEN_ID + ALLERGEN_ID_ALLERGEN_NAME
+
+  _DTTM       Datetime (format: "9/28/2023 9:38:00 AM")
+
+  _DATE_REAL  Epic's internal date format (a float: days since epoch).
+              Usually accompanied by a human-readable CONTACT_DATE.
+
+  _CSN        Contact serial number. See "CSN Column Name Chaos" above.
+
+  LINE        Multi-row child record line number. Tables like PAT_ENC_DX
+              use LINE to number multiple diagnoses per encounter.
+              The combination of (parent FK + LINE) is the composite key.
+
+  PAT_ENC_DATE_REAL  Almost always in the first column of encounter child
+                     tables. Not useful for joining — use PAT_ENC_CSN_ID.
+
+═══════════════════════════════════════════════════════════════════════════
+
+
+---
+
+# Column Safety: Zero Silent Mismatches
+
+## The Problem
+
+`EpicRow = Record<string, unknown>` makes every column access an
+unchecked string lookup. A typo returns `undefined`. The value flows
+through `as string`, becomes `null` in the HealthRecord, and nobody
+notices. The spike currently has **29 phantom column references** in
+HealthRecord.ts alone — fields that are always null because the column
+name is wrong.
+
+No amount of testing the *output* catches this reliably, because null
+is a valid value for most fields. You can't distinguish "null because
+the patient has no marital status" from "null because you typed
+MARITAL_STATUS_C_NAME and the column is actually MARITAL_STAT_C_NAME".
+
+## The Solution: Three Layers
+
+### Layer 1: StrictRow Proxy (runtime, catches everything)
+
+Wrap every row returned from SQLite in a `Proxy` that throws if you
+access a column that doesn't exist on that row:
+
+```ts
+function q(sql: string, table: string): StrictEpicRow[] {
+  return db.query(sql).all().map(row => strictRow(row, table));
+}
+```
+
+Now `row.SMOKING_PACKS_PER_DAY` on a SOCIAL_HX row throws:
+```
+Column "SMOKING_PACKS_PER_DAY" does not exist in SOCIAL_HX.
+Available: TOBACCO_USER_C_NAME, ALCOHOL_USE_C_NAME, ...
+```
+
+**This is the kill switch.** If the full projection runs to completion
+with StrictRow enabled, every column access in the codebase is valid.
+One test — `bun run project.ts --strict` — proves zero mismatches.
+
+Synthetic columns (child attachments like `row.reactions = [...]`,
+computed fields like `row._dx_name`) are whitelisted via a set
+populated from ChildSpec keys.
+
+Cost: ~5% runtime overhead from Proxy. Use `--strict` in CI, skip in
+production if needed.
+
+### Layer 2: Column Manifest (static, catches drift)
+
+For each entity type, declare what you read:
+
+```ts
+const SOCIAL_HX_MANIFEST = {
+  mapped: [
+    'TOBACCO_USER_C_NAME',    // → socialHistory.tobacco.status
+    'ALCOHOL_USE_C_NAME',     // → socialHistory.alcohol.status
+    'ALCOHOL_COMMENT',        // → socialHistory.alcohol.comment
+    'IV_DRUG_USER_YN',        // → socialHistory.drugs.status
+    'ILLICIT_DRUG_CMT',       // → socialHistory.drugs.comment
+    'SEXUALLY_ACTIVE_C_NAME', // → socialHistory.sexualActivity
+    'CONTACT_DATE',           // → socialHistory.asOf
+    'PAT_ENC_CSN_ID',        // → timeline key
+    'HX_LNK_ENC_CSN',        // → timeline key
+  ],
+  skipped: [
+    'CIGARETTES_YN',          // redundant with TOBACCO_USER_C_NAME
+    'PIPES_YN',               // not clinically actionable
+    // ...
+  ],
+};
+```
+
+A test validates:
+1. Every `mapped` column exists in the DB table
+2. Every `skipped` column exists in the DB table
+3. `mapped + skipped` = all columns with data in that table
+4. No column with data is unaccounted for
+
+When Epic adds a column in a new export, the test fails with
+"SOCIAL_HX has unmanifested column NEW_COL_NAME with 5 values"
+— forcing you to classify it as mapped or skipped.
+
+### Layer 3: Codegen Types (compile-time, catches at edit time)
+
+Generate TypeScript interfaces from `schemas/*.json`:
+
+```ts
+// generated/SOCIAL_HX.ts (auto-generated, do not edit)
+export interface SOCIAL_HX_Row {
+  CONTACT_DATE: string | null;
+  CIGARETTES_YN: string | null;
+  TOBACCO_USER_C_NAME: string | null;
+  // ... every column from schema
+}
+```
+
+Then:
+```ts
+function projectSocialHistory(row: SOCIAL_HX_Row) {
+  row.SMOKING_PACKS_PER_DAY  // ← compile error: property does not exist
+}
+```
+
+The data repo already has `04-codegen.ts` — this is the same idea,
+applied to the projection code.
+
+## Implementation Order
+
+1. **StrictRow Proxy** — half day. Wrap `q()` and `mergeQuery()`.
+   Run `project.ts --strict`. Fix every crash. Done: zero mismatches
+   proven for this dataset.
+
+2. **Column Manifest** — 1 day. Write manifests for the ~15 entity
+   types. This catches drift when running against *different* EHI
+   exports (different Epic versions, different institutions).
+
+3. **Codegen Types** — 1 day. Auto-generate from schemas. This
+   catches errors at edit time before you even run the code.
+
+After all three: column mismatches are a **compile error** (layer 3),
+a **test failure on any dataset** (layer 2), and a **runtime crash if
+somehow both miss it** (layer 1).
+
 </methodology>
 
 ## Your Task

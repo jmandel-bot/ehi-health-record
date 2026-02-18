@@ -1,16 +1,22 @@
 /**
  * Build a self-contained review prompt for a given chunk.
- * Includes the full methodology preamble from project.ts so the reviewer
+ * Includes the full methodology from docs/ so the reviewer
  * understands relationship types, CSN semantics, and mapping philosophy.
  */
 import { readFileSync } from "fs";
 
 const chunks = await Bun.file("review_chunks.json").json();
 
-// Extract the methodology preamble (Parts 1-5) from project.ts
-const projectFullSrc = readFileSync("project.ts", "utf-8");
-const preambleMatch = projectFullSrc.match(/\/\*\*[\s\S]*?\*\//);
-const methodology = preambleMatch ? preambleMatch[0] : '';
+// Load methodology from standalone docs (not scraped from TS comments)
+const docFiles = [
+  "docs/data-model.md",
+  "docs/mapping-philosophy.md",
+  "docs/field-naming.md",
+  "docs/column-safety.md",
+];
+const methodology = docFiles
+  .map(f => readFileSync(f, "utf-8"))
+  .join("\n\n---\n\n");
 
 function buildPrompt(chunk: any): string {
   return `You are reviewing an Epic EHI data mapping for semantic correctness. Before analyzing the specific mapping below, read the full data model documentation and mapping philosophy — it is essential context for understanding relationship types, CSN semantics, and structural decisions.
