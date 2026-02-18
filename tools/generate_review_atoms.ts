@@ -254,8 +254,13 @@ for (const prop of inlineProps) {
     if (prop.code.includes(`${fn}(`)) calls.add(`pf:${fn}`);
   }
 
+  // What ChildSpec arrays does this inline prop use?
+  for (const m of prop.code.matchAll(/(\w+Children)\b/g)) {
+    if (m[1] !== 'attachChildren') calls.add(`cs:${m[1]}`);
+  }
+
   // Only create a node if it has its own table references or non-trivial code
-  if (tables.size > 0 || (prop.code.trim().split('\n').length > 1 && calls.size === 0)) {
+  if (tables.size > 0 || calls.size > 0 || (prop.code.trim().split('\n').length > 1)) {
     // Expand split tables
     for (const t of [...tables]) {
       if (t in splitConfig) {
@@ -490,6 +495,12 @@ const hrFnToAtom: Record<string, string> = {
   socialHistoryDiffers: "social_history",
   projectSurgicalHistory: "surgical_history",
   projectFamilyHistory: "family_history",
+  projectCoverage: "projectBilling",
+  projectReferral: "projectReferrals",
+  projectDocument: "projectDocuments",
+  projectEpisode: "projectEpisodes",
+  projectGoals: "projectPatient",
+  projectQuestionnaires: "projectPatient",
   // Utility functions
   serializeHealthRecord: "_utility",
   projectHealthRecord: "_utility",

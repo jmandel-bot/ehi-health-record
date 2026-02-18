@@ -12,7 +12,7 @@ function tableCols(t: string): Set<string> {
 }
 
 // 1. Check: every ChildSpec fkCol exists in the child table
-const projectSrc = await Bun.file("project.ts").text();
+const projectSrc = await Bun.file("src/project.ts").text();
 
 // Extract all ChildSpec entries: { table: "X", fkCol: "Y", key: "z" }
 const childSpecRE = /\{\s*table:\s*"([^"]+)",\s*fkCol:\s*"([^"]+)",\s*key:\s*"([^"]+)"/g;
@@ -34,7 +34,7 @@ while ((match = childSpecRE.exec(projectSrc)) !== null) {
 console.log(`  Checked ${specChecked} ChildSpecs, ${specErrors} errors\n`);
 
 // 2. Check: every raw.COLUMN_NAME in PatientRecord.ts maps to a real column
-const prSrc = await Bun.file("PatientRecord.ts").text();
+const prSrc = await Bun.file("src/PatientRecord.ts").text();
 const rawColRE = /raw\.([A-Z_][A-Z_0-9]+)/g;
 const prRawCols = new Set<string>();
 while ((match = rawColRE.exec(prSrc)) !== null) {
@@ -61,7 +61,7 @@ for (const col of [...prRawCols].sort()) {
 console.log(`  ${prRawCols.size} column refs, ${prMissing} not found in DB\n`);
 
 // 3. Check: every column referenced in HealthRecord.ts projections
-const hrSrc = await Bun.file("HealthRecord.ts").text();
+const hrSrc = await Bun.file("src/HealthRecord.ts").text();
 const hrColRE = /[a-z]\.([A-Z_][A-Z_0-9]+)/g;
 const hrCols = new Set<string>();
 while ((match = hrColRE.exec(hrSrc)) !== null) {

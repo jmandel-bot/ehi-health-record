@@ -1036,7 +1036,11 @@ const doc: EpicRow = {
   goals: tableExists("PATIENT_GOALS") ? children("PATIENT_GOALS", "PAT_ID", patId) : [],
   patient_documents: tableExists("PATIENT_DOCS") ? children("PATIENT_DOCS", "PAT_ID", patId) : [],
   // Patient-level children (Batch 1)
-  relationship_list: tableExists("PAT_RELATIONSHIP_LIST") ? children("PAT_RELATIONSHIP_LIST", "PAT_ID", patId) : [],
+  relationship_list: (() => {
+    const rels = tableExists("PAT_RELATIONSHIP_LIST") ? children("PAT_RELATIONSHIP_LIST", "PAT_ID", patId) : [];
+    for (const rel of rels) attachChildren(rel, rel.PAT_RELATIONSHIP_ID, patRelChildren);
+    return rels;
+  })(),
   additional_addresses: tableExists("PAT_ADDL_ADDR_INFO") ? children("PAT_ADDL_ADDR_INFO", "PAT_ID", patId) : [],
   medication_history: tableExists("PAT_MEDS_HX") ? children("PAT_MEDS_HX", "PAT_ID", patId) : [],
   account_coverage: tableExists("PAT_ACCT_CVG") ? children("PAT_ACCT_CVG", "PAT_ID", patId) : [],
