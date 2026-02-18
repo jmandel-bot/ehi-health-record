@@ -1,0 +1,1350 @@
+[
+  {
+    "id": "projectPatient",
+    "seed": "pf:projectPatient",
+    "kind": "project_fn",
+    "tables": [
+      "PATIENT",
+      "PATIENT_2",
+      "PATIENT_3",
+      "PATIENT_4",
+      "PATIENT_5",
+      "PATIENT_6",
+      "PATIENT_MYC"
+    ],
+    "nodeIds": [
+      "pf:projectPatient",
+      "pf:tableExists",
+      "pf:qOne",
+      "pf:mergeQuery",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "pf:projectPatient": "function projectPatient(): EpicRow {\n  const rows = mergeQuery(\"PATIENT\");\n  if (rows.length === 0) throw new Error(\"No patient found\");\n  const pat = rows[0];\n  const patId = pat.PAT_ID;\n\n  // Also merge PATIENT_MYC if present\n  if (tableExists(\"PATIENT_MYC\")) {\n    const myc = qOne(`SELECT * FROM PATIENT_MYC WHERE PAT_ID = ?`, [patId]);\n    if (myc) Object.assign(pat, myc);\n  }\n\n  return pat;\n}",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:qOne": "function qOne(sql: string, params: unknown[] = []): EpicRow | null {\n  return db.query(sql).get(...params) as EpicRow | null;\n}",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [
+      "Encounter",
+      "PatientRecord",
+      "HistoryTimeline",
+      "BillingRecord",
+      "HistorySnapshot"
+    ],
+    "hrFns": [
+      "projectDemographics"
+    ]
+  },
+  {
+    "id": "projectAllergies",
+    "seed": "pf:projectAllergies",
+    "kind": "project_fn",
+    "tables": [
+      "ALLERGY",
+      "ALLERGY_REACTIONS",
+      "PAT_ALLERGIES"
+    ],
+    "nodeIds": [
+      "pf:projectAllergies",
+      "cs:allergyChildren",
+      "pf:tableExists",
+      "pf:q",
+      "pf:attachChildren",
+      "pf:children",
+      "pf:childrenMerged",
+      "pf:mergeQuery"
+    ],
+    "codeBlocks": {
+      "pf:projectAllergies": "function projectAllergies(patId: unknown): EpicRow[] {\n  // ALLERGY has no PAT_ID — linked via PAT_ALLERGIES bridge table\n  let rows: EpicRow[];\n  if (tableExists(\"PAT_ALLERGIES\") && tableExists(\"ALLERGY\")) {\n    rows = q(`\n      SELECT a.* FROM ALLERGY a\n      JOIN PAT_ALLERGIES pa ON pa.ALLERGY_RECORD_ID = a.ALLERGY_ID\n      WHERE pa.PAT_ID = ?\n    `, [patId]);\n  } else if (tableExists(\"ALLERGY\")) {\n    rows = q(`SELECT * FROM ALLERGY`);\n  } else {\n    return [];\n  }\n  for (const row of rows) {\n    attachChildren(row, row.ALLERGY_ID, allergyChildren);\n    row.allergenName = row.ALLERGEN_ID_ALLERGEN_NAME;\n  }\n  return rows;\n}",
+      "cs:allergyChildren": "const allergyChildren: ChildSpec[] = [\n  { table: \"ALLERGY_REACTIONS\", fkCol: \"ALLERGY_ID\", key: \"reactions\" },\n]",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:attachChildren": "function attachChildren(parent: EpicRow, parentId: unknown, specs: ChildSpec[]): void {\n  for (const spec of specs) {\n    if (!tableExists(spec.table)) continue;\n    const rows = spec.merged\n      ? childrenMerged(spec.table, spec.fkCol, parentId)\n      : children(spec.table, spec.fkCol, parentId);\n    if (rows.length > 0) parent[spec.key] = rows;\n  }\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:childrenMerged": "function childrenMerged(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  return mergeQuery(table, `b.\"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}"
+    },
+    "prClasses": [
+      "Allergy",
+      "Encounter"
+    ],
+    "hrFns": [
+      "projectAllergy"
+    ]
+  },
+  {
+    "id": "projectProblems",
+    "seed": "pf:projectProblems",
+    "kind": "project_fn",
+    "tables": [
+      "CLARITY_EDG",
+      "PAT_PROBLEM_LIST",
+      "PL_SYSTEMS",
+      "PROBLEM_LIST",
+      "PROBLEM_LIST_ALL",
+      "PROB_UPDATES"
+    ],
+    "nodeIds": [
+      "pf:projectProblems",
+      "cs:problemChildren",
+      "pf:tableExists",
+      "pf:q",
+      "pf:lookupName",
+      "pf:lookup",
+      "pf:attachChildren",
+      "pf:children",
+      "pf:childrenMerged",
+      "pf:mergeQuery"
+    ],
+    "codeBlocks": {
+      "pf:projectProblems": "function projectProblems(patId: unknown): EpicRow[] {\n  let rows: EpicRow[];\n  if (tableExists(\"PAT_PROBLEM_LIST\") && tableExists(\"PROBLEM_LIST\")) {\n    rows = q(`\n      SELECT p.* FROM PROBLEM_LIST p\n      JOIN PAT_PROBLEM_LIST pp ON pp.PROBLEM_LIST_ID = p.PROBLEM_LIST_ID\n      WHERE pp.PAT_ID = ?\n    `, [patId]);\n  } else if (tableExists(\"PROBLEM_LIST\")) {\n    rows = q(`SELECT * FROM PROBLEM_LIST`);\n  } else {\n    return [];\n  }\n  for (const row of rows) {\n    attachChildren(row, row.PROBLEM_LIST_ID, problemChildren);\n    row._dx_name = lookupName(\"CLARITY_EDG\", \"DX_ID\", \"DX_NAME\", row.DX_ID);\n  }\n  return rows;\n}",
+      "cs:problemChildren": "const problemChildren: ChildSpec[] = [\n  { table: \"PROB_UPDATES\", fkCol: \"PROBLEM_LIST_ID\", key: \"updates\" },\n  { table: \"PL_SYSTEMS\", fkCol: \"PROBLEM_LIST_ID\", key: \"body_systems\" },\n  { table: \"PROBLEM_LIST_ALL\", fkCol: \"PROBLEM_LIST_ID\", key: \"all_info\" },\n]",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:lookupName": "function lookupName(table: string, pkCol: string, nameCol: string, id: unknown): string | null {\n  return (lookup(table, pkCol, id)?.[nameCol] as string) ?? null;\n}",
+      "pf:lookup": "function lookup(table: string, pkCol: string, id: unknown): EpicRow | null {\n  if (id == null) return null;\n  if (!lookupCache.has(table)) {\n    if (!tableExists(table)) {\n      lookupCache.set(table, new Map());\n    } else {\n      const rows = q(`SELECT * FROM \"${table}\"`);\n      const map = new Map<unknown, EpicRow>();\n      for (const row of rows) map.set(row[pkCol], row);\n      lookupCache.set(table, map);\n    }\n  }\n  return lookupCache.get(table)!.get(id) ?? null;\n}",
+      "pf:attachChildren": "function attachChildren(parent: EpicRow, parentId: unknown, specs: ChildSpec[]): void {\n  for (const spec of specs) {\n    if (!tableExists(spec.table)) continue;\n    const rows = spec.merged\n      ? childrenMerged(spec.table, spec.fkCol, parentId)\n      : children(spec.table, spec.fkCol, parentId);\n    if (rows.length > 0) parent[spec.key] = rows;\n  }\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:childrenMerged": "function childrenMerged(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  return mergeQuery(table, `b.\"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}"
+    },
+    "prClasses": [
+      "Problem",
+      "Order",
+      "Encounter"
+    ],
+    "hrFns": [
+      "projectProblem"
+    ]
+  },
+  {
+    "id": "projectImmunizations",
+    "seed": "pf:projectImmunizations",
+    "kind": "project_fn",
+    "tables": [
+      "IMMUNE",
+      "IMMUNE_HISTORY",
+      "IMM_ADMIN",
+      "IMM_ADMIN_COMPONENTS",
+      "IMM_ADMIN_GROUPS",
+      "IMM_DUE",
+      "PAT_IMMUNIZATIONS"
+    ],
+    "nodeIds": [
+      "pf:projectImmunizations",
+      "cs:immuneChildren",
+      "pf:tableExists",
+      "pf:q",
+      "pf:attachChildren",
+      "pf:children",
+      "pf:childrenMerged",
+      "pf:mergeQuery"
+    ],
+    "codeBlocks": {
+      "pf:projectImmunizations": "function projectImmunizations(patId: unknown): EpicRow[] {\n  let rows: EpicRow[];\n  if (tableExists(\"PAT_IMMUNIZATIONS\") && tableExists(\"IMMUNE\")) {\n    rows = q(`\n      SELECT i.* FROM IMMUNE i\n      JOIN PAT_IMMUNIZATIONS pi ON pi.IMMUNE_ID = i.IMMUNE_ID\n      WHERE pi.PAT_ID = ?\n    `, [patId]);\n  } else if (tableExists(\"IMMUNE\")) {\n    rows = q(`SELECT * FROM IMMUNE`);\n  } else {\n    return [];\n  }\n  for (const row of rows) {\n    attachChildren(row, row.IMMUNE_ID, immuneChildren);\n  }\n  return rows;\n}",
+      "cs:immuneChildren": "const immuneChildren: ChildSpec[] = [\n  { table: \"IMMUNE_HISTORY\", fkCol: \"IMMUNE_ID\", key: \"history\" },\n  { table: \"IMM_ADMIN\", fkCol: \"DOCUMENT_ID\", key: \"administrations\" },\n  { table: \"IMM_ADMIN_COMPONENTS\", fkCol: \"DOCUMENT_ID\", key: \"components\" },\n  { table: \"IMM_ADMIN_GROUPS\", fkCol: \"DOCUMENT_ID\", key: \"groups\" },\n  { table: \"IMM_DUE\", fkCol: \"DOCUMENT_ID\", key: \"due_forecast\" },\n]",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:attachChildren": "function attachChildren(parent: EpicRow, parentId: unknown, specs: ChildSpec[]): void {\n  for (const spec of specs) {\n    if (!tableExists(spec.table)) continue;\n    const rows = spec.merged\n      ? childrenMerged(spec.table, spec.fkCol, parentId)\n      : children(spec.table, spec.fkCol, parentId);\n    if (rows.length > 0) parent[spec.key] = rows;\n  }\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:childrenMerged": "function childrenMerged(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  return mergeQuery(table, `b.\"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}"
+    },
+    "prClasses": [
+      "Encounter"
+    ],
+    "hrFns": [
+      "projectImmunization"
+    ]
+  },
+  {
+    "id": "projectMedications",
+    "seed": "pf:projectMedications",
+    "kind": "project_fn",
+    "tables": [
+      "DUPMED_DISMISS_HH_INFO",
+      "ORDER_DX_MED",
+      "ORDER_MED",
+      "ORDER_MEDINFO",
+      "ORDER_MED_2",
+      "ORDER_MED_3",
+      "ORDER_MED_4",
+      "ORDER_MED_5",
+      "ORDER_MED_6",
+      "ORDER_MED_7",
+      "ORDER_MED_MORPHINE_EQUIV",
+      "ORDER_MED_SIG",
+      "ORDER_MED_VITALS",
+      "ORDER_RPTD_SIG_HX",
+      "ORDER_RPTD_SIG_TEXT",
+      "ORD_DOSING_PARAMS",
+      "ORD_DOSING_PARAMS_2",
+      "ORD_MED_USER_ADMIN",
+      "PRESC_ID"
+    ],
+    "nodeIds": [
+      "pf:projectMedications",
+      "cs:medChildren",
+      "pf:mergeQuery",
+      "pf:tableExists",
+      "pf:q",
+      "pf:children",
+      "pf:attachChildren",
+      "pf:childrenMerged"
+    ],
+    "codeBlocks": {
+      "pf:projectMedications": "function projectMedications(patId: unknown): EpicRow[] {\n  const rows = mergeQuery(\"ORDER_MED\", `b.\"PAT_ID\" = ?`, [patId]);\n  for (const row of rows) {\n    const oid = row.ORDER_MED_ID;\n    attachChildren(row, oid, medChildren);\n    // Also attach ORDER_ID-keyed children\n    for (const spec of medChildren) {\n      if (spec.fkCol === \"ORDER_ID\" && !row[spec.key]) {\n        const c = children(spec.table, \"ORDER_ID\", oid);\n        if (c.length > 0) row[spec.key] = c;\n      }\n    }\n  }\n  return rows;\n}",
+      "cs:medChildren": "const medChildren: ChildSpec[] = [\n  { table: \"ORDER_DX_MED\", fkCol: \"ORDER_MED_ID\", key: \"diagnoses\" },\n  { table: \"ORDER_MEDINFO\", fkCol: \"ORDER_MED_ID\", key: \"med_info\" },\n  { table: \"ORDER_MED_SIG\", fkCol: \"ORDER_ID\", key: \"signature\" },\n  { table: \"ORD_DOSING_PARAMS\", fkCol: \"ORDER_ID\", key: \"dosing_params\", merged: true },\n  { table: \"ORDER_RPTD_SIG_HX\", fkCol: \"ORDER_ID\", key: \"reported_sig_history\" },\n  { table: \"ORDER_RPTD_SIG_TEXT\", fkCol: \"ORDER_ID\", key: \"reported_sig_text\" },\n  { table: \"DUPMED_DISMISS_HH_INFO\", fkCol: \"ORDER_ID\", key: \"dup_dismiss\" },\n  { table: \"ORDER_MED_MORPHINE_EQUIV\", fkCol: \"ORDER_ID\", key: \"morphine_equiv\" },\n  { table: \"ORDER_MED_VITALS\", fkCol: \"ORDER_ID\", key: \"med_vitals\" },\n  { table: \"ORD_MED_USER_ADMIN\", fkCol: \"ORDER_ID\", key: \"user_admin\" },\n  { table: \"PRESC_ID\", fkCol: \"ORDER_ID\", key: \"prescription_ids\" },\n]",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:attachChildren": "function attachChildren(parent: EpicRow, parentId: unknown, specs: ChildSpec[]): void {\n  for (const spec of specs) {\n    if (!tableExists(spec.table)) continue;\n    const rows = spec.merged\n      ? childrenMerged(spec.table, spec.fkCol, parentId)\n      : children(spec.table, spec.fkCol, parentId);\n    if (rows.length > 0) parent[spec.key] = rows;\n  }\n}",
+      "pf:childrenMerged": "function childrenMerged(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  return mergeQuery(table, `b.\"${fkCol}\" = ?`, [parentId]);\n}"
+    },
+    "prClasses": [
+      "Order",
+      "Note",
+      "Encounter"
+    ],
+    "hrFns": [
+      "projectMedication"
+    ]
+  },
+  {
+    "id": "projectOrder",
+    "seed": "pf:projectOrder",
+    "kind": "project_fn",
+    "tables": [
+      "ADT_ORDER_INFORMATION",
+      "CLARITY_EAP",
+      "CLARITY_EAP_3",
+      "CLARITY_EAP_5",
+      "CL_ORD_FST_LST_SCH",
+      "EXTERNAL_ORDER_INFO",
+      "HV_ORDER_PROC",
+      "OBS_MTHD_ID",
+      "ORDER_ANATOMICAL_REGION",
+      "ORDER_AUTH_INFO",
+      "ORDER_COMMENT",
+      "ORDER_DOCUMENTS",
+      "ORDER_DX_PROC",
+      "ORDER_IMAGE_AVAIL_INFO",
+      "ORDER_IMPRESSION",
+      "ORDER_INSTANTIATED",
+      "ORDER_MYC_INFO",
+      "ORDER_MYC_RELEASE",
+      "ORDER_NARRATIVE",
+      "ORDER_PENDING",
+      "ORDER_PROC",
+      "ORDER_PROC_2",
+      "ORDER_PROC_3",
+      "ORDER_PROC_4",
+      "ORDER_PROC_5",
+      "ORDER_PROC_6",
+      "ORDER_RAD_ACC_NUM",
+      "ORDER_RAD_READING",
+      "ORDER_READ_ACK",
+      "ORDER_RESULTS",
+      "ORDER_RES_COMMENT",
+      "ORDER_REVIEW",
+      "ORDER_SIGNED_PROC",
+      "ORDER_STATUS",
+      "ORDER_SUMMARY",
+      "ORD_CLIN_IND",
+      "ORD_INDICATIONS",
+      "ORD_PRFLST_TRK",
+      "ORD_PROC_INSTR",
+      "ORD_SECOND_SIGN",
+      "ORD_SPEC_QUEST",
+      "PERFORMING_ORG_INFO",
+      "RAD_THERAPY_ASSOC_COURSE",
+      "SPEC_TYPE_SNOMED"
+    ],
+    "nodeIds": [
+      "pf:projectOrder",
+      "cs:orderChildren",
+      "pf:mergeQuery",
+      "pf:tableExists",
+      "pf:q",
+      "pf:lookupName",
+      "pf:lookup",
+      "pf:attachChildren",
+      "pf:children",
+      "pf:childrenMerged"
+    ],
+    "codeBlocks": {
+      "pf:projectOrder": "function projectOrder(oid: unknown): EpicRow {\n  const rows = mergeQuery(\"ORDER_PROC\", `b.\"ORDER_PROC_ID\" = ?`, [oid]);\n  const order = rows[0] ?? { ORDER_PROC_ID: oid };\n\n  attachChildren(order, oid, orderChildren);\n\n  // Resolve procedure name\n  order._procedure_name = lookupName(\"CLARITY_EAP\", \"PROC_ID\", \"PROC_NAME\", order.PROC_ID);\n\n  return order;\n}",
+      "cs:orderChildren": "const orderChildren: ChildSpec[] = [\n  { table: \"ORDER_RESULTS\", fkCol: \"ORDER_PROC_ID\", key: \"results\" },\n  { table: \"ORDER_DX_PROC\", fkCol: \"ORDER_PROC_ID\", key: \"diagnoses\" },\n  { table: \"ORDER_COMMENT\", fkCol: \"ORDER_PROC_ID\", key: \"comments\" },\n  { table: \"ORDER_NARRATIVE\", fkCol: \"ORDER_PROC_ID\", key: \"narrative\" },\n  { table: \"ORDER_IMPRESSION\", fkCol: \"ORDER_PROC_ID\", key: \"impression\" },\n  { table: \"ORDER_SIGNED_PROC\", fkCol: \"ORDER_PROC_ID\", key: \"signed_info\" },\n  { table: \"ORDER_RAD_ACC_NUM\", fkCol: \"ORDER_PROC_ID\", key: \"accession_numbers\" },\n  { table: \"ORDER_RAD_READING\", fkCol: \"ORDER_PROC_ID\", key: \"rad_readings\" },\n  { table: \"ORDER_MYC_INFO\", fkCol: \"ORDER_PROC_ID\", key: \"mychart_info\" },\n  { table: \"ORDER_MYC_RELEASE\", fkCol: \"ORDER_PROC_ID\", key: \"mychart_release\" },\n  { table: \"HV_ORDER_PROC\", fkCol: \"ORDER_PROC_ID\", key: \"hv_order_info\" },\n  // ORDER_ID-keyed children (ORDER_ID = ORDER_PROC_ID in most cases)\n  { table: \"ORDER_STATUS\", fkCol: \"ORDER_ID\", key: \"status_history\" },\n  { table: \"ORDER_AUTH_INFO\", fkCol: \"ORDER_ID\", key: \"auth_info\" },\n  { table: \"ORDER_PENDING\", fkCol: \"ORDER_ID\", key: \"pending_info\" },\n  { table: \"ORDER_REVIEW\", fkCol: \"ORDER_ID\", key: \"review_history\" },\n  { table: \"ORDER_READ_ACK\", fkCol: \"ORDER_ID\", key: \"read_acknowledgments\" },\n  { table: \"ORD_SPEC_QUEST\", fkCol: \"ORDER_ID\", key: \"specimen_questions\" },\n  { table: \"ORD_PROC_INSTR\", fkCol: \"ORDER_ID\", key: \"instructions\" },\n  { table: \"ORD_CLIN_IND\", fkCol: \"ORDER_ID\", key: \"clinical_indications\" },\n  { table: \"ORD_INDICATIONS\", fkCol: \"ORDER_ID\", key: \"indications\" },\n  { table: \"EXTERNAL_ORDER_INFO\", fkCol: \"ORDER_ID\", key: \"external_info\" },\n  { table: \"CL_ORD_FST_LST_SCH\", fkCol: \"ORDER_ID\", key: \"schedule_history\" },\n  { table: \"OBS_MTHD_ID\", fkCol: \"ORDER_ID\", key: \"observation_methods\" },\n  { table: \"SPEC_TYPE_SNOMED\", fkCol: \"ORDER_ID\", key: \"specimen_snomed\" },\n  { table: \"ORDER_INSTANTIATED\", fkCol: \"ORDER_ID\", key: \"instantiated_orders\" },\n  { table: \"ORDER_SUMMARY\", fkCol: \"ORDER_ID\", key: \"summary\" },\n  { table: \"ORDER_ANATOMICAL_REGION\", fkCol: \"ORDER_ID\", key: \"anatomical_regions\" },\n  { table: \"ORDER_IMAGE_AVAIL_INFO\", fkCol: \"ORDER_ID\", key: \"image_availability\" },\n  { table: \"ORDER_DOCUMENTS\", fkCol: \"ORDER_ID\", key: \"documents\" },\n  { table: \"ORD_PRFLST_TRK\", fkCol: \"ORDER_ID\", key: \"preference_list\" },\n  { table: \"ORD_SECOND_SIGN\", fkCol: \"ORDER_ID\", key: \"second_signature\" },\n  { table: \"RAD_THERAPY_ASSOC_COURSE\", fkCol: \"ORDER_ID\", key: \"rad_therapy_course\" },\n  { table: \"ADT_ORDER_INFORMATION\", fkCol: \"ORDER_ID\", key: \"adt_info\" },\n  { table: \"ORDER_RES_COMMENT\", fkCol: \"ORDER_ID\", key: \"result_comments\" },\n  { table: \"PERFORMING_ORG_INFO\", fkCol: \"ORDER_ID\", key: \"performing_org\" },\n]",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:lookupName": "function lookupName(table: string, pkCol: string, nameCol: string, id: unknown): string | null {\n  return (lookup(table, pkCol, id)?.[nameCol] as string) ?? null;\n}",
+      "pf:lookup": "function lookup(table: string, pkCol: string, id: unknown): EpicRow | null {\n  if (id == null) return null;\n  if (!lookupCache.has(table)) {\n    if (!tableExists(table)) {\n      lookupCache.set(table, new Map());\n    } else {\n      const rows = q(`SELECT * FROM \"${table}\"`);\n      const map = new Map<unknown, EpicRow>();\n      for (const row of rows) map.set(row[pkCol], row);\n      lookupCache.set(table, map);\n    }\n  }\n  return lookupCache.get(table)!.get(id) ?? null;\n}",
+      "pf:attachChildren": "function attachChildren(parent: EpicRow, parentId: unknown, specs: ChildSpec[]): void {\n  for (const spec of specs) {\n    if (!tableExists(spec.table)) continue;\n    const rows = spec.merged\n      ? childrenMerged(spec.table, spec.fkCol, parentId)\n      : children(spec.table, spec.fkCol, parentId);\n    if (rows.length > 0) parent[spec.key] = rows;\n  }\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:childrenMerged": "function childrenMerged(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  return mergeQuery(table, `b.\"${fkCol}\" = ?`, [parentId]);\n}"
+    },
+    "prClasses": [
+      "Problem",
+      "OrderResult",
+      "Order",
+      "Note",
+      "Encounter"
+    ],
+    "hrFns": [
+      "projectOrder",
+      "projectResult",
+      "projectAllLabResults"
+    ]
+  },
+  {
+    "id": "projectNote",
+    "seed": "pf:projectNote",
+    "kind": "project_fn",
+    "tables": [
+      "ABN_FOLLOW_UP",
+      "HNO_INFO",
+      "HNO_INFO_2",
+      "HNO_ORDERS",
+      "HNO_PLAIN_TEXT",
+      "NOTES_LINK_ORD_TXN",
+      "NOTE_CONTENT_INFO",
+      "NOTE_ENC_INFO",
+      "NOTE_ENC_INFO_2",
+      "V_EHI_HNO_LINKED_PATS"
+    ],
+    "nodeIds": [
+      "pf:projectNote",
+      "cs:noteChildren",
+      "pf:mergeQuery",
+      "pf:tableExists",
+      "pf:q",
+      "pf:attachChildren",
+      "pf:children",
+      "pf:childrenMerged"
+    ],
+    "codeBlocks": {
+      "pf:projectNote": "function projectNote(noteId: unknown): EpicRow {\n  const rows = mergeQuery(\"HNO_INFO\", `b.\"NOTE_ID\" = ?`, [noteId]);\n  const note = rows[0] ?? { NOTE_ID: noteId };\n  attachChildren(note, noteId, noteChildren);\n  return note;\n}",
+      "cs:noteChildren": "const noteChildren: ChildSpec[] = [\n  { table: \"HNO_PLAIN_TEXT\", fkCol: \"NOTE_ID\", key: \"text\" },\n  { table: \"ABN_FOLLOW_UP\", fkCol: \"NOTE_ID\", key: \"metadata\" },\n  { table: \"NOTE_ENC_INFO\", fkCol: \"NOTE_ID\", key: \"encounter_info\", merged: true },\n  { table: \"NOTE_CONTENT_INFO\", fkCol: \"NOTE_ID\", key: \"content_info\" },\n  { table: \"V_EHI_HNO_LINKED_PATS\", fkCol: \"NOTE_ID\", key: \"linked_patients\" },\n  { table: \"HNO_ORDERS\", fkCol: \"NOTE_ID\", key: \"linked_orders\" },\n  { table: \"NOTES_LINK_ORD_TXN\", fkCol: \"NOTE_ID\", key: \"linked_order_txns\" },\n]",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:attachChildren": "function attachChildren(parent: EpicRow, parentId: unknown, specs: ChildSpec[]): void {\n  for (const spec of specs) {\n    if (!tableExists(spec.table)) continue;\n    const rows = spec.merged\n      ? childrenMerged(spec.table, spec.fkCol, parentId)\n      : children(spec.table, spec.fkCol, parentId);\n    if (rows.length > 0) parent[spec.key] = rows;\n  }\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:childrenMerged": "function childrenMerged(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  return mergeQuery(table, `b.\"${fkCol}\" = ?`, [parentId]);\n}"
+    },
+    "prClasses": [
+      "Note",
+      "Encounter"
+    ],
+    "hrFns": []
+  },
+  {
+    "id": "projectEncounter",
+    "seed": "pf:projectEncounter",
+    "kind": "project_fn",
+    "tables": [
+      "ABN_FOLLOW_UP",
+      "ADDITIONAL_EM_CODE",
+      "ADT_ORDER_INFORMATION",
+      "AN_RELINK_INFO",
+      "APPT_LETTER_RECIPIENTS",
+      "ASSOCIATED_REFERRALS",
+      "CLARITY_DEP",
+      "CLARITY_DEP_4",
+      "CLARITY_EAP",
+      "CLARITY_EAP_3",
+      "CLARITY_EAP_5",
+      "CLARITY_EDG",
+      "CLARITY_SER",
+      "CL_ORD_FST_LST_SCH",
+      "DISCONTINUED_MEDS",
+      "ECHKIN_STEP_INFO",
+      "ED_PAT_STATUS",
+      "EXTERNAL_ORDER_INFO",
+      "EXT_PHARM_TYPE_COVERED",
+      "FAMILY_HX",
+      "FAM_HX_PAT_ONLY",
+      "FRONT_END_PMT_COLL_HX",
+      "HNO_INFO",
+      "HNO_INFO_2",
+      "HNO_ORDERS",
+      "HNO_PLAIN_TEXT",
+      "HOMUNCULUS_PAT_DATA",
+      "HSP_ADMIT_DIAG",
+      "HSP_ADMIT_PROC",
+      "HSP_ATND_PROV",
+      "HV_ORDER_PROC",
+      "IP_DATA_STORE",
+      "IP_FLOWSHEET_ROWS",
+      "IP_FLWSHT_MEAS",
+      "IP_FLWSHT_REC",
+      "KIOSK_QUESTIONNAIR",
+      "MEDICAL_HX",
+      "MED_PEND_APRV_STAT",
+      "MYC_APPT_QNR_DATA",
+      "NOTES_LINK_ORD_TXN",
+      "NOTE_CONTENT_INFO",
+      "NOTE_ENC_INFO",
+      "NOTE_ENC_INFO_2",
+      "OBS_MTHD_ID",
+      "OPH_EXAM_DATA",
+      "ORDER_ANATOMICAL_REGION",
+      "ORDER_AUTH_INFO",
+      "ORDER_COMMENT",
+      "ORDER_DOCUMENTS",
+      "ORDER_DX_PROC",
+      "ORDER_IMAGE_AVAIL_INFO",
+      "ORDER_IMPRESSION",
+      "ORDER_INSTANTIATED",
+      "ORDER_MYC_INFO",
+      "ORDER_MYC_RELEASE",
+      "ORDER_NARRATIVE",
+      "ORDER_PARENT_INFO",
+      "ORDER_PENDING",
+      "ORDER_PROC",
+      "ORDER_PROC_2",
+      "ORDER_PROC_3",
+      "ORDER_PROC_4",
+      "ORDER_PROC_5",
+      "ORDER_PROC_6",
+      "ORDER_RAD_ACC_NUM",
+      "ORDER_RAD_READING",
+      "ORDER_READ_ACK",
+      "ORDER_RESULTS",
+      "ORDER_RES_COMMENT",
+      "ORDER_REVIEW",
+      "ORDER_SIGNED_PROC",
+      "ORDER_STATUS",
+      "ORDER_SUMMARY",
+      "ORD_CLIN_IND",
+      "ORD_INDICATIONS",
+      "ORD_PRFLST_TRK",
+      "ORD_PROC_INSTR",
+      "ORD_SECOND_SIGN",
+      "ORD_SPEC_QUEST",
+      "PATIENT_ENC_VIDEO_VISIT",
+      "PAT_ADDENDUM_INFO",
+      "PAT_CANCEL_PROC",
+      "PAT_CR_TX_SINGLE",
+      "PAT_ENC",
+      "PAT_ENC_2",
+      "PAT_ENC_3",
+      "PAT_ENC_4",
+      "PAT_ENC_5",
+      "PAT_ENC_6",
+      "PAT_ENC_7",
+      "PAT_ENC_ADMIT_DX_AUDIT",
+      "PAT_ENC_APPT",
+      "PAT_ENC_BILLING_ENC",
+      "PAT_ENC_CALL_DATA",
+      "PAT_ENC_CC_AUTO_CHG",
+      "PAT_ENC_CURR_MEDS",
+      "PAT_ENC_DISP",
+      "PAT_ENC_DOCS",
+      "PAT_ENC_DX",
+      "PAT_ENC_ELIG_HISTORY",
+      "PAT_ENC_HSP",
+      "PAT_ENC_HSP_2",
+      "PAT_ENC_LETTERS",
+      "PAT_ENC_LOS_DX",
+      "PAT_ENC_PAS",
+      "PAT_ENC_QNRS_ANS",
+      "PAT_ENC_RSN_VISIT",
+      "PAT_ENC_SEL_PHARMACIES",
+      "PAT_ENC_THREADS",
+      "PAT_HM_LETTER",
+      "PAT_HX_REVIEW",
+      "PAT_HX_REV_TOPIC",
+      "PAT_HX_REV_TYPE",
+      "PAT_MYC_MESG",
+      "PAT_REVIEW_ALLERGI",
+      "PAT_REVIEW_DATA",
+      "PAT_REVIEW_PROBLEM",
+      "PAT_SOCIAL_HX_DOC",
+      "PAT_UCN_CONVERT",
+      "PAT_UTILIZATION_REVIEW",
+      "PERFORMING_ORG_INFO",
+      "RAD_THERAPY_ASSOC_COURSE",
+      "RESULT_FOLLOW_UP",
+      "SOCIAL_ADL_HX",
+      "SPEC_TYPE_SNOMED",
+      "TREATMENT",
+      "TREATMENT_TEAM",
+      "V_EHI_HNO_LINKED_PATS"
+    ],
+    "nodeIds": [
+      "pf:projectEncounter",
+      "cs:encounterChildren",
+      "pf:tableExists",
+      "pf:q",
+      "pf:qOne",
+      "pf:mergeQuery",
+      "pf:children",
+      "pf:lookupName",
+      "pf:lookup",
+      "pf:attachChildren",
+      "pf:childrenMerged",
+      "pf:projectOrder",
+      "cs:orderChildren",
+      "pf:projectNote",
+      "cs:noteChildren"
+    ],
+    "codeBlocks": {
+      "pf:projectEncounter": "function projectEncounter(csn: CSN): EpicRow {\n  const rows = mergeQuery(\"PAT_ENC\", `b.\"PAT_ENC_CSN_ID\" = ?`, [csn]);\n  if (rows.length === 0) {\n    // Try matching on the base table's join column (PAT_ENC uses PAT_ID as first col)\n    const byCSN = q(`SELECT * FROM PAT_ENC WHERE PAT_ENC_CSN_ID = ?`, [csn]);\n    if (byCSN.length === 0) return { PAT_ENC_CSN_ID: csn };\n    // Got it from base, now merge manually\n    return byCSN[0];\n  }\n  const enc = rows[0];\n\n  // Resolve provider name\n  enc._visit_provider = lookupName(\"CLARITY_SER\", \"PROV_ID\", \"PROV_NAME\", enc.VISIT_PROV_ID);\n  enc._pcp = lookupName(\"CLARITY_SER\", \"PROV_ID\", \"PROV_NAME\", enc.PCP_PROV_ID);\n  enc._department = lookupName(\"CLARITY_DEP\", \"DEPARTMENT_ID\", \"DEPARTMENT_NAME\", enc.EFFECTIVE_DEPT_ID ?? enc.DEPARTMENT_ID);\n\n  // Attach all children\n  attachChildren(enc, csn, encounterChildren);\n\n  // Resolve diagnosis names\n  for (const dx of (enc.diagnoses as EpicRow[] ?? [])) {\n    dx._dx_name = lookupName(\"CLARITY_EDG\", \"DX_ID\", \"DX_NAME\", dx.DX_ID);\n  }\n\n  // Appointment & disposition (1:1 extensions)\n  if (tableExists(\"PAT_ENC_APPT\")) {\n    enc.appointment = qOne(`SELECT * FROM PAT_ENC_APPT WHERE PAT_ENC_CSN_ID = ?`, [csn]);\n  }\n  if (tableExists(\"PAT_ENC_DISP\")) {\n    enc.disposition = qOne(`SELECT * FROM PAT_ENC_DISP WHERE PAT_ENC_CSN_ID = ?`, [csn]);\n  }\n  if (tableExists(\"IP_DATA_STORE\") && tableExists(\"PAT_ENC_HSP\")) {\n    // IP_DATA_STORE keys on INPATIENT_DATA_ID, linked via PAT_ENC_HSP\n    const hsp = qOne(`SELECT INPATIENT_DATA_ID FROM PAT_ENC_HSP WHERE PAT_ENC_CSN_ID = ?`, [csn]);\n    if (hsp?.INPATIENT_DATA_ID) {\n      enc.inpatient_data = qOne(`SELECT * FROM IP_DATA_STORE WHERE INPATIENT_DATA_ID = ?`, [hsp.INPATIENT_DATA_ID]);\n    }\n  } else if (tableExists(\"IP_DATA_STORE\")) {\n    // Fallback: try direct match if schema has changed\n    const ipCols = q(`PRAGMA table_info(\"IP_DATA_STORE\")`).map(r => r.name as string);\n    if (ipCols.includes(\"PAT_ENC_CSN_ID\")) {\n      enc.inpatient_data = qOne(`SELECT * FROM IP_DATA_STORE WHERE PAT_ENC_CSN_ID = ?`, [csn]);\n    }\n  }\n  if (tableExists(\"PAT_ENC_HSP\")) {\n    enc.hospital_encounter = qOne(`SELECT * FROM PAT_ENC_HSP WHERE PAT_ENC_CSN_ID = ?`, [csn]);\n  }\n\n  // Orders\n  const orderRows = mergeQuery(\"ORDER_PROC\", `b.\"PAT_ENC_CSN_ID\" = ?`, [csn]);\n  enc.orders = orderRows.map((o) => projectOrder(o.ORDER_PROC_ID));\n\n  // Also get child orders via ORDER_PARENT_INFO and attach their results\n  const parentLinks = q(`SELECT * FROM ORDER_PARENT_INFO WHERE PAT_ENC_CSN_ID = ?`, [csn]);\n  for (const link of parentLinks) {\n    if (link.ORDER_ID !== link.PARENT_ORDER_ID) {\n      const parentOrder = (enc.orders as EpicRow[]).find(\n        (o) => o.ORDER_PROC_ID === link.PARENT_ORDER_ID\n      );\n      if (parentOrder) {\n        const childResults = children(\"ORDER_RESULTS\", \"ORDER_PROC_ID\", link.ORDER_ID);\n        if (childResults.length > 0) {\n          const existing = (parentOrder.results as EpicRow[]) ?? [];\n          parentOrder.results = [...existing, ...childResults];\n        }\n      }\n    }\n  }\n\n  // Notes\n  const noteRows = q(`SELECT NOTE_ID FROM HNO_INFO WHERE PAT_ENC_CSN_ID = ?`, [csn]);\n  enc.notes = noteRows.map((n) => projectNote(n.NOTE_ID));\n\n  // Flowsheets — need INPATIENT_DATA_ID, which comes from PAT_ENC_HSP\n  if (tableExists(\"PAT_ENC_HSP\")) {\n    const hspForFlow = qOne(`SELECT INPATIENT_DATA_ID FROM PAT_ENC_HSP WHERE PAT_ENC_CSN_ID = ?`, [csn]);\n    if (hspForFlow?.INPATIENT_DATA_ID) {\n      const ipid = hspForFlow.INPATIENT_DATA_ID;\n      enc.flowsheet_rows = children(\"IP_FLOWSHEET_ROWS\", \"INPATIENT_DATA_ID\", ipid);\n      // Get measurement IDs and fetch measurements\n      const fsdIds = q(`SELECT FSD_ID FROM IP_FLWSHT_REC WHERE INPATIENT_DATA_ID = ?`, [ipid]);\n      enc.flowsheet_measurements = fsdIds.flatMap((f) =>\n        children(\"IP_FLWSHT_MEAS\", \"FSD_ID\", f.FSD_ID)\n      );\n    }\n  }\n\n  return enc;\n}",
+      "cs:encounterChildren": "const encounterChildren: ChildSpec[] = [\n  { table: \"PAT_ENC_DX\", fkCol: \"PAT_ENC_CSN_ID\", key: \"diagnoses\" },\n  { table: \"PAT_ENC_RSN_VISIT\", fkCol: \"PAT_ENC_CSN_ID\", key: \"reasons_for_visit\" },\n  { table: \"TREATMENT\", fkCol: \"PAT_ENC_CSN_ID\", key: \"treatments\" },\n  { table: \"TREATMENT_TEAM\", fkCol: \"PAT_ENC_CSN_ID\", key: \"treatment_team\" },\n  { table: \"PAT_ENC_CURR_MEDS\", fkCol: \"PAT_ENC_CSN_ID\", key: \"current_meds_snapshot\" },\n  { table: \"DISCONTINUED_MEDS\", fkCol: \"PAT_ENC_CSN_ID\", key: \"discontinued_meds\" },\n  { table: \"PAT_ADDENDUM_INFO\", fkCol: \"PAT_ENC_CSN_ID\", key: \"addenda\" },\n  { table: \"PAT_ENC_DOCS\", fkCol: \"PAT_ENC_CSN_ID\", key: \"attached_documents\" },\n  { table: \"ECHKIN_STEP_INFO\", fkCol: \"PAT_ENC_CSN_ID\", key: \"echeckin\" },\n  { table: \"PAT_ENC_LOS_DX\", fkCol: \"PAT_ENC_CSN_ID\", key: \"los_diagnoses\" },\n  { table: \"PAT_MYC_MESG\", fkCol: \"PAT_ENC_CSN_ID\", key: \"mychart_message_links\" },\n  { table: \"EXT_PHARM_TYPE_COVERED\", fkCol: \"PAT_ENC_CSN_ID\", key: \"pharmacy_coverage\" },\n  { table: \"PAT_ENC_ELIG_HISTORY\", fkCol: \"PAT_ENC_CSN_ID\", key: \"eligibility_history\" },\n  // New: expand coverage\n  { table: \"KIOSK_QUESTIONNAIR\", fkCol: \"PAT_ENC_CSN_ID\", key: \"questionnaires\" },\n  { table: \"MYC_APPT_QNR_DATA\", fkCol: \"PAT_ENC_CSN_ID\", key: \"mychart_questionnaires\" },\n  { table: \"PAT_ENC_THREADS\", fkCol: \"PAT_ENC_CSN_ID\", key: \"threads\" },\n  { table: \"FRONT_END_PMT_COLL_HX\", fkCol: \"PAT_ENC_CSN_ID\", key: \"copay_collection\" },\n  { table: \"PAT_REVIEW_DATA\", fkCol: \"PAT_ENC_CSN_ID\", key: \"review_data\" },\n  { table: \"ASSOCIATED_REFERRALS\", fkCol: \"PAT_ENC_CSN_ID\", key: \"associated_referrals\" },\n  { table: \"PAT_HX_REVIEW\", fkCol: \"PAT_ENC_CSN_ID\", key: \"history_reviews\" },\n  { table: \"PAT_HX_REV_TOPIC\", fkCol: \"PAT_ENC_CSN_ID\", key: \"history_review_topics\" },\n  { table: \"PAT_HX_REV_TYPE\", fkCol: \"PAT_ENC_CSN_ID\", key: \"history_review_types\" },\n  { table: \"PAT_REVIEW_ALLERGI\", fkCol: \"PAT_ENC_CSN_ID\", key: \"allergy_reviews\" },\n  { table: \"PAT_REVIEW_PROBLEM\", fkCol: \"PAT_ENC_CSN_ID\", key: \"problem_reviews\" },\n  { table: \"PAT_ENC_BILLING_ENC\", fkCol: \"PAT_ENC_CSN_ID\", key: \"billing_encounter\" },\n  { table: \"PATIENT_ENC_VIDEO_VISIT\", fkCol: \"PAT_ENC_CSN_ID\", key: \"video_visit\" },\n  { table: \"PAT_ENC_SEL_PHARMACIES\", fkCol: \"PAT_ENC_CSN_ID\", key: \"selected_pharmacies\" },\n  { table: \"SOCIAL_ADL_HX\", fkCol: \"PAT_ENC_CSN_ID\", key: \"adl_history\" },\n  { table: \"FAMILY_HX\", fkCol: \"PAT_ENC_CSN_ID\", key: \"family_history_detail\" },\n  { table: \"MEDICAL_HX\", fkCol: \"PAT_ENC_CSN_ID\", key: \"medical_history\" },\n  { table: \"PAT_SOCIAL_HX_DOC\", fkCol: \"PAT_ENC_CSN_ID\", key: \"social_history_docs\" },\n  { table: \"AN_RELINK_INFO\", fkCol: \"PAT_ENC_CSN_ID\", key: \"relink_info\" },\n  { table: \"PAT_ENC_LETTERS\", fkCol: \"PAT_ENC_CSN_ID\", key: \"letters\" },\n  { table: \"APPT_LETTER_RECIPIENTS\", fkCol: \"PAT_ENC_CSN_ID\", key: \"letter_recipients\" },\n  { table: \"MED_PEND_APRV_STAT\", fkCol: \"PAT_ENC_CSN_ID\", key: \"med_pending_approval\" },\n  { table: \"RESULT_FOLLOW_UP\", fkCol: \"PAT_ENC_CSN_ID\", key: \"result_follow_up\" },\n  { table: \"PAT_UCN_CONVERT\", fkCol: \"PAT_ENC_CSN_ID\", key: \"ucn_converts\" },\n  { table: \"ED_PAT_STATUS\", fkCol: \"PAT_ENC_CSN_ID\", key: \"ed_status_history\" },\n  { table: \"ADDITIONAL_EM_CODE\", fkCol: \"PAT_ENC_CSN_ID\", key: \"additional_em_codes\" },\n  { table: \"PAT_CANCEL_PROC\", fkCol: \"PAT_ENC_CSN_ID\", key: \"cancelled_procedures\" },\n  { table: \"PAT_ENC_ADMIT_DX_AUDIT\", fkCol: \"PAT_ENC_CSN_ID\", key: \"admit_dx_audit\" },\n  { table: \"PAT_ENC_QNRS_ANS\", fkCol: \"PAT_ENC_CSN_ID\", key: \"questionnaire_answers\" },\n  { table: \"PAT_HM_LETTER\", fkCol: \"PAT_ENC_CSN_ID\", key: \"health_maintenance_letters\" },\n  // Encounter metadata extensions (111-row tables, one per encounter)\n  { table: \"HOMUNCULUS_PAT_DATA\", fkCol: \"PAT_ENC_CSN_ID\", key: \"body_diagram_data\" },\n  { table: \"OPH_EXAM_DATA\", fkCol: \"PAT_ENC_CSN_ID\", key: \"ophthalmology_exam\" },\n  { table: \"PAT_CR_TX_SINGLE\", fkCol: \"PAT_ENC_CSN_ID\", key: \"credit_card_tx\" },\n  { table: \"PAT_ENC_CALL_DATA\", fkCol: \"PAT_ENC_CSN_ID\", key: \"call_data\" },\n  { table: \"PAT_ENC_CC_AUTO_CHG\", fkCol: \"PAT_ENC_CSN_ID\", key: \"auto_charge\" },\n  { table: \"PAT_ENC_PAS\", fkCol: \"PAT_ENC_CSN_ID\", key: \"pre_anesthesia\" },\n  { table: \"PAT_UTILIZATION_REVIEW\", fkCol: \"PAT_ENC_CSN_ID\", key: \"utilization_review\" },\n  // Encounter-level family/admission data\n  { table: \"FAM_HX_PAT_ONLY\", fkCol: \"PAT_ENC_CSN_ID\", key: \"family_hx_patient_only\" },\n  { table: \"HSP_ATND_PROV\", fkCol: \"PAT_ENC_CSN_ID\", key: \"attending_providers\" },\n  { table: \"HSP_ADMIT_DIAG\", fkCol: \"PAT_ENC_CSN_ID\", key: \"admit_diagnoses\" },\n  { table: \"HSP_ADMIT_PROC\", fkCol: \"PAT_ENC_CSN_ID\", key: \"admit_procedures\" },\n]",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:qOne": "function qOne(sql: string, params: unknown[] = []): EpicRow | null {\n  return db.query(sql).get(...params) as EpicRow | null;\n}",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:lookupName": "function lookupName(table: string, pkCol: string, nameCol: string, id: unknown): string | null {\n  return (lookup(table, pkCol, id)?.[nameCol] as string) ?? null;\n}",
+      "pf:lookup": "function lookup(table: string, pkCol: string, id: unknown): EpicRow | null {\n  if (id == null) return null;\n  if (!lookupCache.has(table)) {\n    if (!tableExists(table)) {\n      lookupCache.set(table, new Map());\n    } else {\n      const rows = q(`SELECT * FROM \"${table}\"`);\n      const map = new Map<unknown, EpicRow>();\n      for (const row of rows) map.set(row[pkCol], row);\n      lookupCache.set(table, map);\n    }\n  }\n  return lookupCache.get(table)!.get(id) ?? null;\n}",
+      "pf:attachChildren": "function attachChildren(parent: EpicRow, parentId: unknown, specs: ChildSpec[]): void {\n  for (const spec of specs) {\n    if (!tableExists(spec.table)) continue;\n    const rows = spec.merged\n      ? childrenMerged(spec.table, spec.fkCol, parentId)\n      : children(spec.table, spec.fkCol, parentId);\n    if (rows.length > 0) parent[spec.key] = rows;\n  }\n}",
+      "pf:childrenMerged": "function childrenMerged(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  return mergeQuery(table, `b.\"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:projectOrder": "function projectOrder(oid: unknown): EpicRow {\n  const rows = mergeQuery(\"ORDER_PROC\", `b.\"ORDER_PROC_ID\" = ?`, [oid]);\n  const order = rows[0] ?? { ORDER_PROC_ID: oid };\n\n  attachChildren(order, oid, orderChildren);\n\n  // Resolve procedure name\n  order._procedure_name = lookupName(\"CLARITY_EAP\", \"PROC_ID\", \"PROC_NAME\", order.PROC_ID);\n\n  return order;\n}",
+      "cs:orderChildren": "const orderChildren: ChildSpec[] = [\n  { table: \"ORDER_RESULTS\", fkCol: \"ORDER_PROC_ID\", key: \"results\" },\n  { table: \"ORDER_DX_PROC\", fkCol: \"ORDER_PROC_ID\", key: \"diagnoses\" },\n  { table: \"ORDER_COMMENT\", fkCol: \"ORDER_PROC_ID\", key: \"comments\" },\n  { table: \"ORDER_NARRATIVE\", fkCol: \"ORDER_PROC_ID\", key: \"narrative\" },\n  { table: \"ORDER_IMPRESSION\", fkCol: \"ORDER_PROC_ID\", key: \"impression\" },\n  { table: \"ORDER_SIGNED_PROC\", fkCol: \"ORDER_PROC_ID\", key: \"signed_info\" },\n  { table: \"ORDER_RAD_ACC_NUM\", fkCol: \"ORDER_PROC_ID\", key: \"accession_numbers\" },\n  { table: \"ORDER_RAD_READING\", fkCol: \"ORDER_PROC_ID\", key: \"rad_readings\" },\n  { table: \"ORDER_MYC_INFO\", fkCol: \"ORDER_PROC_ID\", key: \"mychart_info\" },\n  { table: \"ORDER_MYC_RELEASE\", fkCol: \"ORDER_PROC_ID\", key: \"mychart_release\" },\n  { table: \"HV_ORDER_PROC\", fkCol: \"ORDER_PROC_ID\", key: \"hv_order_info\" },\n  // ORDER_ID-keyed children (ORDER_ID = ORDER_PROC_ID in most cases)\n  { table: \"ORDER_STATUS\", fkCol: \"ORDER_ID\", key: \"status_history\" },\n  { table: \"ORDER_AUTH_INFO\", fkCol: \"ORDER_ID\", key: \"auth_info\" },\n  { table: \"ORDER_PENDING\", fkCol: \"ORDER_ID\", key: \"pending_info\" },\n  { table: \"ORDER_REVIEW\", fkCol: \"ORDER_ID\", key: \"review_history\" },\n  { table: \"ORDER_READ_ACK\", fkCol: \"ORDER_ID\", key: \"read_acknowledgments\" },\n  { table: \"ORD_SPEC_QUEST\", fkCol: \"ORDER_ID\", key: \"specimen_questions\" },\n  { table: \"ORD_PROC_INSTR\", fkCol: \"ORDER_ID\", key: \"instructions\" },\n  { table: \"ORD_CLIN_IND\", fkCol: \"ORDER_ID\", key: \"clinical_indications\" },\n  { table: \"ORD_INDICATIONS\", fkCol: \"ORDER_ID\", key: \"indications\" },\n  { table: \"EXTERNAL_ORDER_INFO\", fkCol: \"ORDER_ID\", key: \"external_info\" },\n  { table: \"CL_ORD_FST_LST_SCH\", fkCol: \"ORDER_ID\", key: \"schedule_history\" },\n  { table: \"OBS_MTHD_ID\", fkCol: \"ORDER_ID\", key: \"observation_methods\" },\n  { table: \"SPEC_TYPE_SNOMED\", fkCol: \"ORDER_ID\", key: \"specimen_snomed\" },\n  { table: \"ORDER_INSTANTIATED\", fkCol: \"ORDER_ID\", key: \"instantiated_orders\" },\n  { table: \"ORDER_SUMMARY\", fkCol: \"ORDER_ID\", key: \"summary\" },\n  { table: \"ORDER_ANATOMICAL_REGION\", fkCol: \"ORDER_ID\", key: \"anatomical_regions\" },\n  { table: \"ORDER_IMAGE_AVAIL_INFO\", fkCol: \"ORDER_ID\", key: \"image_availability\" },\n  { table: \"ORDER_DOCUMENTS\", fkCol: \"ORDER_ID\", key: \"documents\" },\n  { table: \"ORD_PRFLST_TRK\", fkCol: \"ORDER_ID\", key: \"preference_list\" },\n  { table: \"ORD_SECOND_SIGN\", fkCol: \"ORDER_ID\", key: \"second_signature\" },\n  { table: \"RAD_THERAPY_ASSOC_COURSE\", fkCol: \"ORDER_ID\", key: \"rad_therapy_course\" },\n  { table: \"ADT_ORDER_INFORMATION\", fkCol: \"ORDER_ID\", key: \"adt_info\" },\n  { table: \"ORDER_RES_COMMENT\", fkCol: \"ORDER_ID\", key: \"result_comments\" },\n  { table: \"PERFORMING_ORG_INFO\", fkCol: \"ORDER_ID\", key: \"performing_org\" },\n]",
+      "pf:projectNote": "function projectNote(noteId: unknown): EpicRow {\n  const rows = mergeQuery(\"HNO_INFO\", `b.\"NOTE_ID\" = ?`, [noteId]);\n  const note = rows[0] ?? { NOTE_ID: noteId };\n  attachChildren(note, noteId, noteChildren);\n  return note;\n}",
+      "cs:noteChildren": "const noteChildren: ChildSpec[] = [\n  { table: \"HNO_PLAIN_TEXT\", fkCol: \"NOTE_ID\", key: \"text\" },\n  { table: \"ABN_FOLLOW_UP\", fkCol: \"NOTE_ID\", key: \"metadata\" },\n  { table: \"NOTE_ENC_INFO\", fkCol: \"NOTE_ID\", key: \"encounter_info\", merged: true },\n  { table: \"NOTE_CONTENT_INFO\", fkCol: \"NOTE_ID\", key: \"content_info\" },\n  { table: \"V_EHI_HNO_LINKED_PATS\", fkCol: \"NOTE_ID\", key: \"linked_patients\" },\n  { table: \"HNO_ORDERS\", fkCol: \"NOTE_ID\", key: \"linked_orders\" },\n  { table: \"NOTES_LINK_ORD_TXN\", fkCol: \"NOTE_ID\", key: \"linked_order_txns\" },\n]"
+    },
+    "prClasses": [
+      "Problem",
+      "OrderResult",
+      "Order",
+      "Note",
+      "Encounter",
+      "BillingTransaction"
+    ],
+    "hrFns": [
+      "projectVisit"
+    ]
+  },
+  {
+    "id": "projectBilling",
+    "seed": "pf:projectBilling",
+    "kind": "project_fn",
+    "tables": [
+      "ACCOUNT",
+      "ACCOUNT_2",
+      "ACCOUNT_3",
+      "ACCOUNT_CONTACT",
+      "ACCOUNT_CONTACT_2",
+      "ACCOUNT_CREATION",
+      "ACCT_ADDR",
+      "ACCT_COVERAGE",
+      "ACCT_GUAR_PAT_INFO",
+      "ACCT_HOME_PHONE_HX",
+      "ACCT_TX",
+      "ARPB_AUTH_INFO",
+      "ARPB_CHG_ENTRY_DX",
+      "ARPB_TRANSACTIONS",
+      "ARPB_TRANSACTIONS2",
+      "ARPB_TRANSACTIONS3",
+      "ARPB_TX_ACTIONS",
+      "ARPB_TX_CHG_REV_HX",
+      "ARPB_TX_MATCH_HX",
+      "ARPB_TX_MODERATE",
+      "ARPB_TX_MODIFIERS",
+      "ARPB_TX_STMCLAIMHX",
+      "ARPB_TX_STMT_DT",
+      "ARPB_TX_VOID",
+      "ARPB_VISITS",
+      "CLARITY_EAP",
+      "CLARITY_EAP_3",
+      "CLARITY_EAP_5",
+      "CLM_DX",
+      "CLM_NOTE",
+      "CLM_VALUES",
+      "CLM_VALUES_2",
+      "CLM_VALUES_3",
+      "CLM_VALUES_4",
+      "CLM_VALUES_5",
+      "CLM_VALUE_RECORD",
+      "CLP_NON_GRP_TX_IDS",
+      "CLP_OCCUR_DATA",
+      "CL_REMIT",
+      "CL_RMT_CLM_DT_INFO",
+      "CL_RMT_CLM_ENTITY",
+      "CL_RMT_CLM_INFO",
+      "CL_RMT_DELIVER_MTD",
+      "CL_RMT_HC_RMK_CODE",
+      "CL_RMT_INP_ADJ_INF",
+      "CL_RMT_OPT_ADJ_INF",
+      "CL_RMT_PRV_SUM_INF",
+      "CL_RMT_PRV_SUP_INF",
+      "CL_RMT_SVCE_LN_INF",
+      "CL_RMT_SVC_AMT_INF",
+      "CL_RMT_SVC_DAT_INF",
+      "CL_RMT_SVC_LVL_ADJ",
+      "CL_RMT_SVC_LVL_REF",
+      "CODE_INT_COMB_LN",
+      "DOCS_FOR_HOSP_ACCT",
+      "GUAR_ACCT_STMT_HX",
+      "GUAR_ADDR_HX",
+      "GUAR_PMT_SCORE_PB_HX",
+      "HAR_ALL",
+      "HSP_ACCOUNT",
+      "HSP_ACCOUNT_2",
+      "HSP_ACCOUNT_3",
+      "HSP_ACCOUNT_4",
+      "HSP_ACCT_ADJ_LIST",
+      "HSP_ACCT_ADMIT_DX",
+      "HSP_ACCT_ATND_PROV",
+      "HSP_ACCT_BILL_DRG",
+      "HSP_ACCT_CHG_LIST",
+      "HSP_ACCT_CLAIM_HAR",
+      "HSP_ACCT_CL_AG_HIS",
+      "HSP_ACCT_CVG_LIST",
+      "HSP_ACCT_DX_LIST",
+      "HSP_ACCT_EARSTADDR",
+      "HSP_ACCT_EXTINJ_CD",
+      "HSP_ACCT_LETTERS",
+      "HSP_ACCT_OCUR_HAR",
+      "HSP_ACCT_OTHR_PROV",
+      "HSP_ACCT_PRORATION",
+      "HSP_ACCT_PYMT_LIST",
+      "HSP_ACCT_SBO",
+      "HSP_CLAIM_DETAIL1",
+      "HSP_CLAIM_DETAIL2",
+      "HSP_CLAIM_PRINT",
+      "HSP_CLP_CMS_LINE",
+      "HSP_CLP_CMS_TX_PIECES",
+      "HSP_CLP_DIAGNOSIS",
+      "HSP_CLP_REV_CODE",
+      "HSP_CLP_UB_TX_PIECES",
+      "HSP_PMT_LINE_REMIT",
+      "HSP_PMT_REMIT_DETAIL",
+      "HSP_TRANSACTIONS",
+      "HSP_TRANSACTIONS_2",
+      "HSP_TRANSACTIONS_3",
+      "HSP_TX_AUTH_INFO",
+      "HSP_TX_DIAG",
+      "HSP_TX_LINE_INFO",
+      "HSP_TX_NAA_DETAIL",
+      "HSP_TX_RMT_CD_LST",
+      "INVOICE",
+      "INV_BASIC_INFO",
+      "INV_CLM_LN_ADDL",
+      "INV_DX_INFO",
+      "INV_NUM_TX_PIECES",
+      "INV_PMT_RECOUP",
+      "INV_TX_PIECES",
+      "NOTES_ACCT",
+      "OCC_CD",
+      "PAT_ENC",
+      "PAT_ENC_2",
+      "PAT_ENC_3",
+      "PAT_ENC_4",
+      "PAT_ENC_5",
+      "PAT_ENC_6",
+      "PAT_ENC_7",
+      "PMT_EOB_INFO_I",
+      "PMT_EOB_INFO_II",
+      "REL_CAUSE_CD",
+      "SVC_LN_INFO",
+      "SVC_LN_INFO_2",
+      "SVC_LN_INFO_3",
+      "SVC_PMT_HISTORY",
+      "TX_DIAG",
+      "TX_NDC_INFORMATION"
+    ],
+    "nodeIds": [
+      "pf:projectBilling",
+      "cs:txChildren",
+      "cs:harChildren",
+      "cs:acctChildren",
+      "cs:remitChildren",
+      "cs:claimChildren",
+      "pf:tableExists",
+      "pf:q",
+      "pf:mergeQuery",
+      "pf:children",
+      "pf:lookupName",
+      "pf:lookup",
+      "pf:attachChildren",
+      "pf:childrenMerged"
+    ],
+    "codeBlocks": {
+      "pf:projectBilling": "function projectBilling(patId: unknown): EpicRow {\n  // Billing tables link to patient via various chains:\n  // ARPB_TRANSACTIONS → ACCOUNT_ID → ACCT_GUAR_PAT_INFO.PAT_ID\n  // ARPB_VISITS → PRIM_ENC_CSN_ID → PAT_ENC.PAT_ID\n  // HSP_ACCOUNT → encounters\n  // ACCOUNT → ACCT_GUAR_PAT_INFO.PAT_ID\n\n  // Get patient's account IDs via bridge table\n  const patAccountIds = tableExists(\"ACCT_GUAR_PAT_INFO\")\n    ? q(`SELECT ACCOUNT_ID FROM ACCT_GUAR_PAT_INFO WHERE PAT_ID = ?`, [patId]).map(r => r.ACCOUNT_ID)\n    : [];\n\n  // Get patient's encounter CSNs\n  const patCSNs = q(`SELECT PAT_ENC_CSN_ID FROM PAT_ENC WHERE PAT_ID = ?`, [patId]).map(r => r.PAT_ENC_CSN_ID);\n\n  // Transactions — via account chain\n  let txRows: EpicRow[];\n  if (patAccountIds.length > 0 && tableExists(\"ARPB_TRANSACTIONS\")) {\n    const placeholders = patAccountIds.map(() => \"?\").join(\",\");\n    txRows = mergeQuery(\"ARPB_TRANSACTIONS\", `b.\"ACCOUNT_ID\" IN (${placeholders})`, patAccountIds);\n  } else {\n    txRows = mergeQuery(\"ARPB_TRANSACTIONS\");\n  }\n  for (const tx of txRows) {\n    attachChildren(tx, tx.TX_ID, txChildren);\n    tx._procedure_name = lookupName(\"CLARITY_EAP\", \"PROC_ID\", \"PROC_NAME\", tx.PROCEDURE_ID);\n  }\n\n  // Visits — via encounter CSN chain\n  let visits: EpicRow[];\n  if (patCSNs.length > 0 && tableExists(\"ARPB_VISITS\")) {\n    const csnPlaceholders = patCSNs.map(() => \"?\").join(\",\");\n    visits = q(`SELECT * FROM ARPB_VISITS WHERE PRIM_ENC_CSN_ID IN (${csnPlaceholders})`, patCSNs);\n  } else {\n    visits = tableExists(\"ARPB_VISITS\") ? q(`SELECT * FROM ARPB_VISITS`) : [];\n  }\n\n  // Hospital accounts — via HAR_ALL bridge (ACCT_ID → HSP_ACCOUNT_ID, PAT_ID for filter)\n  let hars: EpicRow[];\n  if (tableExists(\"HAR_ALL\") && tableExists(\"HSP_ACCOUNT\")) {\n    const harAcctIds = q(`SELECT ACCT_ID FROM HAR_ALL WHERE PAT_ID = ?`, [patId]).map(r => r.ACCT_ID);\n    if (harAcctIds.length > 0) {\n      const placeholders = harAcctIds.map(() => \"?\").join(\",\");\n      hars = mergeQuery(\"HSP_ACCOUNT\", `b.\"HSP_ACCOUNT_ID\" IN (${placeholders})`, harAcctIds);\n    } else {\n      hars = [];\n    }\n  } else {\n    hars = mergeQuery(\"HSP_ACCOUNT\");\n  }\n  for (const har of hars) {\n    attachChildren(har, har.HSP_ACCOUNT_ID, harChildren);\n    // Claim prints have their own children keyed on CLAIM_PRINT_ID\n    for (const clp of (har.claim_prints as EpicRow[] ?? [])) {\n      const clpId = clp.CLAIM_PRINT_ID;\n      if (tableExists(\"HSP_CLP_REV_CODE\")) clp.rev_codes = children(\"HSP_CLP_REV_CODE\", \"CLAIM_PRINT_ID\", clpId);\n      if (tableExists(\"HSP_CLP_CMS_LINE\")) clp.cms_lines = children(\"HSP_CLP_CMS_LINE\", \"CLAIM_PRINT_ID\", clpId);\n      if (tableExists(\"HSP_CLP_DIAGNOSIS\")) clp.diagnoses = children(\"HSP_CLP_DIAGNOSIS\", \"CLAIM_PRINT_ID\", clpId);\n      if (tableExists(\"HSP_CLAIM_DETAIL1\")) clp.detail_1 = children(\"HSP_CLAIM_DETAIL1\", \"CLAIM_PRINT_ID\", clpId);\n      if (tableExists(\"HSP_CLAIM_DETAIL2\")) clp.detail_2 = children(\"HSP_CLAIM_DETAIL2\", \"CLAIM_PRINT_ID\", clpId);\n      if (tableExists(\"HSP_CLP_CMS_TX_PIECES\")) clp.cms_tx_pieces = children(\"HSP_CLP_CMS_TX_PIECES\", \"CLAIM_PRINT_ID\", clpId);\n      if (tableExists(\"HSP_CLP_UB_TX_PIECES\")) clp.ub_tx_pieces = children(\"HSP_CLP_UB_TX_PIECES\", \"CLAIM_PRINT_ID\", clpId);\n      if (tableExists(\"CLP_NON_GRP_TX_IDS\")) clp.non_group_tx = children(\"CLP_NON_GRP_TX_IDS\", \"CLAIM_PRINT_ID\", clpId);\n      if (tableExists(\"CLP_OCCUR_DATA\")) clp.occurrence_data = children(\"CLP_OCCUR_DATA\", \"CLAIM_PRINT_ID\", clpId);\n    }\n  }\n\n  // Guarantor accounts — via ACCT_GUAR_PAT_INFO bridge\n  let accts: EpicRow[];\n  if (patAccountIds.length > 0) {\n    const placeholders = patAccountIds.map(() => \"?\").join(\",\");\n    accts = mergeQuery(\"ACCOUNT\", `b.\"ACCOUNT_ID\" IN (${placeholders})`, patAccountIds);\n  } else {\n    accts = mergeQuery(\"ACCOUNT\");\n  }\n  for (const acct of accts) {\n    attachChildren(acct, acct.ACCOUNT_ID, acctChildren);\n  }\n\n  // Remittances\n  const remits = q(`SELECT * FROM CL_REMIT`).concat(\n    tableExists(\"CL_REMIT\") ? [] : []\n  );\n  for (const r of remits) {\n    attachChildren(r, r.IMAGE_ID, remitChildren);\n  }\n\n  // Claims\n  const claims = mergeQuery(\"CLM_VALUES\");\n  for (const c of claims) {\n    attachChildren(c, c.RECORD_ID, claimChildren);\n  }\n\n  // Invoices\n  const invoices = tableExists(\"INVOICE\")\n    ? q(`SELECT * FROM INVOICE WHERE PAT_ID = ?`, [patId])\n    : [];\n  for (const inv of invoices) {\n    if (tableExists(\"INV_BASIC_INFO\")) inv.basic_info = children(\"INV_BASIC_INFO\", \"INV_ID\", inv.INVOICE_ID);\n    if (tableExists(\"INV_TX_PIECES\")) inv.tx_pieces = children(\"INV_TX_PIECES\", \"INV_ID\", inv.INVOICE_ID);\n    if (tableExists(\"INV_NUM_TX_PIECES\")) inv.num_tx_pieces = children(\"INV_NUM_TX_PIECES\", \"INV_ID\", inv.INVOICE_ID);\n    if (tableExists(\"INV_CLM_LN_ADDL\")) inv.claim_line_addl = children(\"INV_CLM_LN_ADDL\", \"INVOICE_ID\", inv.INVOICE_ID);\n    if (tableExists(\"INV_DX_INFO\")) inv.diagnoses = children(\"INV_DX_INFO\", \"INVOICE_ID\", inv.INVOICE_ID);\n    if (tableExists(\"INV_PMT_RECOUP\")) inv.payment_recoup = children(\"INV_PMT_RECOUP\", \"INVOICE_ID\", inv.INVOICE_ID);\n  }\n\n  return {\n    transactions: txRows,\n    visits,\n    hospital_accounts: hars,\n    guarantor_accounts: accts,\n    remittances: remits,\n    claims,\n    invoices,\n  };\n}",
+      "cs:txChildren": "const txChildren: ChildSpec[] = [\n  { table: \"ARPB_TX_ACTIONS\", fkCol: \"TX_ID\", key: \"actions\" },\n  { table: \"ARPB_CHG_ENTRY_DX\", fkCol: \"TX_ID\", key: \"charge_diagnoses\" },\n  { table: \"TX_DIAG\", fkCol: \"TX_ID\", key: \"diagnoses\" },\n  { table: \"PMT_EOB_INFO_II\", fkCol: \"TX_ID\", key: \"eob_info\" },\n  { table: \"ARPB_TX_MATCH_HX\", fkCol: \"TX_ID\", key: \"match_history\" },\n  { table: \"ARPB_TX_CHG_REV_HX\", fkCol: \"TX_ID\", key: \"charge_revision_history\" },\n  { table: \"ARPB_TX_STMCLAIMHX\", fkCol: \"TX_ID\", key: \"statement_claim_history\" },\n  { table: \"ARPB_TX_MODERATE\", fkCol: \"TX_ID\", key: \"moderation\" },\n  { table: \"ARPB_TX_MODIFIERS\", fkCol: \"ETR_ID\", key: \"modifiers\" },\n  { table: \"ARPB_AUTH_INFO\", fkCol: \"TX_ID\", key: \"auth_info\" },\n  { table: \"ARPB_TX_VOID\", fkCol: \"TX_ID\", key: \"void_info\" },\n  { table: \"ARPB_TX_STMT_DT\", fkCol: \"TX_ID\", key: \"statement_dates\" },\n  // Hospital transaction children (HSP_TRANSACTIONS keyed on TX_ID)\n  { table: \"HSP_TX_NAA_DETAIL\", fkCol: \"TX_ID\", key: \"naa_detail\" },\n  { table: \"PMT_EOB_INFO_I\", fkCol: \"TX_ID\", key: \"eob_info_i\" },\n  { table: \"HSP_TX_LINE_INFO\", fkCol: \"TX_ID\", key: \"line_info\" },\n  { table: \"HSP_PMT_LINE_REMIT\", fkCol: \"TX_ID\", key: \"line_remit\" },\n  { table: \"HSP_PMT_REMIT_DETAIL\", fkCol: \"TX_ID\", key: \"remit_detail\" },\n  { table: \"HSP_TX_RMT_CD_LST\", fkCol: \"TX_ID\", key: \"remit_code_list\" },\n  { table: \"HSP_TX_AUTH_INFO\", fkCol: \"TX_ID\", key: \"hsp_auth_info\" },\n  { table: \"HSP_TX_DIAG\", fkCol: \"TX_ID\", key: \"hsp_diagnoses\" },\n  { table: \"TX_NDC_INFORMATION\", fkCol: \"TX_ID\", key: \"ndc_info\" },\n  { table: \"SVC_PMT_HISTORY\", fkCol: \"TX_ID\", key: \"svc_payment_history\" },\n]",
+      "cs:harChildren": "const harChildren: ChildSpec[] = [\n  { table: \"HSP_ACCT_CVG_LIST\", fkCol: \"HSP_ACCOUNT_ID\", key: \"coverage_list\" },\n  { table: \"HSP_ACCT_DX_LIST\", fkCol: \"HSP_ACCOUNT_ID\", key: \"diagnoses\" },\n  { table: \"HSP_ACCT_PRORATION\", fkCol: \"HSP_ACCOUNT_ID\", key: \"proration\" },\n  { table: \"HSP_ACCT_OTHR_PROV\", fkCol: \"HSP_ACCOUNT_ID\", key: \"other_providers\" },\n  { table: \"HSP_ACCT_ADJ_LIST\", fkCol: \"HSP_ACCOUNT_ID\", key: \"adjustments\" },\n  { table: \"HSP_ACCT_BILL_DRG\", fkCol: \"HSP_ACCOUNT_ID\", key: \"billing_drg\" },\n  { table: \"HSP_ACCT_CLAIM_HAR\", fkCol: \"ACCT_ID\", key: \"claims\" },\n  { table: \"HSP_ACCT_SBO\", fkCol: \"HSP_ACCOUNT_ID\", key: \"split_billing\" },\n  { table: \"HSP_ACCT_CHG_LIST\", fkCol: \"HSP_ACCOUNT_ID\", key: \"charge_list\" },\n  { table: \"HSP_ACCT_PYMT_LIST\", fkCol: \"HSP_ACCOUNT_ID\", key: \"payment_list\" },\n  { table: \"HSP_ACCT_ATND_PROV\", fkCol: \"HSP_ACCOUNT_ID\", key: \"attending_providers\" },\n  { table: \"HSP_ACCT_ADMIT_DX\", fkCol: \"HSP_ACCOUNT_ID\", key: \"admit_diagnoses\" },\n  { table: \"HSP_ACCT_LETTERS\", fkCol: \"HSP_ACCOUNT_ID\", key: \"letters\" },\n  { table: \"HSP_CLAIM_PRINT\", fkCol: \"HSP_ACCOUNT_ID\", key: \"claim_prints\" },\n  { table: \"HSP_TRANSACTIONS\", fkCol: \"HSP_ACCOUNT_ID\", key: \"transactions\", merged: true },\n  { table: \"CODE_INT_COMB_LN\", fkCol: \"HSP_ACCOUNT_ID\", key: \"code_int\" },\n  { table: \"HSP_ACCT_CL_AG_HIS\", fkCol: \"HSP_ACCOUNT_ID\", key: \"collection_agency_history\" },\n  { table: \"HSP_ACCT_EARSTADDR\", fkCol: \"ACCT_ID\", key: \"earliest_address\" },\n  { table: \"HSP_ACCT_EXTINJ_CD\", fkCol: \"HSP_ACCOUNT_ID\", key: \"external_injury_codes\" },\n  { table: \"HSP_ACCT_OCUR_HAR\", fkCol: \"ACCT_ID\", key: \"occurrence_codes\" },\n  { table: \"DOCS_FOR_HOSP_ACCT\", fkCol: \"ACCT_ID\", key: \"linked_documents\" },\n]",
+      "cs:acctChildren": "const acctChildren: ChildSpec[] = [\n  { table: \"ACCOUNT_CONTACT\", fkCol: \"ACCOUNT_ID\", key: \"contacts\", merged: true },\n  { table: \"ACCT_COVERAGE\", fkCol: \"ACCOUNT_ID\", key: \"coverage_links\" },\n  { table: \"ACCT_TX\", fkCol: \"ACCOUNT_ID\", key: \"transaction_links\" },\n  { table: \"ACCT_ADDR\", fkCol: \"ACCOUNT_ID\", key: \"addresses\" },\n  { table: \"ACCOUNT_CREATION\", fkCol: \"ACCT_ID\", key: \"creation_info\" },\n  { table: \"GUAR_ACCT_STMT_HX\", fkCol: \"ACCOUNT_ID\", key: \"statement_history\" },\n  { table: \"GUAR_PMT_SCORE_PB_HX\", fkCol: \"ACCOUNT_ID\", key: \"payment_score\" },\n  { table: \"GUAR_ADDR_HX\", fkCol: \"ACCOUNT_ID\", key: \"address_history\" },\n  { table: \"ACCT_HOME_PHONE_HX\", fkCol: \"ACCOUNT_ID\", key: \"phone_history\" },\n  { table: \"NOTES_ACCT\", fkCol: \"ACCOUNT_ID\", key: \"notes\" },\n]",
+      "cs:remitChildren": "const remitChildren: ChildSpec[] = [\n  { table: \"CL_RMT_SVCE_LN_INF\", fkCol: \"IMAGE_ID\", key: \"service_lines\" },\n  { table: \"CL_RMT_CLM_INFO\", fkCol: \"IMAGE_ID\", key: \"claim_info\" },\n  { table: \"CL_RMT_CLM_ENTITY\", fkCol: \"IMAGE_ID\", key: \"claim_entities\" },\n  { table: \"CL_RMT_PRV_SUM_INF\", fkCol: \"IMAGE_ID\", key: \"provider_summary\" },\n  { table: \"CL_RMT_PRV_SUP_INF\", fkCol: \"IMAGE_ID\", key: \"provider_supplemental\" },\n  { table: \"CL_RMT_INP_ADJ_INF\", fkCol: \"IMAGE_ID\", key: \"inpatient_adjustments\" },\n  { table: \"CL_RMT_OPT_ADJ_INF\", fkCol: \"IMAGE_ID\", key: \"outpatient_adjustments\" },\n  { table: \"CL_RMT_SVC_LVL_ADJ\", fkCol: \"IMAGE_ID\", key: \"service_level_adjustments\" },\n  { table: \"CL_RMT_SVC_LVL_REF\", fkCol: \"IMAGE_ID\", key: \"service_level_refs\" },\n  { table: \"CL_RMT_SVC_AMT_INF\", fkCol: \"IMAGE_ID\", key: \"service_amounts\" },\n  { table: \"CL_RMT_SVC_DAT_INF\", fkCol: \"IMAGE_ID\", key: \"service_dates\" },\n  { table: \"CL_RMT_DELIVER_MTD\", fkCol: \"IMAGE_ID\", key: \"delivery_methods\" },\n  { table: \"CL_RMT_HC_RMK_CODE\", fkCol: \"IMAGE_ID\", key: \"remark_codes\" },\n  { table: \"CL_RMT_CLM_DT_INFO\", fkCol: \"IMAGE_ID\", key: \"claim_date_info\" },\n]",
+      "cs:claimChildren": "const claimChildren: ChildSpec[] = [\n  { table: \"SVC_LN_INFO\", fkCol: \"RECORD_ID\", key: \"service_lines\", merged: true },\n  { table: \"CLM_DX\", fkCol: \"RECORD_ID\", key: \"diagnoses\" },\n  { table: \"CLM_NOTE\", fkCol: \"RECORD_ID\", key: \"notes\" },\n  { table: \"CLM_VALUE_RECORD\", fkCol: \"RECORD_ID\", key: \"value_records\" },\n  { table: \"OCC_CD\", fkCol: \"RECORD_ID\", key: \"occurrence_codes\" },\n  { table: \"REL_CAUSE_CD\", fkCol: \"RECORD_ID\", key: \"related_causes\" },\n]",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:lookupName": "function lookupName(table: string, pkCol: string, nameCol: string, id: unknown): string | null {\n  return (lookup(table, pkCol, id)?.[nameCol] as string) ?? null;\n}",
+      "pf:lookup": "function lookup(table: string, pkCol: string, id: unknown): EpicRow | null {\n  if (id == null) return null;\n  if (!lookupCache.has(table)) {\n    if (!tableExists(table)) {\n      lookupCache.set(table, new Map());\n    } else {\n      const rows = q(`SELECT * FROM \"${table}\"`);\n      const map = new Map<unknown, EpicRow>();\n      for (const row of rows) map.set(row[pkCol], row);\n      lookupCache.set(table, map);\n    }\n  }\n  return lookupCache.get(table)!.get(id) ?? null;\n}",
+      "pf:attachChildren": "function attachChildren(parent: EpicRow, parentId: unknown, specs: ChildSpec[]): void {\n  for (const spec of specs) {\n    if (!tableExists(spec.table)) continue;\n    const rows = spec.merged\n      ? childrenMerged(spec.table, spec.fkCol, parentId)\n      : children(spec.table, spec.fkCol, parentId);\n    if (rows.length > 0) parent[spec.key] = rows;\n  }\n}",
+      "pf:childrenMerged": "function childrenMerged(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  return mergeQuery(table, `b.\"${fkCol}\" = ?`, [parentId]);\n}"
+    },
+    "prClasses": [
+      "Note",
+      "Encounter",
+      "BillingVisit",
+      "BillingTransaction"
+    ],
+    "hrFns": [
+      "projectBilling"
+    ]
+  },
+  {
+    "id": "projectMessages",
+    "seed": "pf:projectMessages",
+    "kind": "project_fn",
+    "tables": [
+      "MSG_TXT",
+      "MYC_MESG",
+      "MYC_MESG_CHILD",
+      "MYC_MESG_QUESR_ANS",
+      "MYC_MESG_RTF_TEXT"
+    ],
+    "nodeIds": [
+      "pf:projectMessages",
+      "pf:tableExists",
+      "pf:q",
+      "pf:children"
+    ],
+    "codeBlocks": {
+      "pf:projectMessages": "function projectMessages(patId: unknown): EpicRow[] {\n  const rows = q(`SELECT * FROM MYC_MESG WHERE PAT_ID = ?`, [patId]);\n  for (const msg of rows) {\n    msg.text = children(\"MSG_TXT\", \"MESSAGE_ID\", msg.MESSAGE_ID);\n    if (tableExists(\"MYC_MESG_CHILD\")) {\n      msg.child_messages = children(\"MYC_MESG_CHILD\", \"MESSAGE_ID\", msg.MESSAGE_ID);\n    }\n    if (tableExists(\"MYC_MESG_RTF_TEXT\")) {\n      msg.rtf_text = children(\"MYC_MESG_RTF_TEXT\", \"MESSAGE_ID\", msg.MESSAGE_ID);\n    }\n    if (tableExists(\"MYC_MESG_QUESR_ANS\")) {\n      msg.questionnaire_answers = children(\"MYC_MESG_QUESR_ANS\", \"MESSAGE_ID\", msg.MESSAGE_ID);\n    }\n  }\n  return rows;\n}",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}"
+    },
+    "prClasses": [
+      "Note",
+      "Encounter",
+      "Message"
+    ],
+    "hrFns": [
+      "projectMessage"
+    ]
+  },
+  {
+    "id": "projectConversationThreads",
+    "seed": "pf:projectConversationThreads",
+    "kind": "project_fn",
+    "tables": [
+      "IB_MESSAGE_THREAD",
+      "MYC_CONVO",
+      "MYC_CONVO_ABT_CUST_SVC",
+      "MYC_CONVO_ABT_MED_ADVICE",
+      "MYC_CONVO_AUDIENCE",
+      "MYC_CONVO_ENCS",
+      "MYC_CONVO_MSGS",
+      "MYC_CONVO_USERS",
+      "MYC_CONVO_VIEWERS"
+    ],
+    "nodeIds": [
+      "pf:projectConversationThreads",
+      "pf:tableExists",
+      "pf:q",
+      "pf:children"
+    ],
+    "codeBlocks": {
+      "pf:projectConversationThreads": "function projectConversationThreads(patId: unknown): EpicRow[] {\n  if (!tableExists(\"MYC_CONVO\")) return [];\n  const threads = q(`SELECT * FROM MYC_CONVO WHERE PAT_ID = ?`, [patId]);\n  for (const t of threads) {\n    const tid = t.THREAD_ID;\n    if (tableExists(\"MYC_CONVO_MSGS\")) t.messages = children(\"MYC_CONVO_MSGS\", \"THREAD_ID\", tid);\n    if (tableExists(\"MYC_CONVO_VIEWERS\")) t.viewers = children(\"MYC_CONVO_VIEWERS\", \"THREAD_ID\", tid);\n    if (tableExists(\"MYC_CONVO_USERS\")) t.users = children(\"MYC_CONVO_USERS\", \"THREAD_ID\", tid);\n    if (tableExists(\"MYC_CONVO_ENCS\")) t.encounter_links = children(\"MYC_CONVO_ENCS\", \"THREAD_ID\", tid);\n    if (tableExists(\"MYC_CONVO_AUDIENCE\")) t.audience = children(\"MYC_CONVO_AUDIENCE\", \"THREAD_ID\", tid);\n    if (tableExists(\"IB_MESSAGE_THREAD\")) t.ib_thread = children(\"IB_MESSAGE_THREAD\", \"THREAD_ID\", tid);\n    if (tableExists(\"MYC_CONVO_ABT_MED_ADVICE\")) t.med_advice = children(\"MYC_CONVO_ABT_MED_ADVICE\", \"THREAD_ID\", tid);\n    if (tableExists(\"MYC_CONVO_ABT_CUST_SVC\")) t.customer_service = children(\"MYC_CONVO_ABT_CUST_SVC\", \"THREAD_ID\", tid);\n  }\n  return threads;\n}",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}"
+    },
+    "prClasses": [
+      "Note",
+      "Encounter",
+      "Message"
+    ],
+    "hrFns": []
+  },
+  {
+    "id": "projectReferrals",
+    "seed": "pf:projectReferrals",
+    "kind": "project_fn",
+    "tables": [
+      "EPA_INFO",
+      "EPA_INFO_2",
+      "REFERRAL",
+      "REFERRAL_2",
+      "REFERRAL_3",
+      "REFERRAL_4",
+      "REFERRAL_5",
+      "REFERRAL_APT",
+      "REFERRAL_CROSS_ORG",
+      "REFERRAL_CVG",
+      "REFERRAL_CVG_AUTH",
+      "REFERRAL_DX",
+      "REFERRAL_HIST",
+      "REFERRAL_NOTES",
+      "REFERRAL_ORG_FILTER_SA",
+      "REFERRAL_PX",
+      "REFERRAL_REASONS",
+      "RFL_REF_TO_REGIONS"
+    ],
+    "nodeIds": [
+      "pf:projectReferrals",
+      "cs:referralChildren",
+      "pf:mergeQuery",
+      "pf:tableExists",
+      "pf:q",
+      "pf:attachChildren",
+      "pf:children",
+      "pf:childrenMerged"
+    ],
+    "codeBlocks": {
+      "pf:projectReferrals": "function projectReferrals(patId: unknown): EpicRow[] {\n  const rows = mergeQuery(\"REFERRAL\", `b.\"PAT_ID\" = ?`, [patId]);\n  for (const r of rows) {\n    attachChildren(r, r.REFERRAL_ID, referralChildren);\n  }\n  return rows;\n}",
+      "cs:referralChildren": "const referralChildren: ChildSpec[] = [\n  { table: \"REFERRAL_HIST\", fkCol: \"REFERRAL_ID\", key: \"history\" },\n  { table: \"REFERRAL_DX\", fkCol: \"REFERRAL_ID\", key: \"diagnoses\" },\n  { table: \"REFERRAL_PX\", fkCol: \"REFERRAL_ID\", key: \"procedures\" },\n  { table: \"REFERRAL_NOTES\", fkCol: \"REFERRAL_ID\", key: \"notes\" },\n  { table: \"REFERRAL_REASONS\", fkCol: \"REFERRAL_ID\", key: \"reasons\" },\n  { table: \"REFERRAL_APT\", fkCol: \"REFERRAL_ID\", key: \"appointments\" },\n  { table: \"REFERRAL_CVG\", fkCol: \"REFERRAL_ID\", key: \"coverage\" },\n  { table: \"REFERRAL_CVG_AUTH\", fkCol: \"REFERRAL_ID\", key: \"coverage_auth\" },\n  { table: \"EPA_INFO\", fkCol: \"REFERRAL_ID\", key: \"prior_auth\", merged: true },\n  { table: \"REFERRAL_ORG_FILTER_SA\", fkCol: \"REFERRAL_ID\", key: \"org_filter\" },\n  { table: \"REFERRAL_CROSS_ORG\", fkCol: \"REFERRAL_ID\", key: \"cross_org\" },\n  { table: \"RFL_REF_TO_REGIONS\", fkCol: \"REFERRAL_ID\", key: \"ref_to_regions\" },\n]",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:attachChildren": "function attachChildren(parent: EpicRow, parentId: unknown, specs: ChildSpec[]): void {\n  for (const spec of specs) {\n    if (!tableExists(spec.table)) continue;\n    const rows = spec.merged\n      ? childrenMerged(spec.table, spec.fkCol, parentId)\n      : children(spec.table, spec.fkCol, parentId);\n    if (rows.length > 0) parent[spec.key] = rows;\n  }\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:childrenMerged": "function childrenMerged(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  return mergeQuery(table, `b.\"${fkCol}\" = ?`, [parentId]);\n}"
+    },
+    "prClasses": [
+      "Note",
+      "Encounter",
+      "BillingTransaction"
+    ],
+    "hrFns": []
+  },
+  {
+    "id": "projectDocuments",
+    "seed": "pf:projectDocuments",
+    "kind": "project_fn",
+    "tables": [
+      "DOCS_RCVD_ALGS",
+      "DOCS_RCVD_ASMT",
+      "DOCS_RCVD_PROC",
+      "DOC_CSN_REFS",
+      "DOC_INFORMATION",
+      "DOC_INFORMATION_2",
+      "DOC_INFO_DICOM",
+      "DOC_LINKED_PATS"
+    ],
+    "nodeIds": [
+      "pf:projectDocuments",
+      "pf:tableExists",
+      "pf:mergeQuery",
+      "pf:q",
+      "pf:children"
+    ],
+    "codeBlocks": {
+      "pf:projectDocuments": "function projectDocuments(patId: unknown): EpicRow[] {\n  if (!tableExists(\"DOC_INFORMATION\")) return [];\n  const docs = mergeQuery(\"DOC_INFORMATION\");\n  for (const d of docs) {\n    const did = d.DOC_INFO_ID ?? d.DOCUMENT_ID;\n    if (tableExists(\"DOC_LINKED_PATS\")) d.linked_patients = children(\"DOC_LINKED_PATS\", \"DOCUMENT_ID\", did);\n    if (tableExists(\"DOC_INFO_DICOM\")) d.dicom = children(\"DOC_INFO_DICOM\", \"DOCUMENT_ID\", did);\n    if (tableExists(\"DOC_CSN_REFS\")) d.csn_refs = children(\"DOC_CSN_REFS\", \"DOCUMENT_ID\", did);\n    if (tableExists(\"DOCS_RCVD_ALGS\")) d.received_allergies = children(\"DOCS_RCVD_ALGS\", \"DOCUMENT_ID\", did);\n    if (tableExists(\"DOCS_RCVD_ASMT\")) d.received_assessments = children(\"DOCS_RCVD_ASMT\", \"DOCUMENT_ID\", did);\n    if (tableExists(\"DOCS_RCVD_PROC\")) d.received_procedures = children(\"DOCS_RCVD_PROC\", \"DOCUMENT_ID\", did);\n  }\n  return docs;\n}",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}"
+    },
+    "prClasses": [
+      "Encounter"
+    ],
+    "hrFns": []
+  },
+  {
+    "id": "projectEpisodes",
+    "seed": "pf:projectEpisodes",
+    "kind": "project_fn",
+    "tables": [
+      "CAREPLAN_ENROLLMENT_INFO",
+      "CAREPLAN_INFO",
+      "EPISODE",
+      "EPISODE_2",
+      "PAT_EPISODE"
+    ],
+    "nodeIds": [
+      "pf:projectEpisodes",
+      "pf:tableExists",
+      "pf:q",
+      "pf:mergeQuery",
+      "pf:children"
+    ],
+    "codeBlocks": {
+      "pf:projectEpisodes": "function projectEpisodes(patId: unknown): EpicRow[] {\n  if (!tableExists(\"EPISODE\")) return [];\n  // Episodes link via PAT_EPISODE bridge\n  const epIds = tableExists(\"PAT_EPISODE\")\n    ? q(`SELECT EPISODE_ID FROM PAT_EPISODE WHERE PAT_ID = ?`, [patId])\n    : [];\n  return epIds.map((e) => {\n    const ep = mergeQuery(\"EPISODE\", `b.\"EPISODE_ID\" = ?`, [e.EPISODE_ID])[0] ?? e;\n    if (tableExists(\"CAREPLAN_INFO\")) ep.care_plans = children(\"CAREPLAN_INFO\", \"PAT_ENC_CSN_ID\", ep.EPISODE_ID);\n    if (tableExists(\"CAREPLAN_ENROLLMENT_INFO\")) ep.enrollments = children(\"CAREPLAN_ENROLLMENT_INFO\", \"CAREPLAN_ID\", ep.EPISODE_ID);\n    return ep;\n  });\n}",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}"
+    },
+    "prClasses": [
+      "Note",
+      "Encounter"
+    ],
+    "hrFns": []
+  },
+  {
+    "id": "coverage",
+    "seed": "ip:coverage",
+    "kind": "inline_prop",
+    "tables": [
+      "COVERAGE",
+      "COVERAGE_2",
+      "COVERAGE_3"
+    ],
+    "nodeIds": [
+      "ip:coverage",
+      "pf:mergeQuery",
+      "pf:tableExists",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:coverage": "  coverage: mergeQuery(\"COVERAGE\"),",
+      "pf:mergeQuery": "function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): EpicRow[] {\n  if (!tableExists(baseTable)) return [];\n\n  const config = (splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)[baseTable];\n  if (!config) {\n    const w = where ? ` WHERE ${where}` : \"\";\n    return q(`SELECT * FROM \"${baseTable}\"${w}`, params);\n  }\n\n  const baseJoinCol = baseJoinOverrides[baseTable] ?? config.base_pk;\n  const baseCols = new Set(\n    q(`PRAGMA table_info(\"${baseTable}\")`).map((r) => r.name as string)\n  );\n\n  let sql = `SELECT b.*`;\n  const joins: string[] = [];\n\n  for (const member of config.members) {\n    if (!tableExists(member.table)) continue;\n    const alias = member.table.replace(/[^a-zA-Z0-9]/g, \"_\");\n    const splitCols = q(`PRAGMA table_info(\"${member.table}\")`)\n      .map((r) => r.name as string)\n      .filter((c) => c !== member.join_col && !baseCols.has(c));\n\n    for (const col of splitCols) {\n      sql += `, \"${alias}\".\"${col}\"`;\n    }\n\n    // Find what column on the base side matches this split's join_col\n    // Default: use baseJoinCol. But if the split uses a slightly different\n    // name (e.g. PAT_ENC_CSN vs PAT_ENC_CSN_ID), find best match.\n    let baseCol = baseJoinCol;\n    if (!baseCols.has(baseCol)) {\n      // Fallback to base PK\n      baseCol = config.base_pk;\n    }\n    // Special case: PAT_ENC_3 joins on PAT_ENC_CSN (no _ID suffix)\n    // The base table has PAT_ENC_CSN_ID, so join on that\n    if (member.join_col === \"PAT_ENC_CSN\" && baseCols.has(\"PAT_ENC_CSN_ID\")) {\n      baseCol = \"PAT_ENC_CSN_ID\";\n    }\n\n    joins.push(\n      `LEFT JOIN \"${member.table}\" \"${alias}\" ON b.\"${baseCol}\" = \"${alias}\".\"${member.join_col}\"`\n    );\n    // Track all cols to avoid dups\n    for (const col of splitCols) baseCols.add(col);\n  }\n\n  sql += ` FROM \"${baseTable}\" b ${joins.join(\" \")}`;\n  if (where) sql += ` WHERE ${where}`;\n  return q(sql, params);\n}",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "social_history",
+    "seed": "ip:social_history",
+    "kind": "inline_prop",
+    "tables": [
+      "SOCIAL_HX"
+    ],
+    "nodeIds": [
+      "ip:social_history",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:social_history": "  social_history: q(`SELECT * FROM SOCIAL_HX`),",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": [
+      "projectSocialHistory",
+      "projectOneSocialHistory",
+      "socialHistoryDiffers"
+    ]
+  },
+  {
+    "id": "surgical_history",
+    "seed": "ip:surgical_history",
+    "kind": "inline_prop",
+    "tables": [
+      "CLARITY_EAP",
+      "CLARITY_EAP_3",
+      "CLARITY_EAP_5",
+      "SURGICAL_HX"
+    ],
+    "nodeIds": [
+      "ip:surgical_history",
+      "pf:q",
+      "pf:lookupName",
+      "pf:lookup",
+      "pf:tableExists"
+    ],
+    "codeBlocks": {
+      "ip:surgical_history": "  surgical_history: q(`SELECT * FROM SURGICAL_HX`).map((row: EpicRow) => {\n    if (row.PROC_ID) row._proc_name = lookupName(\"CLARITY_EAP\", \"PROC_ID\", \"PROC_NAME\", row.PROC_ID);\n    return row;\n  }),",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}",
+      "pf:lookupName": "function lookupName(table: string, pkCol: string, nameCol: string, id: unknown): string | null {\n  return (lookup(table, pkCol, id)?.[nameCol] as string) ?? null;\n}",
+      "pf:lookup": "function lookup(table: string, pkCol: string, id: unknown): EpicRow | null {\n  if (id == null) return null;\n  if (!lookupCache.has(table)) {\n    if (!tableExists(table)) {\n      lookupCache.set(table, new Map());\n    } else {\n      const rows = q(`SELECT * FROM \"${table}\"`);\n      const map = new Map<unknown, EpicRow>();\n      for (const row of rows) map.set(row[pkCol], row);\n      lookupCache.set(table, map);\n    }\n  }\n  return lookupCache.get(table)!.get(id) ?? null;\n}",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}"
+    },
+    "prClasses": [],
+    "hrFns": [
+      "projectSurgicalHistory"
+    ]
+  },
+  {
+    "id": "family_history",
+    "seed": "ip:family_history",
+    "kind": "inline_prop",
+    "tables": [
+      "FAMILY_HX_STATUS"
+    ],
+    "nodeIds": [
+      "ip:family_history",
+      "pf:tableExists",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:family_history": "  family_history: tableExists(\"FAMILY_HX_STATUS\") ? q(`SELECT * FROM FAMILY_HX_STATUS`) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": [
+      "projectFamilyHistory"
+    ]
+  },
+  {
+    "id": "family_hx",
+    "seed": "ip:family_hx",
+    "kind": "inline_prop",
+    "tables": [
+      "FAMILY_HX"
+    ],
+    "nodeIds": [
+      "ip:family_hx",
+      "pf:tableExists",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:family_hx": "  family_hx: tableExists(\"FAMILY_HX\") ? q(`SELECT * FROM FAMILY_HX`) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "health_maintenance",
+    "seed": "ip:health_maintenance",
+    "kind": "inline_prop",
+    "tables": [
+      "HM_FORECAST_INFO",
+      "HM_HISTORICAL_STATUS",
+      "HM_HISTORY",
+      "PATIENT_HMT_STATUS",
+      "PAT_HM_CUR_GUIDE"
+    ],
+    "nodeIds": [
+      "ip:health_maintenance",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:health_maintenance": "  health_maintenance: {\n    historical_status: tableExists(\"HM_HISTORICAL_STATUS\") ? children(\"HM_HISTORICAL_STATUS\", \"PAT_ID\", patId) : [],\n    history: tableExists(\"HM_HISTORY\") ? children(\"HM_HISTORY\", \"PAT_ID\", patId) : [],\n    current_guides: tableExists(\"PAT_HM_CUR_GUIDE\") ? children(\"PAT_HM_CUR_GUIDE\", \"PAT_ID\", patId) : [],\n    topic_status: tableExists(\"PATIENT_HMT_STATUS\") ? children(\"PATIENT_HMT_STATUS\", \"PAT_ID\", patId) : [],\n    forecast: tableExists(\"HM_FORECAST_INFO\") ? children(\"HM_FORECAST_INFO\", \"PAT_ID\", patId) : [],\n  },",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "allergy_update_history",
+    "seed": "ip:allergy_update_history",
+    "kind": "inline_prop",
+    "tables": [
+      "PATIENT_ALG_UPD_HX"
+    ],
+    "nodeIds": [
+      "ip:allergy_update_history",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:allergy_update_history": "  allergy_update_history: tableExists(\"PATIENT_ALG_UPD_HX\") ? children(\"PATIENT_ALG_UPD_HX\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "medication_review_history",
+    "seed": "ip:medication_review_history",
+    "kind": "inline_prop",
+    "tables": [
+      "MEDS_REV_HX"
+    ],
+    "nodeIds": [
+      "ip:medication_review_history",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:medication_review_history": "  medication_review_history: tableExists(\"MEDS_REV_HX\") ? children(\"MEDS_REV_HX\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "problem_review_history",
+    "seed": "ip:problem_review_history",
+    "kind": "inline_prop",
+    "tables": [
+      "PROB_LIST_REV_HX"
+    ],
+    "nodeIds": [
+      "ip:problem_review_history",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:problem_review_history": "  problem_review_history: tableExists(\"PROB_LIST_REV_HX\") ? children(\"PROB_LIST_REV_HX\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "race",
+    "seed": "ip:race",
+    "kind": "inline_prop",
+    "tables": [
+      "PATIENT_RACE"
+    ],
+    "nodeIds": [
+      "ip:race",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:race": "  race: tableExists(\"PATIENT_RACE\") ? children(\"PATIENT_RACE\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "addresses",
+    "seed": "ip:addresses",
+    "kind": "inline_prop",
+    "tables": [
+      "PAT_ADDRESS"
+    ],
+    "nodeIds": [
+      "ip:addresses",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:addresses": "  addresses: tableExists(\"PAT_ADDRESS\") ? children(\"PAT_ADDRESS\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "email_addresses",
+    "seed": "ip:email_addresses",
+    "kind": "inline_prop",
+    "tables": [
+      "PAT_EMAILADDRESS"
+    ],
+    "nodeIds": [
+      "ip:email_addresses",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:email_addresses": "  email_addresses: tableExists(\"PAT_EMAILADDRESS\") ? children(\"PAT_EMAILADDRESS\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "address_change_history",
+    "seed": "ip:address_change_history",
+    "kind": "inline_prop",
+    "tables": [
+      "PAT_ADDR_CHNG_HX"
+    ],
+    "nodeIds": [
+      "ip:address_change_history",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:address_change_history": "  address_change_history: tableExists(\"PAT_ADDR_CHNG_HX\") ? children(\"PAT_ADDR_CHNG_HX\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "identity_ids",
+    "seed": "ip:identity_ids",
+    "kind": "inline_prop",
+    "tables": [
+      "IDENTITY_ID"
+    ],
+    "nodeIds": [
+      "ip:identity_ids",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:identity_ids": "  identity_ids: tableExists(\"IDENTITY_ID\") ? children(\"IDENTITY_ID\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "aliases",
+    "seed": "ip:aliases",
+    "kind": "inline_prop",
+    "tables": [
+      "PATIENT_ALIAS"
+    ],
+    "nodeIds": [
+      "ip:aliases",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:aliases": "  aliases: tableExists(\"PATIENT_ALIAS\") ? children(\"PATIENT_ALIAS\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "primary_care_providers",
+    "seed": "ip:primary_care_providers",
+    "kind": "inline_prop",
+    "tables": [
+      "PAT_PCP"
+    ],
+    "nodeIds": [
+      "ip:primary_care_providers",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:primary_care_providers": "  primary_care_providers: tableExists(\"PAT_PCP\") ? children(\"PAT_PCP\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "preferred_pharmacies",
+    "seed": "ip:preferred_pharmacies",
+    "kind": "inline_prop",
+    "tables": [
+      "PAT_PREF_PHARMACY"
+    ],
+    "nodeIds": [
+      "ip:preferred_pharmacies",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:preferred_pharmacies": "  preferred_pharmacies: tableExists(\"PAT_PREF_PHARMACY\") ? children(\"PAT_PREF_PHARMACY\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "recent_pharmacies",
+    "seed": "ip:recent_pharmacies",
+    "kind": "inline_prop",
+    "tables": [
+      "PAT_RCNT_USD_PHRMS"
+    ],
+    "nodeIds": [
+      "ip:recent_pharmacies",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:recent_pharmacies": "  recent_pharmacies: tableExists(\"PAT_RCNT_USD_PHRMS\") ? children(\"PAT_RCNT_USD_PHRMS\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "relationships",
+    "seed": "ip:relationships",
+    "kind": "inline_prop",
+    "tables": [
+      "PAT_RELATIONSHIPS"
+    ],
+    "nodeIds": [
+      "ip:relationships",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:relationships": "  relationships: tableExists(\"PAT_RELATIONSHIPS\") ? children(\"PAT_RELATIONSHIPS\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "goals",
+    "seed": "ip:goals",
+    "kind": "inline_prop",
+    "tables": [
+      "PATIENT_GOALS"
+    ],
+    "nodeIds": [
+      "ip:goals",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:goals": "  goals: tableExists(\"PATIENT_GOALS\") ? children(\"PATIENT_GOALS\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  },
+  {
+    "id": "patient_documents",
+    "seed": "ip:patient_documents",
+    "kind": "inline_prop",
+    "tables": [
+      "PATIENT_DOCS"
+    ],
+    "nodeIds": [
+      "ip:patient_documents",
+      "pf:tableExists",
+      "pf:children",
+      "pf:q"
+    ],
+    "codeBlocks": {
+      "ip:patient_documents": "  patient_documents: tableExists(\"PATIENT_DOCS\") ? children(\"PATIENT_DOCS\", \"PAT_ID\", patId) : [],",
+      "pf:tableExists": "function tableExists(name: string): boolean {\n  const r = db.query(\"SELECT 1 FROM sqlite_master WHERE type='table' AND name=?\").get(name);\n  return r !== null;\n}",
+      "pf:children": "function children(table: string, fkCol: string, parentId: unknown): EpicRow[] {\n  if (!tableExists(table)) return [];\n  return q(`SELECT * FROM \"${table}\" WHERE \"${fkCol}\" = ?`, [parentId]);\n}",
+      "pf:q": "function q(sql: string, params: unknown[] = []): EpicRow[] {\n  return db.query(sql).all(...params) as EpicRow[];\n}"
+    },
+    "prClasses": [],
+    "hrFns": []
+  }
+]
