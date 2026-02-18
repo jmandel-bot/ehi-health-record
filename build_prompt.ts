@@ -1,10 +1,27 @@
 /**
  * Build a self-contained review prompt for a given chunk.
+ * Includes the full methodology preamble from project.ts so the reviewer
+ * understands relationship types, CSN semantics, and mapping philosophy.
  */
+import { readFileSync } from "fs";
+
 const chunks = await Bun.file("review_chunks.json").json();
 
+// Extract the methodology preamble (Parts 1-5) from project.ts
+const projectFullSrc = readFileSync("project.ts", "utf-8");
+const preambleMatch = projectFullSrc.match(/\/\*\*[\s\S]*?\*\//);
+const methodology = preambleMatch ? preambleMatch[0] : '';
+
 function buildPrompt(chunk: any): string {
-  return `You are reviewing an Epic EHI data mapping for semantic correctness.
+  return `You are reviewing an Epic EHI data mapping for semantic correctness. Before analyzing the specific mapping below, read the full data model documentation and mapping philosophy — it is essential context for understanding relationship types, CSN semantics, and structural decisions.
+
+## Data Model & Mapping Philosophy
+
+The following is extracted from the projector's documentation. It defines the three relationship types (structural child, cross-reference, provenance stamp), explains CSN semantics, the order parent→child chain, billing as a parallel hierarchy, and the mapping philosophy. **Use this to evaluate whether structural decisions in the code below are correct.**
+
+<methodology>
+${methodology}
+</methodology>
 
 ## Your Task
 
@@ -68,12 +85,15 @@ ${JSON.stringify(chunk.healthRecordOutput, null, 2)?.slice(0, 3000)}
 
 ## Instructions
 
-1. Read every column's Epic schema description carefully.
-2. Trace each column from the SQL query through PatientRecord hydration to HealthRecord output.
-3. For each field in the output, verify: is the source column correct for what this field claims to represent?
-4. For each column in the sample data that has a value, verify: is it read by the code? If not, should it be?
-5. Check property name continuity across the three stages — does stage 3 read the property that stage 2 wrote?
-6. Check for nondeterminism in queries and aggregations.
+1. Read the Data Model & Mapping Philosophy section first. Understand the three relationship types (structural child, cross-reference, provenance stamp), what CSN columns mean on different tables, and the parallel clinical/billing hierarchy.
+2. Read every column's Epic schema description carefully. The schema description is the ground truth for what a column means — column names are often misleading (e.g., SEVERITY_C_NAME is actually the allergy TYPE).
+3. Trace each column from the SQL query through PatientRecord hydration to HealthRecord output.
+4. For each field in the output, verify: is the source column correct for what this field claims to represent?
+5. For each column in the sample data that has a value, verify: is it read by the code? If not, should it be?
+6. Check property name continuity across the three stages — does stage 3 read the property that stage 2 wrote?
+7. Evaluate structural decisions: is each table correctly classified as structural child, cross-reference, or provenance stamp? Are CSN columns interpreted correctly per the methodology?
+8. Check for nondeterminism in queries (missing ORDER BY) and aggregations (tie-breaking).
+9. Verify unit/type interpretations: are _C columns (raw category codes) distinguished from _C_NAME columns (display strings)? Are _YN flags correctly interpreted?
 
 Report your findings as a structured list of issues. If you find zero issues, say so explicitly.`;
 }
