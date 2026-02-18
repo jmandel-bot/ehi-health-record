@@ -11,3 +11,4 @@ patient_document.json
 coverage_report.json
 health_record.json
 # reports/ is tracked — it's the audit trail of review/apply cycles
+bun.lock
