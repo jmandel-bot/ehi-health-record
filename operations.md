@@ -19,49 +19,41 @@ TSV (550 files) → SQLite → patient_record.json → health_record.json
 ### Repository layout
 
 ```
-Core pipeline:
-  load_sqlite.py          Load TSVs + schemas into SQLite
-  project.ts              Project SQLite → patient_record.json (Epic-shaped)
-  PatientRecord.ts        Typed domain model over the Epic-shaped JSON
-  HealthRecord.ts         Clean projection: Epic terms → human terms
+src/                              Core pipeline
+  project.ts                        Project SQLite → patient_record.json
+  PatientRecord.ts                  Typed domain model over Epic-shaped JSON
+  HealthRecord.ts                   Clean projection: Epic terms → human terms
+  load_sqlite.py                    Load TSVs + schemas into SQLite
+  split_config.json                 Split table join configuration
+  strict_row.ts                     Proxy-based column access validation
 
-Tests:
-  test_project.ts         146 assertions: DB integrity, FK correctness, hydration
-  test_healthrecord.ts    Smoke test for HealthRecord projection
+test/                             Tests
+  test_project.ts                   150 assertions: DB integrity, FK correctness
+  test_healthrecord.ts              91 assertions: round-trip, schema validation
 
-Configuration:
-  split_config.json       How Epic's split tables (_2, _3, ...) join together
-  placement_records.json  Table-to-entity placement decisions
+tools/                            Audit & review tooling
+  audit.ts                          Uncovered tables with data
+  audit_columns.ts                  Phantom column detection
+  generate_review_atoms.ts          Build dependency graph → 35 review atoms
+  build_atom_prompt.ts              Generate self-contained review prompts
+  review_atoms.json                 Cached atom definitions
 
-Documentation:
-  docs/data-model.md          Epic EHI structure (the Rosetta Stone)
-  docs/mapping-philosophy.md  6 design principles
-  docs/extending.md           How to wire a new table (mechanical steps)
-  docs/testing.md             4-level test strategy
-  docs/field-naming.md        Epic column suffix conventions
-  docs/column-safety.md       Zero-mismatch guarantee approach
-  TODO.md                     Phased roadmap (0-6)
-  coverage_analysis.md        Data flow funnel analysis
+docs/                             Documentation
+  data-model.md                     Epic EHI structure (the Rosetta Stone)
+  mapping-philosophy.md             6 design principles
+  extending.md                      How to wire a new table
+  testing.md                        4-level test strategy
+  field-naming.md                   Epic column suffix conventions
+  column-safety.md                  Zero-mismatch guarantee approach
 
-Semantic review system:
-  generate_review_atoms.ts    Build dependency graph → 35 review atoms
-  build_atom_prompt.ts        Generate self-contained review prompts
-  review_atoms.json           Cached atom definitions
-  prompts/                    Generated review prompts (one per atom)
+prompts/                          Generated review prompts (one per atom)
+data/sample/                      Bundled EHI export (git submodule)
 
-Audit scripts:
-  audit.ts                    Uncovered tables with data
-  audit_columns.ts            Phantom column detection
-  audit_chunk_coverage.ts     Chunk completeness verification
-  strict_row.ts               Proxy-based column access validation
-  coverage.ts                 Table/column coverage reporting
-
-Data (not committed, created at runtime):
-  tsv/                   → symlink to my-health-data-ehi-wip/tsv/
-  schemas/               → symlink to my-health-data-ehi-wip/schemas/
-  ehi_clean.db             SQLite database built by load_sqlite.py
-  patient_record.json      Epic-shaped projection output
-  health_record*.json      Clean HealthRecord output
+Runtime data (not committed):
+  tsv/ → schemas/                   Symlinks created by setup.sh
+  ehi_clean.db                      SQLite database
+  patient_record.json               Epic-shaped projection output
+  health_record*.json               Clean HealthRecord output
 ```
 
 ### Prerequisites
@@ -89,21 +81,21 @@ composed into workflows below.
 
 #### A1. Load TSVs into SQLite
 ```bash
-python3 load_sqlite.py
+python3 src/load_sqlite.py
 ```
 Reads `tsv/*.tsv` and `schemas/*.json`, creates `ehi_clean.db`.
 550 tables, ~11K rows. Takes ~2 seconds.
 
 #### A2. Run the projection
 ```bash
-bun run project.ts --db ehi_clean.db --out patient_record.json
+bun run src/project.ts --db ehi_clean.db --out patient_record.json
 ```
 Projects SQLite → `patient_record.json` (6.7 MB Epic-shaped JSON).
 Prints a summary: table coverage, patient name, entity counts.
 
 #### A3. Run the tests
 ```bash
-bun run test_project.ts --db ehi_clean.db
+bun run test/test_project.ts --db ehi_clean.db
 ```
 146 assertions across 13 test groups. Every assertion must pass.
 Covers: DB integrity, split table merging, FK correctness, cross-references,
@@ -111,7 +103,7 @@ history snapshots, flowsheet metadata, lookup table resolution, coverage audit.
 
 #### A4. Generate the HealthRecord
 ```bash
-bun run test_healthrecord.ts
+bun run test/test_healthrecord.ts
 ```
 Loads `patient_record.json`, applies the clean projection, writes
 `health_record_compact.json` (Epic-free) and `health_record_full.json`
@@ -121,9 +113,9 @@ Loads `patient_record.json`, applies the clean projection, writes
 
 #### B1. Regenerate review atoms
 ```bash
-bun run generate_review_atoms.ts
+bun run tools/generate_review_atoms.ts
 ```
-Parses `project.ts`, `PatientRecord.ts`, and `HealthRecord.ts` to build a
+Parses `src/project.ts`, `src/PatientRecord.ts`, and `src/HealthRecord.ts` to build a
 dependency graph. Outputs `review_atoms.json` with 35 atoms. Each atom is
 the transitive closure from one projection function or inline property.
 
@@ -139,14 +131,14 @@ will fail until you assign it to a chunk definition.
 #### B2. Generate review prompts
 ```bash
 # Specific atom
-bun run build_atom_prompt.ts --atom projectOrder
+bun run tools/build_atom_prompt.ts --atom projectOrder
 
 # Random selection
-bun run build_atom_prompt.ts --n 3 --seed 42
+bun run tools/build_atom_prompt.ts --n 3 --seed 42
 
 # All atoms
-for id in $(bun -e 'import a from "./review_atoms.json"; for (const x of a) console.log(x.id)'); do
-  bun run build_atom_prompt.ts --atom "$id"
+for id in $(bun -e 'import a from "./tools/review_atoms.json"; for (const x of a) console.log(x.id)'); do
+  bun run tools/build_atom_prompt.ts --atom "$id"
 done
 ```
 Writes `prompts/atom_{id}.md`. Each prompt is self-contained:
@@ -174,16 +166,16 @@ parallel only if the atoms touch non-overlapping files).
 After Phase 2 completes:
 - Check `reports/` — every `.md` should now be `.processed.md`
 - Read the `## Applied` section of each processed report for skipped items
-- Re-run `bun run generate_review_atoms.ts` to update atoms
-- Re-run `bun run test_project.ts` as a final gate
+- Re-run `bun run tools/generate_review_atoms.ts` to update atoms
+- Re-run `bun run test/test_project.ts` as a final gate
 
 ### C. Extend Coverage
 
 #### C1. Identify unmapped tables
 ```bash
-bun run audit.ts
+bun run tools/audit.ts
 ```
-Lists every table with data that isn't referenced by `project.ts`.
+Lists every table with data that isn't referenced by `src/project.ts`.
 Sorted by row count. Shows FK column hints and row counts.
 
 #### C2. Read the Epic schema for a table
@@ -214,18 +206,18 @@ tells you explicitly.
 
 #### C5. Wire the table
 For structural children (the most common case):
-1. Add an entry to the appropriate `*Children` array in `project.ts`:
+1. Add an entry to the appropriate `*Children` array in `src/project.ts`:
    ```typescript
    { table: "NEW_TABLE", fkCol: "PARENT_FK_COL", key: "descriptive_name" }
    ```
-2. Run `bun run test_project.ts` — check for orphan rows
-3. Run `bun run generate_review_atoms.ts` — verify completeness still passes
+2. Run `bun run test/test_project.ts` — check for orphan rows
+3. Run `bun run tools/generate_review_atoms.ts` — verify completeness still passes
 
 For top-level entities:
-1. Add a new function in `project.ts` (e.g., `projectNewEntity`)
+1. Add a new function in `src/project.ts` (e.g., `projectNewEntity`)
 2. Call it from the main projection block
-3. Optionally add a typed class in `PatientRecord.ts`
-4. Optionally add a clean projection in `HealthRecord.ts`
+3. Optionally add a typed class in `src/PatientRecord.ts`
+4. Optionally add a clean projection in `src/HealthRecord.ts`
 
 #### C6. Analyze tables in bulk (subagent) — Phase 1
 For a batch of related unmapped tables, dispatch a Phase 1 extension
@@ -243,7 +235,7 @@ to `reports/extend_{BATCH_ID}.processed.md`.
 
 #### D1. Detect phantom columns
 ```bash
-bun run audit_columns.ts
+bun run tools/audit_columns.ts
 ```
 Finds every `raw.COLUMN_NAME` in PatientRecord.ts and `a.COLUMN_NAME`
 in HealthRecord.ts, then checks whether that column exists in the
@@ -259,9 +251,9 @@ automatically once StrictRow (D3) and codegen types are implemented.
 
 #### D3. Enable StrictRow validation
 ```bash
-bun run project.ts --strict --db ehi_clean.db
+bun run src/project.ts --strict --db ehi_clean.db
 ```
-(Not yet implemented — see `strict_row.ts` for the Proxy design.)
+(Not yet implemented — see `src/strict_row.ts` for the Proxy design.)
 Wraps every DB row in a Proxy that throws on access to a nonexistent
 column. If the projection completes, zero column mismatches are proven.
 
@@ -327,7 +319,7 @@ ls reports/review_*.processed.md | sed 's/.*review_//;s/.processed.md//'
 ls reports/review_*.md 2>/dev/null | grep -v processed
 
 # What hasn't been reviewed at all?
-comm -23 <(bun -e 'import a from "./review_atoms.json";for(const x of a)console.log(x.id)' | sort) \
+comm -23 <(bun -e 'import a from "./tools/review_atoms.json";for(const x of a)console.log(x.id)' | sort) \
          <(ls reports/review_*.processed.md 2>/dev/null | sed 's/.*review_//;s/.processed.md//' | sort)
 ```
 
@@ -352,7 +344,7 @@ C1 → group by domain → C6 (parallel Phase 1) → C7 (sequential Phase 2) →
 Progress tracking:
 ```bash
 # Coverage before/after
-bun run project.ts --db ehi_clean.db 2>&1 | grep 'Tables referenced'
+bun run src/project.ts --db ehi_clean.db 2>&1 | grep 'Tables referenced'
 ```
 
 Phase order from TODO.md:
@@ -372,7 +364,7 @@ D1 → fix phantoms → D3 (implement StrictRow) → A2 with --strict → fix cr
 
 1. **D1**: Find current phantom columns (29 known)
 2. Fix each: either correct the column name, or remove the dead reference
-3. Implement StrictRow Proxy in `project.ts` (design in `strict_row.ts`)
+3. Implement StrictRow Proxy in `src/project.ts` (design in `src/strict_row.ts`)
 4. Run `project.ts --strict` — every crash is a real bug
 5. Fix until clean, then run full test suite
 
@@ -416,19 +408,19 @@ Different exports may have:
 
 | File | Role | What it knows about |
 |---|---|---|
-| `project.ts` | SQL queries, ChildSpec wiring | Epic tables, columns, FKs |
-| `PatientRecord.ts` | Typed domain model, index maps | Epic column names → typed fields |
-| `HealthRecord.ts` | Clean projection | PatientRecord fields → human-readable output |
+| `src/project.ts` | SQL queries, ChildSpec wiring | Epic tables, columns, FKs |
+| `src/PatientRecord.ts` | Typed domain model, index maps | Epic column names → typed fields |
+| `src/HealthRecord.ts` | Clean projection | PatientRecord fields → human-readable output |
 
 A column access error can occur at any boundary:
-- `project.ts` queries a column that doesn't exist → SQL returns null
-- `PatientRecord.ts` reads `raw.WRONG_NAME` → undefined, cast to string → null
-- `HealthRecord.ts` reads `entity.WRONG_FIELD` → undefined → null in output
+- `src/project.ts` queries a column that doesn't exist → SQL returns null
+- `src/PatientRecord.ts` reads `raw.WRONG_NAME` → undefined, cast to string → null
+- `src/HealthRecord.ts` reads `entity.WRONG_FIELD` → undefined → null in output
 
 ### The atom system
 
 Atoms are the unit of semantic review. Each atom is derived from the code:
-- **Seed**: one projection function or inline property in `project.ts`
+- **Seed**: one projection function or inline property in `src/project.ts`
 - **Transitive closure**: all ChildSpec arrays, utility functions, and
   tables reachable from the seed
 - **PR classes**: PatientRecord classes that hydrate from this atom's tables
@@ -536,7 +528,7 @@ These tables need wiring: {TABLE_LIST}
 
 Epic schemas: /home/exedev/spike/spike/schemas/
 SQLite DB: /home/exedev/spike/spike/ehi_clean.db
-Project source: /home/exedev/spike/spike/project.ts
+Project source: /home/exedev/spike/spike/src/project.ts
 
 For each table:
 1. Read the schema JSON
@@ -581,7 +573,7 @@ For every finding with severity CRITICAL or HIGH:
 2. Verify it against the Epic schema description and sample data
 3. If the fix is correct, apply it to the source file
 4. If the fix is wrong or incomplete, apply a corrected version
-5. After each change, run: bun run test_project.ts --db ehi_clean.db
+5. After each change, run: bun run test/test_project.ts --db ehi_clean.db
 6. If tests fail, investigate and fix before continuing
 
 For MEDIUM and LOW findings, apply if straightforward; skip if
@@ -610,7 +602,7 @@ The methodology is at:
 
 Epic schema files: /home/exedev/spike/spike/schemas/
 SQLite DB: /home/exedev/spike/spike/ehi_clean.db
-Project source: /home/exedev/spike/spike/project.ts
+Project source: /home/exedev/spike/spike/src/project.ts
 
 For each table in the report:
 1. Read the recommended change
@@ -618,11 +610,11 @@ For each table in the report:
    - Do the FK values in the child table match PK values in the parent?
    - What's the orphan rate?
 3. If correct, apply the ChildSpec entry or projection function
-4. Run: bun run test_project.ts --db ehi_clean.db
+4. Run: bun run test/test_project.ts --db ehi_clean.db
 5. If tests fail, investigate and fix
 
 After all tables are wired:
-1. Run: bun run generate_review_atoms.ts
+1. Run: bun run tools/generate_review_atoms.ts
    (must still pass completeness checks)
 2. Run the full test suite
 3. Append a `## Applied` section to the report with:
@@ -659,8 +651,8 @@ for report in reports/review_*.md (not .processed.md):
 # All processed = cycle complete
 
 # Regenerate atoms for next cycle
-bun run generate_review_atoms.ts
-bun run build_atom_prompt.ts --n {next batch}
+bun run tools/generate_review_atoms.ts
+bun run tools/build_atom_prompt.ts --n {next batch}
 ```
 
 For coverage extension, same pattern:

@@ -63,19 +63,19 @@ bun install
 
 echo ""
 echo "═══ Loading TSVs into SQLite ═══"
-python3 load_sqlite.py
+python3 src/load_sqlite.py
 
 echo ""
 echo "═══ Projecting patient record ═══"
-bun run project.ts --db ehi_clean.db --out patient_record.json
+bun run src/project.ts --db ehi_clean.db --out patient_record.json
 
 echo ""
 echo "═══ Running tests ═══"
-bun run test_project.ts --db ehi_clean.db
+bun run test/test_project.ts --db ehi_clean.db
 
 echo ""
 echo "═══ Generating HealthRecord ═══"
-bun run test_healthrecord.ts
+bun run test/test_healthrecord.ts
 
 echo ""
 echo "════════════════════════════════════════════════════════════"

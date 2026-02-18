@@ -16,7 +16,7 @@ import { Database } from "bun:sqlite";
 const db = new Database("ehi_clean.db", { readonly: true });
 function q(sql: string) { return db.query(sql).all() as Record<string,unknown>[]; }
 
-const atoms: any[] = JSON.parse(readFileSync("review_atoms.json", "utf-8"));
+const atoms: any[] = JSON.parse(readFileSync("tools/review_atoms.json", "utf-8"));
 
 // Load methodology docs
 const docs = [
@@ -27,9 +27,9 @@ const docs = [
 ].map(f => readFileSync(f, "utf-8")).join("\n\n---\n\n");
 
 // Load source files for the reviewer to reference
-const projectSrc = readFileSync("project.ts", "utf-8");
-const prSrc = readFileSync("PatientRecord.ts", "utf-8");
-const hrSrc = readFileSync("HealthRecord.ts", "utf-8");
+const projectSrc = readFileSync("src/project.ts", "utf-8");
+const prSrc = readFileSync("src/PatientRecord.ts", "utf-8");
+const hrSrc = readFileSync("src/HealthRecord.ts", "utf-8");
 
 function extractFn(src: string, name: string): string {
   const re = new RegExp(`(?:export\\s+)?function\\s+${name}\\b`);

@@ -53,12 +53,37 @@ make health-record # Generate health_record*.json
 make all           # All of the above
 ```
 
-## Architecture
+## Project Structure
 
 ```
-project.ts          SQL queries, ChildSpec wiring (Epic tables → JSON)
-PatientRecord.ts    Typed domain model with index maps and accessors
-HealthRecord.ts     Clean projection (Epic terms → human terms)
+src/                          Core pipeline
+  project.ts                    SQL queries, ChildSpec wiring (Epic tables → JSON)
+  PatientRecord.ts              Typed domain model with index maps and accessors
+  HealthRecord.ts               Clean projection (Epic terms → human terms)
+  load_sqlite.py                TSV + schema → SQLite loader
+  split_config.json             How Epic's split tables join together
+  strict_row.ts                 Runtime column validation (future)
+
+test/                         Tests
+  test_project.ts               150 assertions: DB integrity, FK correctness
+  test_healthrecord.ts          91 assertions: round-trip, schema validation
+
+tools/                        Audit & review tooling
+  audit.ts                      Uncovered tables report
+  audit_columns.ts              Phantom column detection
+  generate_review_atoms.ts      Build review units from code graph
+  build_atom_prompt.ts          Generate review prompts per atom
+
+docs/                         Documentation
+  data-model.md                 Epic EHI structure (the Rosetta Stone)
+  mapping-philosophy.md         Design principles
+  extending.md                  How to wire a new table
+  testing.md                    Test strategy
+  field-naming.md               Epic column conventions
+  column-safety.md              Zero-mismatch approach
+
+data/sample/                  Bundled sample EHI export (git submodule)
+prompts/                      Generated review prompts
 ```
 
 See [operations.md](operations.md) for the full guide to tasks, workflows,

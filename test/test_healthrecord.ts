@@ -6,9 +6,9 @@
  *
  * Usage: bun run test_healthrecord.ts
  */
-import { loadPatientRecord } from "./PatientRecord";
-import { projectHealthRecord, serializeHealthRecord } from "./HealthRecord";
-import type { HealthRecord } from "./HealthRecord";
+import { loadPatientRecord } from "../src/PatientRecord";
+import { projectHealthRecord, serializeHealthRecord } from "../src/HealthRecord";
+import type { HealthRecord } from "../src/HealthRecord";
 
 let passed = 0;
 let failed = 0;

@@ -164,7 +164,7 @@ console.log(`  ${lookupErrors} lookup errors\n`);
 console.log("=== Split merge column overlap check ===");
 // When merging, columns from splits that have the SAME name as base columns
 // are silently dropped. Check if any dropped columns have different data.
-import splitConfig from "./split_config.json";
+import splitConfig from "../src/split_config.json";
 const splits = splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>;
 let overlapIssues = 0;
 for (const [base, config] of Object.entries(splits)) {

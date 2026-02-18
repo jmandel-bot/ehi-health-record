@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import splitConfig from "./split_config.json";
+import splitConfig from "../src/split_config.json";
 
 const db = new Database("ehi_clean.db", { readonly: true });
 

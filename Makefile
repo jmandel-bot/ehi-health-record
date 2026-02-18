@@ -8,17 +8,17 @@ setup:
 	./setup.sh
 
 load:
-	python3 load_sqlite.py
+	python3 src/load_sqlite.py
 
 project:
-	$(BUN) run project.ts --db ehi_clean.db --out patient_record.json
+	$(BUN) run src/project.ts --db ehi_clean.db --out patient_record.json
 
 test:
-	$(BUN) run test_project.ts --db ehi_clean.db
-	$(BUN) run test_healthrecord.ts
+	$(BUN) run test/test_project.ts --db ehi_clean.db
+	$(BUN) run test/test_healthrecord.ts
 
 health-record:
-	$(BUN) run test_healthrecord.ts
+	$(BUN) run test/test_healthrecord.ts
 
 clean:
 	rm -f ehi_clean.db patient_record.json health_record_compact.json health_record_full.json

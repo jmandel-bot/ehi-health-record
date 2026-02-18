@@ -12,5 +12,5 @@
     "allowImportingTsFiles": true,
     "verbatimModuleSyntax": false
   },
-  "include": ["*.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts", "tools/**/*.ts"]
 }

@@ -14,14 +14,14 @@
  */
 import { readFileSync } from "fs";
 import { Database } from "bun:sqlite";
-import splitConfig from "./split_config.json";
+import splitConfig from "../src/split_config.json";
 
 const db = new Database("ehi_clean.db", { readonly: true });
 function q(sql: string, p: unknown[] = []) { return db.query(sql).all(...p) as Record<string,unknown>[]; }
 
-const projectSrc = readFileSync("project.ts", "utf-8");
-const prSrc = readFileSync("PatientRecord.ts", "utf-8");
-const hrSrc = readFileSync("HealthRecord.ts", "utf-8");
+const projectSrc = readFileSync("src/project.ts", "utf-8");
+const prSrc = readFileSync("src/PatientRecord.ts", "utf-8");
+const hrSrc = readFileSync("src/HealthRecord.ts", "utf-8");
 
 // ─── Code extraction ─────────────────────────────────────────────────────
 
@@ -643,7 +643,7 @@ console.log(`══════════════════════�
 
 // ─── Write output ────────────────────────────────────────────────────────
 
-await Bun.write("review_atoms.json", JSON.stringify(atomFulls, null, 2));
+await Bun.write("tools/review_atoms.json", JSON.stringify(atomFulls, null, 2));
 console.log(`\nWrote ${atomFulls.length} atoms → review_atoms.json`);
 
 db.close();

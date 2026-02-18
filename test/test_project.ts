@@ -71,7 +71,7 @@ assert(totalRows > 5000, `Expected 5000+ total rows, got ${totalRows}`);
 
 console.log("\n═══ 2. Split table merging ═══");
 
-import splitConfig from "./split_config.json";
+import splitConfig from "../src/split_config.json";
 const splits = splitConfig as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>;
 
 for (const [base, config] of Object.entries(splits)) {
@@ -456,7 +456,7 @@ console.log("\n═══ 14. Coverage regression ═══");
 
 // 14a. Verify our spec covers at least 369 tables (current known count)
 //      This uses the same table list as audit.ts
-import splitConfigForCoverage from "./split_config.json";
+import splitConfigForCoverage from "../src/split_config.json";
 const specTables = new Set<string>();
 for (const [base, info] of Object.entries(splitConfigForCoverage as Record<string, { base_pk: string; members: Array<{ table: string; join_col: string }> }>)) {
   specTables.add(base);

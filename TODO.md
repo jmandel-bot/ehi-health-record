@@ -50,7 +50,7 @@ Pipeline: TSV → SQLite → patient_record.json (6.7 MB) → health_record.json
 - [ ] Move audit.ts into a proper coverage report that runs as part of the test suite
 
 ### 0.6 Type safety
-- [ ] `HealthRecord.ts` uses `type R = any` for PatientRecord — replace with actual import
+- [ ] `src/HealthRecord.ts` uses `type R = any` for PatientRecord — replace with actual import
 - [ ] `EpicRow = Record<string, unknown>` on untyped child arrays — add at least structural types for high-value children (diagnoses, results, medications)
 - [ ] The `epic()` helper strips arrays/objects from _epic — intentional, but loses nested children; document or reconsider
 
