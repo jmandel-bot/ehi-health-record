@@ -630,12 +630,16 @@ function projectEncounter(csn: CSN): EpicRow {
   enc.notes = noteRows.map((n) => projectNote(n.NOTE_ID));
 
   // Flowsheets — need INPATIENT_DATA_ID, which comes from PAT_ENC_HSP
+  // EHI limitation: IP_FLWSHT_MEAS has metadata (who, when, template) but
+  // NO MEAS_VALUE column — actual vital sign values are not in the export.
+  // We still wire the linkage for provenance: encounter → IP_DATA_STORE →
+  // IP_FLWSHT_REC → IP_FLWSHT_MEAS.
   if (tableExists("PAT_ENC_HSP")) {
     const hspForFlow = qOne(`SELECT INPATIENT_DATA_ID FROM PAT_ENC_HSP WHERE PAT_ENC_CSN_ID = ?`, [csn]);
     if (hspForFlow?.INPATIENT_DATA_ID) {
       const ipid = hspForFlow.INPATIENT_DATA_ID;
       enc.flowsheet_rows = children("IP_FLOWSHEET_ROWS", "INPATIENT_DATA_ID", ipid);
-      // Get measurement IDs and fetch measurements
+      // Get measurement IDs and fetch measurements (metadata only — no values)
       const fsdIds = q(`SELECT FSD_ID FROM IP_FLWSHT_REC WHERE INPATIENT_DATA_ID = ?`, [ipid]);
       enc.flowsheet_measurements = fsdIds.flatMap((f) =>
         children("IP_FLWSHT_MEAS", "FSD_ID", f.FSD_ID)
@@ -725,16 +729,20 @@ function projectBilling(patId: unknown): EpicRow {
     attachChildren(acct, acct.ACCOUNT_ID, acctChildren);
   }
 
-  // Remittances
-  const remits = q(`SELECT * FROM CL_REMIT`).concat(
-    tableExists("CL_REMIT") ? [] : []
-  );
+  // Remittances — CL_REMIT has PAT_ID directly
+  const remits = tableExists("CL_REMIT")
+    ? q(`SELECT * FROM CL_REMIT WHERE PAT_ID = ?`, [patId])
+    : [];
   for (const r of remits) {
     attachChildren(r, r.IMAGE_ID, remitChildren);
   }
 
-  // Claims
-  const claims = mergeQuery("CLM_VALUES");
+  // Claims — filter via invoice chain: CLM_VALUES.INV_NUM → INV_BASIC_INFO.INV_NUM → INVOICE.PAT_ID
+  const claims = (tableExists("CLM_VALUES") && tableExists("INV_BASIC_INFO") && tableExists("INVOICE"))
+    ? mergeQuery("CLM_VALUES",
+        `b."INV_NUM" IN (SELECT ib."INV_NUM" FROM INV_BASIC_INFO ib JOIN INVOICE inv ON ib.INV_ID = inv.INVOICE_ID WHERE inv.PAT_ID = ?)`,
+        [patId])
+    : mergeQuery("CLM_VALUES");
   for (const c of claims) {
     attachChildren(c, c.RECORD_ID, claimChildren);
   }
@@ -763,6 +771,62 @@ function projectBilling(patId: unknown): EpicRow {
   };
 }
 
+// ─── RTF text extraction ───────────────────────────────────────────────────
+
+/** Strip RTF markup → plain text. Regex-based; sufficient for Epic EHI messages. */
+function stripRtf(rtf: string): string {
+  if (!rtf || !rtf.includes('\\rtf')) return rtf ?? '';
+  let s = rtf;
+  // Remove known brace-delimited groups
+  for (const kw of ['\\fonttbl', '\\colortbl', '\\stylesheet', '\\*\\revtbl',
+                     '\\info', '\\header', '\\footer']) {
+    s = removeRtfGroup(s, kw);
+  }
+  s = s.replace(/\\par(?![a-zA-Z])\s?/g, '\n');    // \par → newline
+  s = s.replace(/\\line(?![a-zA-Z])\s?/g, '\n');   // \line → newline
+  s = s.replace(/\\tab(?![a-zA-Z])\s?/g, '\t');    // \tab → tab
+  // \'XX hex escapes (Windows-1252)
+  s = s.replace(/\\'([0-9a-fA-F]{2})/g, (_, hex) => {
+    const c = parseInt(hex, 16);
+    const w1252: Record<number,string> = {
+      0x91:'\u2018',0x92:'\u2019',0x93:'\u201C',0x94:'\u201D',
+      0x96:'\u2013',0x97:'\u2014',0x85:'\u2026',0x95:'\u2022',
+      0x80:'\u20AC',0x99:'\u2122',
+    };
+    return w1252[c] ?? String.fromCharCode(c);
+  });
+  // \uN Unicode escapes
+  s = s.replace(/\\u(-?\d+)[? ]?/g, (_, n) => {
+    let code = parseInt(n, 10); if (code < 0) code += 65536;
+    return String.fromCharCode(code);
+  });
+  s = s.replace(/\\\{/g, '{').replace(/\\\}/g, '}').replace(/\\\\/g, '\\');
+  s = s.replace(/\\[a-zA-Z]+-?\d*\s?/g, '');   // remaining control words
+  s = s.replace(/[{}]/g, '');                     // braces
+  s = s.replace(/[ \t]+/g, ' ');
+  s = s.split('\n').map(l => l.trim()).join('\n');
+  s = s.replace(/\n{3,}/g, '\n\n');
+  return s.trim();
+}
+
+/** Remove a brace-delimited RTF group (handles nesting). */
+function removeRtfGroup(s: string, controlWord: string): string {
+  let idx = 0;
+  while (true) {
+    const start = s.indexOf('{' + controlWord, idx);
+    if (start === -1) break;
+    let depth = 0, end = start;
+    for (let i = start; i < s.length; i++) {
+      if (s[i] === '{') depth++;
+      else if (s[i] === '}') { depth--; if (depth === 0) { end = i; break; } }
+    }
+    s = s.slice(0, start) + s.slice(end + 1);
+  }
+  return s;
+}
+
+// ─── Message projection ────────────────────────────────────────────────────
+
 function projectMessages(patId: unknown): EpicRow[] {
   const rows = q(`SELECT * FROM MYC_MESG WHERE PAT_ID = ?`, [patId]);
   for (const msg of rows) {
@@ -775,6 +839,15 @@ function projectMessages(patId: unknown): EpicRow[] {
     }
     if (tableExists("MYC_MESG_QUESR_ANS")) {
       msg.questionnaire_answers = children("MYC_MESG_QUESR_ANS", "MESSAGE_ID", msg.MESSAGE_ID);
+    }
+    // If no plain text but RTF exists, extract text from RTF
+    const hasPlainText = (msg.text as EpicRow[]).some(t => t.MSG_TXT);
+    if (!hasPlainText && Array.isArray(msg.rtf_text) && msg.rtf_text.length > 0) {
+      const rtfParts = (msg.rtf_text as EpicRow[])
+        .sort((a, b) => (a.LINE as number) - (b.LINE as number))
+        .map(r => r.RTF_TXT as string)
+        .filter(Boolean);
+      msg.extracted_text = stripRtf(rtfParts.join('\n'));
     }
   }
   return rows;
@@ -807,7 +880,12 @@ function projectReferrals(patId: unknown): EpicRow[] {
 
 function projectDocuments(patId: unknown): EpicRow[] {
   if (!tableExists("DOC_INFORMATION")) return [];
-  const docs = mergeQuery("DOC_INFORMATION");
+  // Filter via DOC_LINKED_PATS bridge for multi-patient correctness
+  const docs = tableExists("DOC_LINKED_PATS")
+    ? mergeQuery("DOC_INFORMATION",
+        `b."DOC_INFO_ID" IN (SELECT "DOCUMENT_ID" FROM DOC_LINKED_PATS WHERE "LINKED_PAT_ID" = ?)`,
+        [patId])
+    : mergeQuery("DOC_INFORMATION");
   for (const d of docs) {
     const did = d.DOC_INFO_ID ?? d.DOCUMENT_ID;
     if (tableExists("DOC_LINKED_PATS")) d.linked_patients = children("DOC_LINKED_PATS", "DOCUMENT_ID", did);
@@ -847,12 +925,9 @@ const allCSNs: CSN[] = q(
   [patId]
 ).map((r) => r.PAT_ENC_CSN_ID as CSN);
 
-// Also get CSNs from PAT_ENC_2..7 which key on CSN not PAT_ID
-const splitCSNs = q(
-  `SELECT DISTINCT PAT_ENC_CSN_ID FROM PAT_ENC_2`
-).map((r) => r.PAT_ENC_CSN_ID as CSN);
-
-const encounterCSNs = [...new Set([...allCSNs, ...splitCSNs])];
+// PAT_ENC_2..7 split tables key on CSN, not PAT_ID — allCSNs already
+// covers every CSN for this patient, so no need to union in unfiltered splits.
+const encounterCSNs = allCSNs;
 
 const doc: EpicRow = {
   ...patient,
@@ -860,15 +935,15 @@ const doc: EpicRow = {
   problems: projectProblems(patId),
   medications: projectMedications(patId),
   immunizations: projectImmunizations(patId),
-  coverage: mergeQuery("COVERAGE"),
+  coverage: mergeQuery("COVERAGE", `b."SUBSCR_OR_SELF_MEM_PAT_ID" = ?`, [patId]),
   referrals: projectReferrals(patId),
-  social_history: q(`SELECT * FROM SOCIAL_HX`),
-  surgical_history: q(`SELECT * FROM SURGICAL_HX`).map((row: EpicRow) => {
+  social_history: q(`SELECT * FROM SOCIAL_HX WHERE PAT_ENC_CSN_ID IN (SELECT PAT_ENC_CSN_ID FROM PAT_ENC WHERE PAT_ID = ?)`, [patId]),
+  surgical_history: q(`SELECT * FROM SURGICAL_HX WHERE PAT_ENC_CSN_ID IN (SELECT PAT_ENC_CSN_ID FROM PAT_ENC WHERE PAT_ID = ?)`, [patId]).map((row: EpicRow) => {
     if (row.PROC_ID) row._proc_name = lookupName("CLARITY_EAP", "PROC_ID", "PROC_NAME", row.PROC_ID);
     return row;
   }),
-  family_history: tableExists("FAMILY_HX_STATUS") ? q(`SELECT * FROM FAMILY_HX_STATUS`) : [],
-  family_hx: tableExists("FAMILY_HX") ? q(`SELECT * FROM FAMILY_HX`) : [],
+  family_history: tableExists("FAMILY_HX_STATUS") ? q(`SELECT * FROM FAMILY_HX_STATUS WHERE PAT_ENC_CSN_ID IN (SELECT PAT_ENC_CSN_ID FROM PAT_ENC WHERE PAT_ID = ?)`, [patId]) : [],
+  family_hx: tableExists("FAMILY_HX") ? q(`SELECT * FROM FAMILY_HX WHERE PAT_ENC_CSN_ID IN (SELECT PAT_ENC_CSN_ID FROM PAT_ENC WHERE PAT_ID = ?)`, [patId]) : [],
   // Patient-level clinical data
   health_maintenance: {
     historical_status: tableExists("HM_HISTORICAL_STATUS") ? children("HM_HISTORICAL_STATUS", "PAT_ID", patId) : [],
