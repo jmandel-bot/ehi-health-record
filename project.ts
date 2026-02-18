@@ -245,6 +245,8 @@ const encounterChildren: ChildSpec[] = [
   { table: "HSP_ATND_PROV", fkCol: "PAT_ENC_CSN_ID", key: "attending_providers" },
   { table: "HSP_ADMIT_DIAG", fkCol: "PAT_ENC_CSN_ID", key: "admit_diagnoses" },
   { table: "HSP_ADMIT_PROC", fkCol: "PAT_ENC_CSN_ID", key: "admit_procedures" },
+  // ADT (admit/discharge/transfer) events
+  { table: "CLARITY_ADT", fkCol: "PAT_ENC_CSN_ID", key: "adt_events" },
 ];
 
 const orderChildren: ChildSpec[] = [
@@ -284,6 +286,13 @@ const orderChildren: ChildSpec[] = [
   { table: "ADT_ORDER_INFORMATION", fkCol: "ORDER_ID", key: "adt_info" },
   { table: "ORDER_RES_COMMENT", fkCol: "ORDER_ID", key: "result_comments" },
   { table: "PERFORMING_ORG_INFO", fkCol: "ORDER_ID", key: "performing_org" },
+  { table: "MEDICATION_COST_ESTIMATES", fkCol: "ORDER_ID", key: "cost_estimates" },
+  { table: "FINALIZE_PHYSICIAN", fkCol: "ORDER_ID", key: "finalize_physician" },
+  { table: "ORDER_MODALITY_TYPE", fkCol: "ORDER_ID", key: "modality_type" },
+  { table: "ORDER_RPTD_SIG_INSTR", fkCol: "ORDER_ID", key: "reported_sig_instructions" },
+  { table: "ORD_RSLT_COMPON_ID", fkCol: "ORDER_ID", key: "result_component_ids" },
+  { table: "RIS_SGND_INFO", fkCol: "ORDER_PROC_ID", key: "ris_signed_info" },
+  { table: "SPEC_SOURCE_SNOMED", fkCol: "ORDER_ID", key: "specimen_source_snomed" },
 ];
 
 const noteChildren: ChildSpec[] = [
@@ -320,6 +329,8 @@ const txChildren: ChildSpec[] = [
   { table: "HSP_TX_DIAG", fkCol: "TX_ID", key: "hsp_diagnoses" },
   { table: "TX_NDC_INFORMATION", fkCol: "TX_ID", key: "ndc_info" },
   { table: "SVC_PMT_HISTORY", fkCol: "TX_ID", key: "svc_payment_history" },
+  { table: "BDC_PB_CHGS", fkCol: "TX_ID", key: "billing_denial_charges" },
+  { table: "ARPB_PMT_RELATED_DENIALS", fkCol: "TX_ID", key: "payment_related_denials" },
 ];
 
 const referralChildren: ChildSpec[] = [
@@ -341,10 +352,30 @@ const problemChildren: ChildSpec[] = [
   { table: "PROB_UPDATES", fkCol: "PROBLEM_LIST_ID", key: "updates" },
   { table: "PL_SYSTEMS", fkCol: "PROBLEM_LIST_ID", key: "body_systems" },
   { table: "PROBLEM_LIST_ALL", fkCol: "PROBLEM_LIST_ID", key: "all_info" },
+  { table: "PROBLEM_LIST_HX", fkCol: "PROBLEM_LIST_ID", key: "history" },
 ];
 
 const allergyChildren: ChildSpec[] = [
   { table: "ALLERGY_REACTIONS", fkCol: "ALLERGY_ID", key: "reactions" },
+];
+
+const patRelChildren: ChildSpec[] = [
+  { table: "PAT_REL_PHONE_NUM", fkCol: "PAT_RELATIONSHIP_ID", key: "phone_numbers" },
+  { table: "PAT_RELATIONSHIP_ADDR", fkCol: "PAT_RELATIONSHIP_ID", key: "addresses" },
+  { table: "PAT_REL_CONTEXT", fkCol: "PAT_RELATIONSHIP_ID", key: "contexts" },
+  { table: "PAT_REL_EMAIL_ADDR", fkCol: "PAT_RELATIONSHIP_ID", key: "email_addresses" },
+  { table: "PAT_REL_LANGUAGES", fkCol: "PAT_RELATIONSHIP_ID", key: "languages" },
+  { table: "PAT_REL_SPEC_NEEDS", fkCol: "PAT_RELATIONSHIP_ID", key: "special_needs" },
+  { table: "PAT_RELATIONSHIP_LIST_HX", fkCol: "RELATIONSHIP_ID", key: "history" },
+];
+
+const coverageChildren: ChildSpec[] = [
+  { table: "CVG_ACCT_LIST", fkCol: "CVG_ID", key: "account_list" },
+  { table: "COVERAGE_COPAY_ECD", fkCol: "COVERAGE_ID", key: "copay_details" },
+  { table: "COVERAGE_MEMBER_LIST", fkCol: "COVERAGE_ID", key: "member_list" },
+  { table: "COVERAGE_SPONSOR", fkCol: "CVG_ID", key: "sponsor" },
+  { table: "CVG_AP_CLAIMS", fkCol: "COVERAGE_ID", key: "claims" },
+  { table: "CVG_SUBSCR_ADDR", fkCol: "CVG_ID", key: "subscriber_address" },
 ];
 
 const medChildren: ChildSpec[] = [
@@ -359,6 +390,8 @@ const medChildren: ChildSpec[] = [
   { table: "ORDER_MED_VITALS", fkCol: "ORDER_ID", key: "med_vitals" },
   { table: "ORD_MED_USER_ADMIN", fkCol: "ORDER_ID", key: "user_admin" },
   { table: "PRESC_ID", fkCol: "ORDER_ID", key: "prescription_ids" },
+  { table: "ORDER_RXVER_NOADSN", fkCol: "ORDER_MED_ID", key: "rx_verification" },
+  { table: "ORD_MED_ADMININSTR", fkCol: "ORDER_MED_ID", key: "admin_instructions" },
 ];
 
 const immuneChildren: ChildSpec[] = [
@@ -367,6 +400,8 @@ const immuneChildren: ChildSpec[] = [
   { table: "IMM_ADMIN_COMPONENTS", fkCol: "DOCUMENT_ID", key: "components" },
   { table: "IMM_ADMIN_GROUPS", fkCol: "DOCUMENT_ID", key: "groups" },
   { table: "IMM_DUE", fkCol: "DOCUMENT_ID", key: "due_forecast" },
+  { table: "IMM_ADMIN_GROUPS_FT", fkCol: "DOCUMENT_ID", key: "admin_groups_free_text" },
+  { table: "MED_DISPENSE_SIG", fkCol: "DOCUMENT_ID", key: "dispense_signatures" },
 ];
 
 const remitChildren: ChildSpec[] = [
@@ -408,6 +443,15 @@ const harChildren: ChildSpec[] = [
   { table: "HSP_ACCT_EXTINJ_CD", fkCol: "HSP_ACCOUNT_ID", key: "external_injury_codes" },
   { table: "HSP_ACCT_OCUR_HAR", fkCol: "ACCT_ID", key: "occurrence_codes" },
   { table: "DOCS_FOR_HOSP_ACCT", fkCol: "ACCT_ID", key: "linked_documents" },
+  { table: "RECONCILE_CLM", fkCol: "HSP_ACCOUNT_ID", key: "reconcile_claims" },
+  // HSP_BKT_* tables — children of HSP_BUCKET (no HSP_BUCKET table in export; wire via HSP_ACCOUNT_ID)
+  { table: "HSP_BKT_ADDTL_REC", fkCol: "HSP_ACCOUNT_ID", key: "bucket_additional_records" },
+  { table: "HSP_BKT_NAA_ADJ_HX", fkCol: "HSP_ACCOUNT_ID", key: "bucket_naa_adj_history" },
+  { table: "HSP_BKT_ADJ_TXS", fkCol: "HSP_ACCOUNT_ID", key: "bucket_adj_transactions" },
+  { table: "HSP_BKT_PAYMENT", fkCol: "HSP_ACCOUNT_ID", key: "bucket_payments" },
+  { table: "HSP_BKT_INV_NUM", fkCol: "HSP_ACCOUNT_ID", key: "bucket_invoice_numbers" },
+  { table: "HSP_BKT_NAA_HX_HTR", fkCol: "HSP_ACCOUNT_ID", key: "bucket_naa_history" },
+  { table: "HSP_BKT_NAA_TX_TYP", fkCol: "HSP_ACCOUNT_ID", key: "bucket_naa_tx_types" },
 ];
 
 const acctChildren: ChildSpec[] = [
@@ -840,6 +884,12 @@ function projectMessages(patId: unknown): EpicRow[] {
     if (tableExists("MYC_MESG_QUESR_ANS")) {
       msg.questionnaire_answers = children("MYC_MESG_QUESR_ANS", "MESSAGE_ID", msg.MESSAGE_ID);
     }
+    if (tableExists("MYC_MESG_CNCL_RSN")) {
+      msg.cancel_reasons = children("MYC_MESG_CNCL_RSN", "MESSAGE_ID", msg.MESSAGE_ID);
+    }
+    if (tableExists("MYC_MESG_ORD_ITEMS")) {
+      msg.order_items = children("MYC_MESG_ORD_ITEMS", "MESSAGE_ID", msg.MESSAGE_ID);
+    }
     // If no plain text but RTF exists, extract text from RTF
     const hasPlainText = (msg.text as EpicRow[]).some(t => t.MSG_TXT);
     if (!hasPlainText && Array.isArray(msg.rtf_text) && msg.rtf_text.length > 0) {
@@ -894,6 +944,9 @@ function projectDocuments(patId: unknown): EpicRow[] {
     if (tableExists("DOCS_RCVD_ALGS")) d.received_allergies = children("DOCS_RCVD_ALGS", "DOCUMENT_ID", did);
     if (tableExists("DOCS_RCVD_ASMT")) d.received_assessments = children("DOCS_RCVD_ASMT", "DOCUMENT_ID", did);
     if (tableExists("DOCS_RCVD_PROC")) d.received_procedures = children("DOCS_RCVD_PROC", "DOCUMENT_ID", did);
+    if (tableExists("DOCS_RCVD_ALG_REAC")) d.received_allergy_reactions = children("DOCS_RCVD_ALG_REAC", "DOCUMENT_ID", did);
+    if (tableExists("DOCS_RCVD_ALGS_CMT")) d.received_allergy_comments = children("DOCS_RCVD_ALGS_CMT", "DOCUMENT_ID", did);
+    if (tableExists("DOC_LINKED_PAT_CSNS")) d.linked_patient_csns = children("DOC_LINKED_PAT_CSNS", "DOCUMENT_ID", did);
   }
   return docs;
 }
@@ -908,6 +961,11 @@ function projectEpisodes(patId: unknown): EpicRow[] {
     const ep = mergeQuery("EPISODE", `b."EPISODE_ID" = ?`, [e.EPISODE_ID])[0] ?? e;
     if (tableExists("CAREPLAN_INFO")) ep.care_plans = children("CAREPLAN_INFO", "PAT_ENC_CSN_ID", ep.EPISODE_ID);
     if (tableExists("CAREPLAN_ENROLLMENT_INFO")) ep.enrollments = children("CAREPLAN_ENROLLMENT_INFO", "CAREPLAN_ID", ep.EPISODE_ID);
+    if (tableExists("ALL_EPISODE_CSN_LINKS")) ep.csn_links = children("ALL_EPISODE_CSN_LINKS", "EPISODE_ID", ep.EPISODE_ID);
+    if (tableExists("EPISODE_ALL")) ep.episode_all = children("EPISODE_ALL", "EPISODE_ID", ep.EPISODE_ID);
+    if (tableExists("PEF_NTFY_INSTR")) ep.notify_instructions = children("PEF_NTFY_INSTR", "EPISODE_ID", ep.EPISODE_ID);
+    if (tableExists("RECURRING_BILLING_INFO")) ep.recurring_billing = children("RECURRING_BILLING_INFO", "EPISODE_ID", ep.EPISODE_ID);
+    if (tableExists("V_EHI_HSB_LINKED_PATS")) ep.linked_patients = children("V_EHI_HSB_LINKED_PATS", "EPISODE_ID", ep.EPISODE_ID);
     return ep;
   });
 }
@@ -935,7 +993,11 @@ const doc: EpicRow = {
   problems: projectProblems(patId),
   medications: projectMedications(patId),
   immunizations: projectImmunizations(patId),
-  coverage: mergeQuery("COVERAGE", `b."SUBSCR_OR_SELF_MEM_PAT_ID" = ?`, [patId]),
+  coverage: (() => {
+    const cvgs = mergeQuery("COVERAGE", `b."SUBSCR_OR_SELF_MEM_PAT_ID" = ?`, [patId]);
+    for (const cvg of cvgs) attachChildren(cvg, cvg.COVERAGE_ID, coverageChildren);
+    return cvgs;
+  })(),
   referrals: projectReferrals(patId),
   social_history: q(`SELECT * FROM SOCIAL_HX WHERE PAT_ENC_CSN_ID IN (SELECT PAT_ENC_CSN_ID FROM PAT_ENC WHERE PAT_ID = ?)`, [patId]),
   surgical_history: q(`SELECT * FROM SURGICAL_HX WHERE PAT_ENC_CSN_ID IN (SELECT PAT_ENC_CSN_ID FROM PAT_ENC WHERE PAT_ID = ?)`, [patId]).map((row: EpicRow) => {
@@ -969,6 +1031,30 @@ const doc: EpicRow = {
   relationships: tableExists("PAT_RELATIONSHIPS") ? children("PAT_RELATIONSHIPS", "PAT_ID", patId) : [],
   goals: tableExists("PATIENT_GOALS") ? children("PATIENT_GOALS", "PAT_ID", patId) : [],
   patient_documents: tableExists("PATIENT_DOCS") ? children("PATIENT_DOCS", "PAT_ID", patId) : [],
+  // Patient-level children (Batch 1)
+  relationship_list: tableExists("PAT_RELATIONSHIP_LIST") ? children("PAT_RELATIONSHIP_LIST", "PAT_ID", patId) : [],
+  additional_addresses: tableExists("PAT_ADDL_ADDR_INFO") ? children("PAT_ADDL_ADDR_INFO", "PAT_ID", patId) : [],
+  medication_history: tableExists("PAT_MEDS_HX") ? children("PAT_MEDS_HX", "PAT_ID", patId) : [],
+  account_coverage: tableExists("PAT_ACCT_CVG") ? children("PAT_ACCT_CVG", "PAT_ID", patId) : [],
+  primary_location: tableExists("PAT_PRIM_LOC") ? children("PAT_PRIM_LOC", "PAT_ID", patId) : [],
+  other_communications: tableExists("OTHER_COMMUNCTN") ? children("OTHER_COMMUNCTN", "PAT_ID", patId) : [],
+  questionnaire_answers: tableExists("QUESR_LST_ANS_INFO") ? children("QUESR_LST_ANS_INFO", "PAT_ID", patId) : [],
+  questionnaire_temp_answers: tableExists("QUESR_TEMP_ANSWERS") ? children("QUESR_TEMP_ANSWERS", "PAT_ID", patId) : [],
+  mychart_patient: tableExists("MYC_PATIENT") ? children("MYC_PATIENT", "PAT_ID", patId) : [],
+  problem_list_reviewed: tableExists("PROB_LIST_REVIEWED") ? children("PROB_LIST_REVIEWED", "PAT_ID", patId) : [],
+  patient_goals_info: tableExists("PT_GOALS_INFO") ? children("PT_GOALS_INFO", "PAT_ID", patId) : [],
+  external_data_last_done: tableExists("EXT_DATA_LAST_DONE") ? children("EXT_DATA_LAST_DONE", "PAT_ID", patId) : [],
+  anticoag_self_regulating: tableExists("ANTICOAG_SELF_REGULATING") ? children("ANTICOAG_SELF_REGULATING", "PAT_ID", patId) : [],
+  claims_derive_pat_flags: tableExists("CLAIMS_DERIVE_PAT_FLAGS") ? children("CLAIMS_DERIVE_PAT_FLAGS", "PAT_ID", patId) : [],
+  community_resource_reviewed: tableExists("COMMUNITY_RESRC_REVIEWED") ? children("COMMUNITY_RESRC_REVIEWED", "PAT_ID", patId) : [],
+  hm_enc_date: tableExists("HM_ENC_DATE") ? children("HM_ENC_DATE", "PAT_ID", patId) : [],
+  immunization_last_review: tableExists("IMMNZTN_LAST_REVIEW") ? children("IMMNZTN_LAST_REVIEW", "PAT_ID", patId) : [],
+  lines_drains_list: tableExists("LINES_DRAINS_LIST") ? children("LINES_DRAINS_LIST", "PAT_ID", patId) : [],
+  meds_review_last_list: tableExists("MEDS_REV_LAST_LIST") ? children("MEDS_REV_LAST_LIST", "PAT_ID", patId) : [],
+  coverage_file_order: tableExists("PAT_CVG_FILE_ORDER") ? children("PAT_CVG_FILE_ORDER", "PAT_ID", patId) : [],
+  residence_code: tableExists("PAT_RES_CODE") ? children("PAT_RES_CODE", "PAT_ID", patId) : [],
+  teeth_reviewed: tableExists("TEETH_REVIEWED") ? children("TEETH_REVIEWED", "PAT_ID", patId) : [],
+  claim_filter_static: tableExists("V_EHI_CLM_FILTER_STATIC") ? children("V_EHI_CLM_FILTER_STATIC", "PAT_ID", patId) : [],
   encounters: encounterCSNs.map(projectEncounter),
   billing: projectBilling(patId),
   messages: projectMessages(patId),
@@ -991,7 +1077,7 @@ for (const t of allTables) {
 // Actually count what we used by tracking
 const specTables = new Set<string>();
 for (const specs of [encounterChildren, orderChildren, noteChildren, txChildren,
-  referralChildren, problemChildren, allergyChildren, medChildren, immuneChildren,
+  referralChildren, problemChildren, allergyChildren, coverageChildren, medChildren, immuneChildren,
   remitChildren, harChildren, acctChildren, claimChildren]) {
   for (const s of specs) specTables.add(s.table);
 }
@@ -1008,6 +1094,17 @@ for (const t of ['PATIENT', 'PAT_ENC', 'ORDER_PROC', 'ORDER_MED', 'HNO_INFO',
   'MYC_CONVO_USERS', 'MYC_CONVO_ENCS', 'MYC_CONVO_AUDIENCE',
   'IB_MESSAGE_THREAD', 'IP_FLOWSHEET_ROWS', 'IP_FLWSHT_MEAS',
   'DOCS_RCVD_ALGS_CMT',
+  // Batch 1: Patient-level tables
+  'PAT_RELATIONSHIP_LIST', 'PAT_ADDL_ADDR_INFO', 'PAT_MEDS_HX', 'PAT_ACCT_CVG',
+  'PAT_PRIM_LOC', 'OTHER_COMMUNCTN', 'QUESR_LST_ANS_INFO', 'QUESR_TEMP_ANSWERS',
+  'MYC_PATIENT', 'PROB_LIST_REVIEWED', 'PT_GOALS_INFO', 'EXT_DATA_LAST_DONE',
+  'ANTICOAG_SELF_REGULATING', 'CLAIMS_DERIVE_PAT_FLAGS', 'COMMUNITY_RESRC_REVIEWED',
+  'HM_ENC_DATE', 'IMMNZTN_LAST_REVIEW', 'LINES_DRAINS_LIST', 'MEDS_REV_LAST_LIST',
+  'PAT_CVG_FILE_ORDER', 'PAT_RES_CODE', 'TEETH_REVIEWED', 'V_EHI_CLM_FILTER_STATIC',
+  // Batch 1: Message children
+  'MYC_MESG_CNCL_RSN', 'MYC_MESG_ORD_ITEMS',
+  // Batch 1: Episode children
+  'ALL_EPISODE_CSN_LINKS', 'EPISODE_ALL', 'PEF_NTFY_INSTR', 'RECURRING_BILLING_INFO', 'V_EHI_HSB_LINKED_PATS',
 ]) specTables.add(t);
 // Add split tables
 for (const [, info] of Object.entries(splitConfig as Record<string, {members: Array<{table: string}>}>)) {
@@ -1015,7 +1112,22 @@ for (const [, info] of Object.entries(splitConfig as Record<string, {members: Ar
 }
 // Add lookups
 for (const t of ['CLARITY_EDG', 'CLARITY_SER', 'CLARITY_DEP', 'CLARITY_EAP',
-  'CLARITY_EMP', 'CLARITY_LOC']) specTables.add(t);
+  'CLARITY_EMP', 'CLARITY_LOC',
+  // Batch 3 lookup tables
+  'CLARITY_COMPONENT', 'CLARITY_HM_TOPIC', 'CLARITY_IMMUNZATN',
+  'CLARITY_RMC', 'CLARITY_MOD', 'CLARITY_SA', 'CLARITY_LLB',
+  'CLARITY_NRG', 'CLARITY_MEDICATION',
+  'CLARITY_EEP', 'CLARITY_EPM', 'CLARITY_EPP', 'CLARITY_FSC',
+  'CLARITY_LOT', 'CLARITY_PRC',
+]) specTables.add(t);
+// PAT_RELATIONSHIP detail tables (children of PAT_RELATIONSHIP_LIST, keyed on PAT_RELATIONSHIP_ID + LINE)
+// These will be wired as sub-children once PAT_RELATIONSHIP_LIST is attached.
+// PAT_REL_ADDR is the exception: keyed on PAT_ID + GROUP_LINE + VALUE_LINE
+for (const t of [
+  'PAT_REL_PHONE_NUM', 'PAT_RELATIONSHIP_ADDR', 'PAT_REL_CONTEXT',
+  'PAT_REL_EMAIL_ADDR', 'PAT_REL_LANGUAGES', 'PAT_REL_ADDR',
+  'PAT_REL_SPEC_NEEDS', 'PAT_RELATIONSHIP_LIST_HX',
+]) specTables.add(t);
 
 const existingSpecTables = [...specTables].filter(t => allTables.includes(t));
 console.log(`Tables referenced: ${existingSpecTables.length} / ${allTables.length} (${Math.round(100*existingSpecTables.length/allTables.length)}%)`);
