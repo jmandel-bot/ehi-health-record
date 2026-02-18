@@ -190,8 +190,20 @@ export interface VisitNote {
   _epic: EpicRaw;
 }
 
+/**
+ * Known EHI limitation: Epic's EHI export includes flowsheet metadata
+ * (who recorded, when, which template row) via IP_FLWSHT_MEAS, but does
+ * NOT include the actual measurement values — there is no MEAS_VALUE column
+ * in the export. Vital signs (BP, Pulse, Weight, SpO2, etc.) are recorded
+ * but their numeric/text values are absent from the export.
+ *
+ * As a result, vitalSigns[] will always have value: '' for every entry.
+ * The metadata (name, timestamp, recorder) is still useful for provenance.
+ * See TODO.md Phase 0.4.
+ */
 export interface VitalSign {
   name: string;
+  /** Always '' — MEAS_VALUE is not included in Epic EHI exports */
   value: string;
   unit: string | null;
   takenAt: ISODateTime;
@@ -371,6 +383,21 @@ function str(v: unknown): string | null { return (v == null || v === '') ? null 
 function num(v: unknown): number | null { const n = Number(v); return (v == null || v === '' || isNaN(n)) ? null : n; }
 function sid(v: unknown): Id { return String(v ?? ''); }
 
+/**
+ * Extract flat scalar fields from an Epic object for the `_epic` escape hatch.
+ *
+ * **Design choice**: Arrays and nested objects are intentionally stripped.
+ * The `_epic` record is meant to be a flat key→scalar snapshot of the original
+ * Epic row (strings, numbers, booleans) — useful for debugging, display, and
+ * ad-hoc access to unmapped columns without duplicating the full object graph.
+ *
+ * Nested children (e.g., order.results, encounter.diagnoses) are already
+ * accessible as typed arrays on the parent entity; including them in `_epic`
+ * would double memory usage and create confusing circular-ish structures.
+ *
+ * If you need the full raw object with children, access the source
+ * PatientRecord directly rather than going through `_epic`.
+ */
 function epic(obj: any): EpicRaw {
   const raw: EpicRaw = {};
   for (const [k, v] of Object.entries(obj)) {
@@ -379,7 +406,8 @@ function epic(obj: any): EpicRaw {
   return raw;
 }
 
-type R = any; // PatientRecord
+import { PatientRecord } from './PatientRecord';
+type R = PatientRecord;
 
 export function projectHealthRecord(r: R): HealthRecord {
   return {
@@ -402,7 +430,7 @@ export function projectHealthRecord(r: R): HealthRecord {
 }
 
 function projectDemographics(r: R): Demographics {
-  const p = r.patient;
+  const p = r.patient as Record<string, any>;  // raw Epic bag — untyped columns
   return {
     name: p.PAT_NAME?.replace(',', ', ') ?? '',
     firstName: p.PAT_FIRST_NAME ?? '', lastName: p.PAT_LAST_NAME ?? '',
@@ -503,9 +531,13 @@ function projectVisit(v: any, r: R): Visit {
         _epic: epic(n),
       }))
       .filter((n: VisitNote) => n.text.trim().length > 0), // drop empty notes
-    vitalSigns: (v.flowsheets ?? []).map((f: any): VitalSign => ({
-      name: f.FLO_MEAS_NAME ?? 'Unknown', value: String(f.MEAS_VALUE ?? ''),
-      unit: str(f.UNITS), takenAt: toISODateTime(f.RECORDED_TIME),
+    // EHI limitation: flowsheet measurements have metadata but NO actual values.
+    // MEAS_VALUE is not exported by Epic. We wire the metadata for provenance.
+    vitalSigns: (v.flowsheet_measurements ?? []).map((f: any): VitalSign => ({
+      name: f.FLT_ID_DISPLAY_NAME ?? 'Unknown',
+      value: '', // MEAS_VALUE absent from EHI export — see VitalSign interface
+      unit: null, // no UNITS column in export
+      takenAt: toISODateTime(f.RECORDED_TIME),
       _epic: epic(f),
     })),
     _epic: epic(v),
@@ -551,7 +583,7 @@ function projectAllLabResults(r: R): LabResult[] {
         seen.add(key);
         results.push({
           orderId: sid(o.ORDER_PROC_ID),
-          orderName: o.description ?? o.DESCRIPTION ?? 'Unknown',
+          orderName: o.description ?? 'Unknown',
           visitId: sid(v.PAT_ENC_CSN_ID), visitDate: toISODate(v.contactDate),
           ...projectResult(res),
         });
@@ -619,7 +651,8 @@ function projectSurgicalHistory(r: R): SurgicalHistoryEntry[] {
   const latestCSN = tl.snapshots[0].snapshotCSN;
   const byLine = new Map<number, any>();
   for (const s of tl.snapshots) {
-    if (s.snapshotCSN === latestCSN) byLine.set(s.data.LINE, s.data);
+    const d = s.data as Record<string, any>; // raw Epic bag
+    if (s.snapshotCSN === latestCSN) byLine.set(d.LINE, d);
   }
   return [...byLine.values()].map((p: any): SurgicalHistoryEntry => ({
     procedure: p._proc_name ?? p.PROC_NAME ?? p.COMMENTS ?? `Procedure #${p.PROC_ID}`,
@@ -638,7 +671,7 @@ function projectFamilyHistory(r: R): FamilyMember[] {
     const latestCSN = tl.snapshots[0].snapshotCSN;
     for (const s of tl.snapshots) {
       if (s.snapshotCSN !== latestCSN) continue;
-      const d = s.data;
+      const d = s.data as Record<string, any>; // raw Epic bag
       const rel = d.FAM_STAT_REL_C_NAME ?? 'Unknown';
       if (!memberMap.has(rel)) {
         memberMap.set(rel, {
@@ -650,7 +683,7 @@ function projectFamilyHistory(r: R): FamilyMember[] {
   }
 
   // Conditions from FAMILY_HX (latest snapshot: medical conditions per member)
-  const fhRaw: any[] = r._raw?.family_hx ?? [];
+  const fhRaw: any[] = (r._raw?.family_hx as any[]) ?? [];
   if (fhRaw.length > 0) {
     const byCSN = new Map<string, any[]>();
     for (const f of fhRaw) {
@@ -683,7 +716,7 @@ function projectMessage(m: any): Message {
     date: toISODateTime(m.CREATED_TIME ?? m.CONTACT_DATE),
     from: str(m.FROM_USER_ID_NAME),
     to: str(m.TO_USER_ID_NAME),
-    subject: str(m.SUBJECT), body: str(m.MESSAGE_TEXT),
+    subject: str(m.SUBJECT), body: m.plainText || null,
     status: str(m.MSG_STATUS_C_NAME),
     threadId: str(m.THREAD_ID),
     _epic: epic(m),
@@ -695,7 +728,8 @@ function projectBilling(r: R): BillingSummary {
   const charges: Charge[] = [];
   const payments: Payment[] = [];
 
-  for (const tx of txs) {
+  for (const _tx of txs) {
+    const tx = _tx as any; // BillingTransaction uses Object.assign — raw columns exist at runtime
     const t = str(tx.TX_TYPE_C_NAME) ?? str(tx.txType);
     if (t === 'Charge') {
       charges.push({
@@ -732,7 +766,7 @@ function projectBilling(r: R): BillingSummary {
   }));
 
   const accounts: BillingAccount[] = [
-    ...(r.billing?.accounts ?? []).map((a: any): BillingAccount => ({
+    ...(r.billing?.guarantorAccounts ?? []).map((a: any): BillingAccount => ({
       id: sid(a.ACCOUNT_ID), type: 'Professional',
       name: str(a.ACCOUNT_NAME), accountClass: str(a.ACCT_FIN_CLASS_C_NAME),
       billingStatus: str(a.ACCT_BILLING_STATUS_C_NAME),
