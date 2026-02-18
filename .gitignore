@@ -15,6 +15,9 @@ coverage_report.json
 # Custom data directory (when using your own EHI export)
 data/custom/
 
+# Generated prompts (regenerate with: bun run build_atom_prompt.ts)
+prompts/atom_*.md
+
 # Legacy symlinks (replaced by data/ submodule + setup script)
 tsv
 schemas
