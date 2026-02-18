@@ -549,14 +549,14 @@ function projectDemographics(r: R): Demographics {
     dateOfBirth: toISODate(p.BIRTH_DATE), sex: str(p.SEX_C_NAME),
     race: Array.isArray(p.race) ? p.race.map((row: any) => row.PATIENT_RACE_C_NAME).filter(Boolean) : [],
     ethnicity: str(p.ETHNIC_GROUP_C_NAME),
-    language: str(p.LANGUAGE_C_NAME), maritalStatus: str(p.MARITAL_STATUS_C_NAME),
+    language: str(p.LANGUAGE_C_NAME), maritalStatus: null, // MARITAL_STATUS_C_NAME not in EHI export
     address: (p.CITY || p.STATE_C_NAME || p.ZIP) ? {
-      street: str(p.ADD_LINE_1), city: str(p.CITY),
+      street: null, city: str(p.CITY), // ADD_LINE_1 not in EHI export
       state: str(p.STATE_C_NAME), zip: str(p.ZIP), country: str(p.COUNTRY_C_NAME),
     } : null,
     phone: str(p.HOME_PHONE), email: str(p.EMAIL_ADDRESS),
     mrn: String(p.PAT_MRN_ID ?? ''),
-    primaryCareProvider: str(p.CUR_PCP_PROV_ID_NAME),
+    primaryCareProvider: str(p._pcp_name), // resolved from CUR_PCP_PROV_ID via CLARITY_SER lookup
     genderIdentity: str(p.GENDER_IDENTITY_C_NAME),
     sexAssignedAtBirth: str(p.SEX_ASGN_AT_BIRTH_C_NAME),
     preferredName: str(p.PREFERRED_NAME),
@@ -591,8 +591,8 @@ function projectAllergy(a: any): Allergy {
   return {
     id: sid(a.ALLERGY_ID),
     allergen: a.allergenName ?? a.ALLERGEN_ID_ALLERGEN_NAME ?? 'Unknown',
-    type: str(a.ALLERGY_TYPE_C_NAME),
-    reactions: (a.reactions ?? []).map((r: any) => r.REACTION_NAME ?? r.REACTION_C_NAME ?? 'Unknown'),
+    type: null, // ALLERGY_TYPE_C_NAME not in EHI export
+    reactions: (a.reactions ?? []).map((r: any) => r.REACTION_C_NAME ?? 'Unknown'),
     severity: str(a.SEVERITY_C_NAME ?? a.ALLERGY_SEVERITY_C_NAME),
     status: str(a.ALRGY_STATUS_C_NAME),
     dateNoted: toISODate(a.DATE_NOTED),
@@ -621,7 +621,7 @@ function projectMedication(m: any): Medication {
     genericName: str(m.DESCRIPTION),
     dose, route: str(m.MED_ROUTE_C_NAME),
     frequency: str(m.HV_DISCR_FREQ_ID_FREQ_NAME),
-    sig: str(m.SIG),
+    sig: null, // SIG not a column on ORDER_MED; sig text is in ORDER_MED_SIG child table
     startDate: toISODate(m.START_DATE), endDate: toISODate(m.END_DATE),
     status: str(m.ORDER_STATUS_C_NAME),
     prescriber: str(m.ORD_CREATR_USER_ID_NAME),
@@ -638,7 +638,7 @@ function projectImmunization(i: any): Immunization {
     date: toISODate(i.IMMUNE_DATE),
     site: str(i.SITE_C_NAME), route: str(i.ROUTE_C_NAME),
     dose: str(i.DOSE), lotNumber: str(i.LOT_NUM),
-    manufacturer: str(i.MANUFACTURER_C_NAME),
+    manufacturer: str(i.MFG_C_NAME),
     administeredBy: str(i.ENTRY_USER_ID_NAME),
     status: str(i.IMMNZTN_STATUS_C_NAME),
     _epic: epic(i),
@@ -664,7 +664,7 @@ function projectVisit(v: any, r: R): Visit {
       .map((n: any): VisitNote => ({
         id: sid(n.NOTE_ID),
         type: str(n.IP_NOTE_TYPE_C_NAME),
-        author: str(n.AUTHOR_NAME ?? n.ENTRY_USER_ID_NAME),
+        author: str(n.AUTHOR_USER_ID_NAME ?? n.CURRENT_AUTHOR_ID_NAME ?? n.ENTRY_USER_ID_NAME),
         date: toISODateTime(n.ENTRY_INSTANT_DTTM),
         text: Array.isArray(n.text) ? n.text.map((t: any) => t.NOTE_TEXT ?? '').join('') : '',
         _epic: epic(n),
@@ -698,7 +698,7 @@ function projectOrder(o: any, r: R): VisitOrder {
 
 function projectResult(res: any): OrderResult {
   return {
-    component: res.componentName ?? res.COMPONENT_ID_COMPONENT_NAME ?? 'Unknown',
+    component: res.componentName ?? res.COMPONENT_ID_NAME ?? 'Unknown',
     value: String(res.ORD_VALUE ?? res.value ?? ''),
     unit: str(res.REFERENCE_UNIT),
     referenceRange: (res.REFERENCE_LOW != null && res.REFERENCE_HIGH != null)
@@ -757,8 +757,8 @@ function projectOneSocialHistory(d: any): SocialHistory {
   return {
     tobacco: {
       status: str(d.TOBACCO_USER_C_NAME),
-      packsPerDay: num(d.SMOKING_PACKS_PER_DAY),
-      quitDate: toISODate(d.SMOKING_QUIT_DATE),
+      packsPerDay: null, // SMOKING_PACKS_PER_DAY not in EHI export
+      quitDate: null, // SMOKING_QUIT_DATE not in EHI export
     },
     alcohol: {
       status: str(d.ALCOHOL_USE_C_NAME),
@@ -856,7 +856,7 @@ function projectMessage(m: any): Message {
     from: str(m.FROM_USER_ID_NAME),
     to: str(m.TO_USER_ID_NAME),
     subject: str(m.SUBJECT), body: m.plainText || null,
-    status: str(m.MSG_STATUS_C_NAME),
+    status: str(m.RECORD_STATUS_C_NAME),
     threadId: str(m.THREAD_ID),
     _epic: epic(m),
   };
@@ -931,7 +931,7 @@ function projectBilling(r: R): BillingSummary {
         id: sid(tx.TX_ID), date: toISODate(tx.SERVICE_DATE ?? tx.serviceDate),
         service: str(tx.PROC_NAME ?? tx.PROC_ID),
         amount: num(tx.AMOUNT ?? tx.amount),
-        provider: str(tx.SERV_PROVIDER_ID_NAME),
+        provider: null, // SERV_PROVIDER_ID has no _NAME join in EHI export
         visitId: str(tx.VISIT_NUMBER),
         diagnosisCodes: (tx.chargeDiagnoses ?? []).map((d: any) => String(d.DX_ID ?? '')),
         _epic: epic(tx),
@@ -940,20 +940,20 @@ function projectBilling(r: R): BillingSummary {
       payments.push({
         id: sid(tx.TX_ID), date: toISODate(tx.POST_DATE ?? tx.postDate),
         amount: num(tx.AMOUNT ?? tx.amount), method: t,
-        payer: str(tx.PAYOR_ID_NAME),
-        relatedChargeId: str(tx.MATCH_CHARGE_TX_ID),
+        payer: null, // PAYOR_ID has no _NAME join in EHI export
+        relatedChargeId: null, // MATCH_CHARGE_TX_ID not in ARPB_TRANSACTIONS
         _epic: epic(tx),
       });
     }
   }
 
   const claims = (r.billing?.claims ?? []).map((c: any): Claim => ({
-    id: sid(c.RECORD_ID ?? c.CLAIM_ID ?? c.CLM_VALUES_ID),
-    submitDate: toISODate(c.CREATE_DT ?? c.SUBMIT_DATE),
+    id: sid(c.RECORD_ID ?? c.CLAIM_ID),
+    submitDate: toISODate(c.CREATE_DT),
     status: str(c.CLAIM_STATUS_C_NAME ?? c.CLM_CVG_SEQ_CD),
-    totalCharged: num(c.TTL_CHG_AMT ?? c.TOTAL_CHARGES),
-    totalPaid: num(c.CLM_CVG_AMT_PAID ?? c.TOTAL_PAID),
-    payer: str(c.CLM_CVG_PYR_NAM ?? c.PAYOR_ID_NAME),
+    totalCharged: num(c.TTL_CHG_AMT),
+    totalPaid: num(c.CLM_CVG_AMT_PAID),
+    payer: str(c.CLM_CVG_PYR_NAM),
     provider: str(c.REND_PROV_NAM_LAST ? 
       [c.REND_PROV_NAM_LAST, c.REND_PROV_NAM_FIRST].filter(Boolean).join(', ') : null),
     invoiceNumber: str(c.INV_NUM),
@@ -964,18 +964,18 @@ function projectBilling(r: R): BillingSummary {
     ...(r.billing?.guarantorAccounts ?? []).map((a: any): BillingAccount => ({
       id: sid(a.ACCOUNT_ID), type: 'Professional',
       name: str(a.ACCOUNT_NAME), accountClass: str(a.ACCT_FIN_CLASS_C_NAME),
-      billingStatus: str(a.ACCT_BILLING_STATUS_C_NAME),
-      totalCharges: num(a.TOTAL_CHARGES), totalPayments: num(a.TOTAL_PAYMENTS),
-      balance: num(a.BALANCE), _epic: epic(a),
+      billingStatus: str(a.BILLING_STATUS_C_NAME),
+      totalCharges: null, totalPayments: null, // ACCOUNT table has no charge/payment totals in EHI export
+      balance: num(a.TOTAL_BALANCE), _epic: epic(a),
     })),
     ...(r.billing?.hospitalAccounts ?? []).map((h: any): BillingAccount => ({
       id: sid(h.HSP_ACCOUNT_ID), type: 'Hospital',
       name: str(h.HSP_ACCOUNT_NAME),
       accountClass: str(h.ACCT_CLASS_HA_C_NAME),
       billingStatus: str(h.ACCT_BILLSTS_HA_C_NAME),
-      totalCharges: num(h.TOT_CHARGES ?? h.TTL_CHG_AMT),
-      totalPayments: num(h.TOT_PAYMENTS),
-      balance: num(h.ACCT_BALANCE),
+      totalCharges: num(h.TOT_CHGS),
+      totalPayments: null, // HSP_ACCOUNT has no payment total column in EHI export
+      balance: null, // HSP_ACCOUNT has no balance column in EHI export
       _epic: epic(h),
     })),
   ];

@@ -205,7 +205,7 @@ export class OrderResult {
     this.componentName = raw.COMPONENT_ID_NAME as string;
     this.value = raw.ORD_VALUE as string;
     this.referenceUnit = raw.REFERENCE_UNIT as string;
-    this.referenceRange = raw.REFERENCE_RANGE as string;
+    this.referenceRange = raw.REF_NORMAL_VALS as string;
     this.resultStatus = raw.RESULT_STATUS_C_NAME as string;
     this.resultFlag = raw.RESULT_FLAG_C_NAME as string;
     this.resultDate = raw.RESULT_DATE as string;
@@ -344,7 +344,7 @@ export class Encounter {
     this.PAT_ENC_CSN_ID = raw.PAT_ENC_CSN_ID as CSN;
     this.PAT_ID = raw.PAT_ID as string;
     this.contactDate = raw.CONTACT_DATE as string;
-    this.encounterType = raw.ENC_TYPE_C_NAME as string;
+    this.encounterType = null as unknown as string; // ENC_TYPE_C_NAME not in EHI export
     this.visitProviderName = raw._visit_provider as string;
     this.diagnoses = (raw.diagnoses as EpicDiagnosisRow[]) ?? [];
     this.reasonsForVisit = (raw.reasons_for_visit as EpicRow[]) ?? [];
@@ -443,8 +443,8 @@ export class BillingVisit {
     this.PRIM_ENC_CSN_ID = raw.PRIM_ENC_CSN_ID as CSN;
     this.totalCharges = raw.PB_TOTAL_CHARGES as number;
     this.totalPayments = raw.PB_TOTAL_PAYMENTS as number;
-    this.totalAdjustments = raw.PB_TOTAL_ADJUSTMENTS as number;
-    this.balance = raw.PB_BALANCE as number;
+    this.totalAdjustments = raw.PB_TOTAL_ADJ as number;
+    this.balance = raw.PB_TOTAL_BALANCE as number;
   }
 
   encounter(record: PatientRecordRef): Encounter | undefined {
@@ -504,7 +504,7 @@ export class Message {
   constructor(raw: EpicRow) {
     Object.assign(this, raw);
     this.MESSAGE_ID = raw.MESSAGE_ID as EpicID;
-    this.messageType = raw.MSG_TYPE_C_NAME as string;
+    this.messageType = null as unknown as string; // MSG_TYPE_C_NAME not in EHI export
     this.text = (raw.text as EpicRow[]) ?? [];
     this.rtf_text = (raw.rtf_text as EpicRow[]) ?? [];
     if (typeof raw.extracted_text === 'string') this.extracted_text = raw.extracted_text;

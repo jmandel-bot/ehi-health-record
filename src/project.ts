@@ -252,7 +252,7 @@ const encounterChildren: ChildSpec[] = [
 const orderChildren: ChildSpec[] = [
   { table: "ORDER_RESULTS", fkCol: "ORDER_PROC_ID", key: "results" },
   { table: "ORDER_DX_PROC", fkCol: "ORDER_PROC_ID", key: "diagnoses" },
-  { table: "ORDER_COMMENT", fkCol: "ORDER_PROC_ID", key: "comments" },
+  { table: "ORDER_COMMENT", fkCol: "ORDER_ID", key: "comments" },
   { table: "ORDER_NARRATIVE", fkCol: "ORDER_PROC_ID", key: "narrative" },
   { table: "ORDER_IMPRESSION", fkCol: "ORDER_PROC_ID", key: "impression" },
   { table: "ORDER_SIGNED_PROC", fkCol: "ORDER_PROC_ID", key: "signed_info" },
@@ -505,6 +505,9 @@ function projectPatient(): EpicRow {
     const myc = qOne(`SELECT * FROM PATIENT_MYC WHERE PAT_ID = ?`, [patId]);
     if (myc) Object.assign(pat, myc);
   }
+
+  // Resolve PCP provider name
+  pat._pcp_name = lookupName("CLARITY_SER", "PROV_ID", "PROV_NAME", pat.CUR_PCP_PROV_ID);
 
   return pat;
 }
