@@ -392,6 +392,7 @@ const medChildren: ChildSpec[] = [
   { table: "PRESC_ID", fkCol: "ORDER_ID", key: "prescription_ids" },
   { table: "ORDER_RXVER_NOADSN", fkCol: "ORDER_MED_ID", key: "rx_verification" },
   { table: "ORD_MED_ADMININSTR", fkCol: "ORDER_MED_ID", key: "admin_instructions" },
+  { table: "ORDER_DISP_INFO", fkCol: "ORDER_MED_ID", key: "dispense_info" },
 ];
 
 const immuneChildren: ChildSpec[] = [
@@ -474,6 +475,9 @@ const claimChildren: ChildSpec[] = [
   { table: "CLM_VALUE_RECORD", fkCol: "RECORD_ID", key: "value_records" },
   { table: "OCC_CD", fkCol: "RECORD_ID", key: "occurrence_codes" },
   { table: "REL_CAUSE_CD", fkCol: "RECORD_ID", key: "related_causes" },
+  // Additional claim children (FK: RECORD_ID = CLM_VALUES.RECORD_ID)
+  { table: "EXT_CAUSE_INJ_DX", fkCol: "RECORD_ID", key: "external_cause_injury_dx" },
+  { table: "PAT_RSN_VISIT_DX", fkCol: "RECORD_ID", key: "patient_reason_visit_dx" },
 ];
 
 // ─── Attach children to a parent row ───────────────────────────────────────
@@ -1127,6 +1131,89 @@ for (const t of [
   'PAT_REL_PHONE_NUM', 'PAT_RELATIONSHIP_ADDR', 'PAT_REL_CONTEXT',
   'PAT_REL_EMAIL_ADDR', 'PAT_REL_LANGUAGES', 'PAT_REL_ADDR',
   'PAT_REL_SPEC_NEEDS', 'PAT_RELATIONSHIP_LIST_HX',
+]) specTables.add(t);
+
+// Batch 4: Remaining uncovered tables — organized by domain
+for (const t of [
+  // Claims/billing children (CLAIM_ID → CLAIM_INFO, or RECORD_ID → CLM_VALUES)
+  'CLM_ALL', 'CLM_INJURY_DESC', 'CLM_OTHER_DXS',
+  'RECONCILE_CLM_OT', 'RECONCILE_CLAIM_STATUS',
+  // Benefits cluster (RECORD_ID → BENEFITS)
+  'BENEFITS', 'SERVICE_BENEFITS', 'COVERAGE_BENEFITS', 'BENEFIT_SVC_TYPE',
+  // HSP claim print children (CLAIM_PRINT_ID → HSP_CLAIM_PRINT)
+  'CLP_VALUE_DATA', 'CLP_NY_MEDICAID_INFO',
+  // Billing denial (BDC) cluster
+  'BDC_INFO', 'BDC_ASSOC_REMARK_CODES', 'HSP_BDC_DENIAL_DATA', 'HSP_BDC_PAYOR', 'HSP_BDC_RECV_TX',
+  // Flowsheet children (FSD_ID → IP_FLWSHT_MEAS, INPATIENT_DATA_ID → IP_DATA_STORE)
+  'IP_FLO_GP_DATA', 'IP_FLOW_DATERNG', 'IP_FLWSHT_EDITED', 'IP_FLT_DATA',
+  'IP_ORDER_REC', 'IP_ORD_UNACK_PLAC', 'IP_FREQUENCY', 'IP_LDA_INPS_USED',
+  'IP_LDA_NOADDSINGLE', 'FLWSHT_SINGL_COL',
+  // Communication preferences cluster (PREFERENCES_ID)
+  'COMMUNICATION_PREFERENCES', 'COMM_PREFERENCES_APRV', 'COMM_PREF_ADDL_ITEMS',
+  // Medication coverage cluster (MED_ESTIMATE_ID)
+  'MED_CVG_INFO', 'MED_CVG_DETAILS', 'MED_CVG_ESTIMATE_VALS', 'MED_CVG_RESPONSE_RSLT',
+  'MED_CVG_RESP_RSLT_DETAIL', 'MED_CVG_STATUS_DETAILS', 'MED_CVG_ALTERNATIVES',
+  'MED_CVG_DX_VALUE', 'MED_CVG_USERACTION',
+  // Care plan / goals / episodes
+  'CAREPLAN_PT_TASK_INFO', 'CAREPLAN_CNCT_INFO', 'CARE_INTEGRATOR', 'CARE_PATH',
+  'GOAL', 'GOAL_CONTACT', 'GOAL_TEMPLATES', 'PT_GOALS_UPDATES',
+  'EPISODE_DEF', 'EPISODE_OT', 'RAD_THERAPY_EPISODE_INFO',
+  'CATARACT_PLANNING_GOALS', 'CATARACT_PLANNING_INFO', 'OCCURRENCE_CODES',
+  // Timeout / screening
+  'TIMEOUT', 'TIMEOUT_ANSWERS', 'FRM_STATUS',
+  // MDL (medication decision list)
+  'MDL_HISTORY', 'MDL_MD_PRBLM_LIST',
+  // SDD (SDOH data)
+  'SDD_ENTRIES', 'SDOH_DOM_CONFIG_INFO',
+  // Universal charge line children (UCL_ID)
+  'UNIV_CHG_LN_MSG_HX', 'UNIV_CHG_LN_DX', 'UNIV_CHG_LN_MOD', 'UCL_NDC_CODES',
+  // Miscellaneous patient/encounter-related
+  'ALLERGY_FLAG', 'APPT_REQUEST', 'ED_IEV_EVENT_INFO', 'HM_PLAN_INFO',
+  'IDENTITY_ID_TYPE', 'MEDICAL_COND_INFO', 'NOTES_TRANS_AUTH',
+  'PERSON_PREFERENCES', 'REPORT_SETTINGS',
+  // Invoice children
+  'INV_CLM_ICN', 'INV_NDC_INFO',
+  // Lookup / reference tables
+  'CLARITY_LWS', 'CL_COL_AGNCY', 'CL_ELG', 'CL_LQH', 'CL_OTL',
+  'CL_QANSWER', 'CL_QANSWER_OVTM', 'CL_QFORM1', 'CL_QQUEST_OVTM',
+  'CL_RSN_FOR_VISIT', 'CL_UB_REV_CODE',
+  'REFERRAL_SOURCE', 'RX_PHR', 'RX_MED_TWO', 'RX_NDC',
+  'LNC_DB_MAIN', 'GEO_REGION', 'ORG_DETAILS', 'MEDICATION_LOT',
+  'SMARTTEXT', 'TASK_INFO', 'NAMES', 'V_BIL_ALL',
+  // Remaining small/config tables
+  'ALT_BPA_ACT_TASK',
+  // Batch 5: Tables queried directly or used in joins but not yet in specTables
+  // Account/guarantor
+  'ACCT_GUAR_PAT_INFO',
+  // Care plan enrollment
+  'CAREPLAN_ENROLLMENT_INFO', 'CAREPLAN_INFO',
+  // Claim print children (CLP/HSP_CLP)
+  'CLP_NON_GRP_TX_IDS', 'CLP_OCCUR_DATA',
+  'HSP_CLAIM_DETAIL1', 'HSP_CLAIM_DETAIL2',
+  'HSP_CLP_CMS_LINE', 'HSP_CLP_CMS_TX_PIECES', 'HSP_CLP_DIAGNOSIS',
+  'HSP_CLP_REV_CODE', 'HSP_CLP_UB_TX_PIECES',
+  // Documents received/linked
+  'DOCS_RCVD_ALGS', 'DOCS_RCVD_ALG_REAC', 'DOCS_RCVD_ASMT', 'DOCS_RCVD_PROC',
+  'DOC_CSN_REFS', 'DOC_INFO_DICOM', 'DOC_LINKED_PATS', 'DOC_LINKED_PAT_CSNS',
+  // Health maintenance
+  'HM_FORECAST_INFO', 'HM_HISTORICAL_STATUS', 'HM_HISTORY',
+  // Identity
+  'IDENTITY_ID',
+  // Invoice children
+  'INV_BASIC_INFO', 'INV_CLM_LN_ADDL', 'INV_DX_INFO',
+  'INV_NUM_TX_PIECES', 'INV_PMT_RECOUP', 'INV_TX_PIECES',
+  // Medication review
+  'MEDS_REV_HX',
+  // MyChart conversation about
+  'MYC_CONVO_ABT_CUST_SVC', 'MYC_CONVO_ABT_MED_ADVICE',
+  // Patient-level detail tables
+  'PATIENT_ALG_UPD_HX', 'PATIENT_ALIAS', 'PATIENT_DOCS', 'PATIENT_GOALS',
+  'PATIENT_HMT_STATUS', 'PATIENT_RACE',
+  'PAT_ADDRESS', 'PAT_ADDR_CHNG_HX', 'PAT_ALLERGIES', 'PAT_EMAILADDRESS',
+  'PAT_HM_CUR_GUIDE', 'PAT_IMMUNIZATIONS', 'PAT_PCP', 'PAT_PREF_PHARMACY',
+  'PAT_PROBLEM_LIST', 'PAT_RCNT_USD_PHRMS', 'PAT_RELATIONSHIPS',
+  // Problem list review
+  'PROB_LIST_REV_HX',
 ]) specTables.add(t);
 
 const existingSpecTables = [...specTables].filter(t => allTables.includes(t));
