@@ -1,0 +1,53 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f8f9fa; --card: #fff; --border: #dee2e6; --accent: #0d6efd;
+  --text: #212529; --muted: #6c757d; --hover: #e9ecef;
+  --danger: #dc3545; --warning: #ffc107; --success: #198754;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+#app { display: grid; grid-template-columns: 240px 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
+header { grid-column: 1 / -1; background: linear-gradient(135deg, #1a365d, #2563eb); color: white; padding: 16px 24px; display: flex; align-items: center; gap: 20px; }
+header h1 { font-size: 1.3rem; white-space: nowrap; }
+#patient-banner { font-size: 0.9rem; opacity: 0.9; display: flex; gap: 16px; flex-wrap: wrap; }
+#patient-banner span { background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 12px; }
+nav { background: var(--card); border-right: 1px solid var(--border); padding: 12px 0; overflow-y: auto; }
+nav button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 16px; border: none; background: none; cursor: pointer; font-size: 0.88rem; color: var(--text); text-align: left; transition: background 0.15s; }
+nav button:hover { background: var(--hover); }
+nav button.active { background: #dbeafe; color: var(--accent); font-weight: 600; border-right: 3px solid var(--accent); }
+nav .badge { margin-left: auto; background: var(--border); color: var(--muted); font-size: 0.75rem; padding: 1px 7px; border-radius: 10px; }
+main { padding: 24px; overflow-y: auto; }
+.section-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; transition: box-shadow 0.15s; }
+.card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.card-header { font-weight: 600; font-size: 1rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.card-body { font-size: 0.9rem; line-height: 1.6; }
+.field { display: grid; grid-template-columns: 160px 1fr; gap: 4px 12px; margin-bottom: 4px; }
+.field-label { color: var(--muted); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.field-value { word-break: break-word; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin: 2px; }
+.tag-blue { background: #dbeafe; color: #1e40af; }
+.tag-green { background: #d1fae5; color: #065f46; }
+.tag-yellow { background: #fef3c7; color: #92400e; }
+.tag-red { background: #fee2e2; color: #991b1b; }
+.tag-gray { background: #f3f4f6; color: #4b5563; }
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.timeline .card { position: relative; }
+.timeline .card::before { content: ''; position: absolute; left: -20px; top: 20px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--card); }
+.epic-raw { margin-top: 12px; }
+.epic-toggle { background: none; border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-size: 0.78rem; color: var(--muted); cursor: pointer; }
+.epic-toggle:hover { background: var(--hover); }
+.epic-detail { display: none; margin-top: 8px; background: #f8f9fa; border-radius: 4px; padding: 12px; font-size: 0.8rem; max-height: 300px; overflow: auto; }
+.epic-detail.open { display: block; }
+pre.json { white-space: pre-wrap; word-break: break-word; font-family: 'SF Mono', Monaco, monospace; font-size: 0.78rem; }
+table.data-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+table.data-table th { text-align: left; padding: 8px 12px; background: var(--hover); border-bottom: 2px solid var(--border); font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
+table.data-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+table.data-table tr:hover { background: #f0f7ff; }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+@media (max-width: 768px) {
+  #app { grid-template-columns: 1fr; }
+  nav { display: flex; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 0; }
+  nav button { white-space: nowrap; padding: 8px 12px; }
+}

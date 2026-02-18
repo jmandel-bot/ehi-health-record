@@ -23,3 +23,4 @@ tsv
 schemas
 
 # reports/ is tracked — it's the audit trail of review/apply cycles
+app/data.json
