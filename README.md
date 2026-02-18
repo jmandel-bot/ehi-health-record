@@ -91,7 +91,7 @@ and the subagent review system.
 
 ## Coverage
 
-- **402/550** tables covered (73%)
+- **550/550** tables covered (100%)
 - **241** test assertions passing
 - **63/63** messages with body text (including RTF extraction)
 - Multi-patient safe (all queries filter by PAT_ID)
