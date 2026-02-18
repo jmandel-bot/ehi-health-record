@@ -1,0 +1,385 @@
+{
+  "ACCOUNT": {
+    "base_pk": "ACCOUNT_ID",
+    "members": [
+      {
+        "table": "ACCOUNT_2",
+        "join_col": "ACCT_ID"
+      },
+      {
+        "table": "ACCOUNT_3",
+        "join_col": "ACCOUNT_ID"
+      }
+    ]
+  },
+  "ACCOUNT_CONTACT": {
+    "base_pk": "ACCOUNT_ID",
+    "members": [
+      {
+        "table": "ACCOUNT_CONTACT_2",
+        "join_col": "ACCT_ID"
+      }
+    ]
+  },
+  "ARPB_TRANSACTIONS": {
+    "base_pk": "TX_ID",
+    "members": [
+      {
+        "table": "ARPB_TRANSACTIONS2",
+        "join_col": "TX_ID"
+      },
+      {
+        "table": "ARPB_TRANSACTIONS3",
+        "join_col": "TX_ID"
+      }
+    ]
+  },
+  "CLAIM_INFO": {
+    "base_pk": "CLAIM_ID",
+    "members": [
+      {
+        "table": "CLAIM_INFO2",
+        "join_col": "CLAIM_ID"
+      },
+      {
+        "table": "CLAIM_INFO3",
+        "join_col": "CLAIM_ID"
+      },
+      {
+        "table": "CLAIM_INFO_3",
+        "join_col": "CLAIM_ID"
+      }
+    ]
+  },
+  "CLARITY_DEP": {
+    "base_pk": "DEPARTMENT_ID",
+    "members": [
+      {
+        "table": "CLARITY_DEP_4",
+        "join_col": "DEPARTMENT_ID"
+      }
+    ]
+  },
+  "CLARITY_EAP": {
+    "base_pk": "PROC_ID",
+    "members": [
+      {
+        "table": "CLARITY_EAP_3",
+        "join_col": "PROC_ID"
+      },
+      {
+        "table": "CLARITY_EAP_5",
+        "join_col": "PROC_ID"
+      }
+    ]
+  },
+  "CLARITY_LOC": {
+    "base_pk": "LOC_ID",
+    "members": [
+      {
+        "table": "CLARITY_LOC_2",
+        "join_col": "LOC_ID"
+      }
+    ]
+  },
+  "CLARITY_LWS": {
+    "base_pk": "WORKSTATION_ID",
+    "members": [
+      {
+        "table": "CLARITY_LWS_3",
+        "join_col": "WORK_STATION_2_ID"
+      }
+    ]
+  },
+  "CLM_VALUES": {
+    "base_pk": "RECORD_ID",
+    "members": [
+      {
+        "table": "CLM_VALUES_2",
+        "join_col": "RECORD_ID"
+      },
+      {
+        "table": "CLM_VALUES_3",
+        "join_col": "RECORD_ID"
+      },
+      {
+        "table": "CLM_VALUES_4",
+        "join_col": "RECORD_ID"
+      },
+      {
+        "table": "CLM_VALUES_5",
+        "join_col": "RECORD_ID"
+      }
+    ]
+  },
+  "COVERAGE": {
+    "base_pk": "COVERAGE_ID",
+    "members": [
+      {
+        "table": "COVERAGE_2",
+        "join_col": "CVG_ID"
+      },
+      {
+        "table": "COVERAGE_3",
+        "join_col": "CVG_ID"
+      }
+    ]
+  },
+  "DOC_INFORMATION": {
+    "base_pk": "DOC_INFO_ID",
+    "members": [
+      {
+        "table": "DOC_INFORMATION_2",
+        "join_col": "DOCUMENT_ID"
+      }
+    ]
+  },
+  "EPA_INFO": {
+    "base_pk": "REFERRAL_ID",
+    "members": [
+      {
+        "table": "EPA_INFO_2",
+        "join_col": "REFERRAL_ID"
+      }
+    ]
+  },
+  "EPISODE": {
+    "base_pk": "EPISODE_ID",
+    "members": [
+      {
+        "table": "EPISODE_2",
+        "join_col": "EPISODE_ID"
+      }
+    ]
+  },
+  "HNO_INFO": {
+    "base_pk": "NOTE_ID",
+    "members": [
+      {
+        "table": "HNO_INFO_2",
+        "join_col": "NOTE_ID"
+      }
+    ]
+  },
+  "HSP_ACCOUNT": {
+    "base_pk": "HSP_ACCOUNT_ID",
+    "members": [
+      {
+        "table": "HSP_ACCOUNT_2",
+        "join_col": "HSP_ACCOUNT_ID"
+      },
+      {
+        "table": "HSP_ACCOUNT_3",
+        "join_col": "HSP_ACCOUNT_ID"
+      },
+      {
+        "table": "HSP_ACCOUNT_4",
+        "join_col": "HSP_ACCOUNT_ID"
+      }
+    ]
+  },
+  "HSP_TRANSACTIONS": {
+    "base_pk": "TX_ID",
+    "members": [
+      {
+        "table": "HSP_TRANSACTIONS_2",
+        "join_col": "TX_ID"
+      },
+      {
+        "table": "HSP_TRANSACTIONS_3",
+        "join_col": "TX_ID"
+      }
+    ]
+  },
+  "NOTE_ENC_INFO": {
+    "base_pk": "NOTE_ID",
+    "members": [
+      {
+        "table": "NOTE_ENC_INFO_2",
+        "join_col": "NOTE_ID"
+      }
+    ]
+  },
+  "ORDER_DISP_INFO": {
+    "base_pk": "ORDER_MED_ID",
+    "members": [
+      {
+        "table": "ORDER_DISP_INFO_2",
+        "join_col": "ORDER_ID"
+      },
+      {
+        "table": "ORDER_DISP_INFO_3",
+        "join_col": "ORDER_MED_ID"
+      }
+    ]
+  },
+  "ORDER_MED": {
+    "base_pk": "ORDER_MED_ID",
+    "members": [
+      {
+        "table": "ORDER_MED_2",
+        "join_col": "ORDER_ID"
+      },
+      {
+        "table": "ORDER_MED_3",
+        "join_col": "ORDER_ID"
+      },
+      {
+        "table": "ORDER_MED_4",
+        "join_col": "ORDER_ID"
+      },
+      {
+        "table": "ORDER_MED_5",
+        "join_col": "ORDER_ID"
+      },
+      {
+        "table": "ORDER_MED_6",
+        "join_col": "ORDER_MED_ID"
+      },
+      {
+        "table": "ORDER_MED_7",
+        "join_col": "ORDER_ID"
+      }
+    ]
+  },
+  "ORDER_PROC": {
+    "base_pk": "ORDER_PROC_ID",
+    "members": [
+      {
+        "table": "ORDER_PROC_2",
+        "join_col": "ORDER_PROC_ID"
+      },
+      {
+        "table": "ORDER_PROC_3",
+        "join_col": "ORDER_ID"
+      },
+      {
+        "table": "ORDER_PROC_4",
+        "join_col": "ORDER_ID"
+      },
+      {
+        "table": "ORDER_PROC_5",
+        "join_col": "ORDER_ID"
+      },
+      {
+        "table": "ORDER_PROC_6",
+        "join_col": "ORDER_ID"
+      }
+    ]
+  },
+  "ORD_DOSING_PARAMS": {
+    "base_pk": "ORDER_ID",
+    "members": [
+      {
+        "table": "ORD_DOSING_PARAMS_2",
+        "join_col": "ORDER_ID"
+      }
+    ]
+  },
+  "PATIENT": {
+    "base_pk": "PAT_ID",
+    "members": [
+      {
+        "table": "PATIENT_2",
+        "join_col": "PAT_ID"
+      },
+      {
+        "table": "PATIENT_3",
+        "join_col": "PAT_ID"
+      },
+      {
+        "table": "PATIENT_4",
+        "join_col": "PAT_ID"
+      },
+      {
+        "table": "PATIENT_5",
+        "join_col": "PAT_ID"
+      },
+      {
+        "table": "PATIENT_6",
+        "join_col": "PAT_ID"
+      }
+    ]
+  },
+  "PAT_ENC": {
+    "base_pk": "PAT_ID",
+    "members": [
+      {
+        "table": "PAT_ENC_2",
+        "join_col": "PAT_ENC_CSN_ID"
+      },
+      {
+        "table": "PAT_ENC_3",
+        "join_col": "PAT_ENC_CSN"
+      },
+      {
+        "table": "PAT_ENC_4",
+        "join_col": "PAT_ENC_CSN_ID"
+      },
+      {
+        "table": "PAT_ENC_5",
+        "join_col": "PAT_ENC_CSN_ID"
+      },
+      {
+        "table": "PAT_ENC_6",
+        "join_col": "PAT_ENC_CSN_ID"
+      },
+      {
+        "table": "PAT_ENC_7",
+        "join_col": "PAT_ENC_CSN_ID"
+      }
+    ]
+  },
+  "PAT_ENC_HSP": {
+    "base_pk": "PAT_ENC_CSN_ID",
+    "members": [
+      {
+        "table": "PAT_ENC_HSP_2",
+        "join_col": "PAT_ENC_CSN_ID"
+      }
+    ]
+  },
+  "REFERRAL": {
+    "base_pk": "REFERRAL_ID",
+    "members": [
+      {
+        "table": "REFERRAL_2",
+        "join_col": "REFERRAL_ID"
+      },
+      {
+        "table": "REFERRAL_3",
+        "join_col": "REFERRAL_ID"
+      },
+      {
+        "table": "REFERRAL_4",
+        "join_col": "REFERRAL_ID"
+      },
+      {
+        "table": "REFERRAL_5",
+        "join_col": "REFERRAL_ID"
+      }
+    ]
+  },
+  "SVC_LN_INFO": {
+    "base_pk": "RECORD_ID",
+    "members": [
+      {
+        "table": "SVC_LN_INFO_2",
+        "join_col": "RECORD_ID"
+      },
+      {
+        "table": "SVC_LN_INFO_3",
+        "join_col": "RECORD_ID"
+      }
+    ]
+  },
+  "TIMEOUT_ANSWERS": {
+    "base_pk": "RECORD_ID",
+    "members": [
+      {
+        "table": "TIMEOUT_ANSWERS_2",
+        "join_col": "RECORD_ID"
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+*.db
+*.db-wal
+*.db-shm
+tsv/
+schemas/
+patient_record.json
+health_record_compact.json
+health_record_full.json
+patient_document.json
+coverage_report.json
+health_record.json
