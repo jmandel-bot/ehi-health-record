@@ -546,6 +546,8 @@ export class PatientRecord {
   immunizations: EpicRow[];
   coverage: EpicRow[];
   referrals: EpicRow[];
+  documents: EpicRow[];
+  episodes: EpicRow[];
   socialHistory: HistoryTimeline<EpicRow>;
   surgicalHistory: HistoryTimeline<EpicRow>;
   familyHistory: HistoryTimeline<EpicRow>;
@@ -567,7 +569,8 @@ export class PatientRecord {
     // Patient demographics: everything that isn't a known collection key
     const collectionKeys = new Set([
       'allergies', 'problems', 'medications', 'immunizations', 'coverage',
-      'referrals', 'social_history', 'surgical_history', 'family_history',
+      'referrals', 'documents', 'episodes',
+      'social_history', 'surgical_history', 'family_history',
       'encounters', 'billing', 'messages',
     ]);
     this.patient = {};
@@ -582,6 +585,8 @@ export class PatientRecord {
     this.immunizations = (json.immunizations as EpicRow[]) ?? [];
     this.coverage = (json.coverage as EpicRow[]) ?? [];
     this.referrals = (json.referrals as EpicRow[]) ?? [];
+    this.documents = (json.documents as EpicRow[]) ?? [];
+    this.episodes = (json.episodes as EpicRow[]) ?? [];
 
     // History timelines
     this.socialHistory = buildTimeline((json.social_history as EpicRow[]) ?? []);

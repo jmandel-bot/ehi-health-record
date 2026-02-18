@@ -52,6 +52,12 @@ export interface HealthRecord {
   familyHistory: FamilyMember[];
   messages: Message[];
   billing: BillingSummary;
+  coverage: InsuranceCoverage[];
+  referrals: Referral[];
+  documents: ClinicalDocument[];
+  episodes: Episode[];
+  goals: PatientGoal[];
+  questionnaireResponses: QuestionnaireResponse[];
 }
 
 // ─── Demographics ──────────────────────────────────────────────────────────
@@ -77,6 +83,12 @@ export interface Demographics {
   email: string | null;
   mrn: string;
   primaryCareProvider: string | null;
+  genderIdentity: string | null;
+  sexAssignedAtBirth: string | null;
+  preferredName: string | null;
+  employer: string | null;
+  contactMethods: ContactMethod[];
+  emergencyContacts: EmergencyContact[];
   _epic: EpicRaw;
 }
 
@@ -342,6 +354,100 @@ export interface BillingAccount {
   _epic: EpicRaw;
 }
 
+// ─── Coverage (Insurance) ──────────────────────────────────────────────────
+
+export interface InsuranceCoverage {
+  id: Id;
+  type: string | null;        // COVERAGE_TYPE_C_NAME (e.g. "Indemnity")
+  payorName: string | null;    // PAYOR_NAME
+  planName: string | null;     // FREE_TXT_PLAN_NAME (often null in EHI)
+  groupName: string | null;    // GROUP_NAME
+  groupNumber: string | null;  // GROUP_NUM
+  subscriberId: string | null; // MEM_NUMBER from member_list (SUBSCR_NUM absent in EHI)
+  effectiveDate: ISODate;      // MEM_EFF_FROM_DATE from member_list, or CVG_EFF_DT
+  terminationDate: ISODate;    // MEM_EFF_TO_DATE from member_list, or CVG_TERM_DT
+  _epic: EpicRaw;
+}
+
+// ─── Referrals ─────────────────────────────────────────────────────────────
+
+export interface Referral {
+  id: Id;
+  status: string | null;             // RFL_STATUS_C_NAME
+  type: string | null;               // RFL_TYPE_C_NAME
+  specialty: string | null;          // PROV_SPEC_C_NAME
+  referringProvider: string | null;  // REFERRING_PROV_ID_REFERRING_PROV_NAM
+  referredToProvider: string | null; // REFERRAL_PROV_ID (often null)
+  entryDate: ISODate;                // ENTRY_DATE
+  expirationDate: ISODate;           // EXP_DATE
+  reason: string | null;             // first reason from reasons children, or RSN_FOR_RFL_C_NAME
+  _epic: EpicRaw;
+}
+
+// ─── Documents ─────────────────────────────────────────────────────────────
+
+export interface ClinicalDocument {
+  id: Id;
+  type: string | null;          // DOC_INFO_TYPE_C_NAME
+  description: string | null;   // DOC_DESCR
+  status: string | null;        // DOC_STAT_C_NAME
+  receivedDate: ISODateTime;    // SCAN_INST_DTTM or SCAN_TIME
+  receivedBy: string | null;    // RECV_BY_USER_ID_NAME
+  _epic: EpicRaw;
+}
+
+// ─── Episodes of Care ──────────────────────────────────────────────────────
+
+export interface Episode {
+  id: Id;
+  name: string | null;          // NAME
+  status: string | null;        // STATUS_C_NAME
+  startDate: ISODate;           // START_DATE
+  endDate: ISODate;             // END_DATE
+  _epic: EpicRaw;
+}
+
+// ─── Emergency Contacts ────────────────────────────────────────────────────
+
+export interface EmergencyContact {
+  name: string;
+  relationship: string | null;
+  phone: string | null;
+  address: string | null;
+  isEmergencyContact: boolean;
+  _epic: EpicRaw;
+}
+
+// ─── Patient Goals ─────────────────────────────────────────────────────────
+
+export interface PatientGoal {
+  id: Id;
+  name: string | null;
+  status: string | null;
+  type: string | null;
+  createdDate: ISODateTime;
+  createdBy: string | null;
+  _epic: EpicRaw;
+}
+
+// ─── Contact Methods ───────────────────────────────────────────────────────
+
+export interface ContactMethod {
+  type: string;
+  value: string;
+  _epic: EpicRaw;
+}
+
+// ─── Questionnaire Responses ───────────────────────────────────────────────
+
+export interface QuestionnaireResponse {
+  formId: Id;
+  formName: string | null;
+  encounterId: Id | null;
+  completedDate: ISODateTime;
+  _epic: EpicRaw;
+}
+
 
 /**
  * Serialize a HealthRecord to clean JSON, stripping noise.
@@ -426,6 +532,12 @@ export function projectHealthRecord(r: R): HealthRecord {
     familyHistory: projectFamilyHistory(r),
     messages: r.messages.map(projectMessage),
     billing: projectBilling(r),
+    coverage: r.coverage.map(projectCoverage),
+    referrals: r.referrals.map(projectReferral),
+    documents: r.documents.map(projectDocument),
+    episodes: r.episodes.map(projectEpisode),
+    goals: projectGoals(r),
+    questionnaireResponses: projectQuestionnaires(r),
   };
 }
 
@@ -435,7 +547,8 @@ function projectDemographics(r: R): Demographics {
     name: p.PAT_NAME?.replace(',', ', ') ?? '',
     firstName: p.PAT_FIRST_NAME ?? '', lastName: p.PAT_LAST_NAME ?? '',
     dateOfBirth: toISODate(p.BIRTH_DATE), sex: str(p.SEX_C_NAME),
-    race: [], ethnicity: str(p.ETHNIC_GROUP_C_NAME),
+    race: Array.isArray(p.race) ? p.race.map((row: any) => row.PATIENT_RACE_C_NAME).filter(Boolean) : [],
+    ethnicity: str(p.ETHNIC_GROUP_C_NAME),
     language: str(p.LANGUAGE_C_NAME), maritalStatus: str(p.MARITAL_STATUS_C_NAME),
     address: (p.CITY || p.STATE_C_NAME || p.ZIP) ? {
       street: str(p.ADD_LINE_1), city: str(p.CITY),
@@ -444,6 +557,32 @@ function projectDemographics(r: R): Demographics {
     phone: str(p.HOME_PHONE), email: str(p.EMAIL_ADDRESS),
     mrn: String(p.PAT_MRN_ID ?? ''),
     primaryCareProvider: str(p.CUR_PCP_PROV_ID_NAME),
+    genderIdentity: str(p.GENDER_IDENTITY_C_NAME),
+    sexAssignedAtBirth: str(p.SEX_ASGN_AT_BIRTH_C_NAME),
+    preferredName: str(p.PREFERRED_NAME),
+    employer: str(p.EMPR_ID_CMT) ?? str(p.EMPLOYER_ID_EMPLOYER_NAME),
+    contactMethods: Array.isArray(p.other_communications)
+      ? p.other_communications
+          .filter((c: any) => c.OTHER_COMMUNIC_NUM)
+          .map((c: any): ContactMethod => ({
+            type: c.OTHER_COMMUNIC_C_NAME ?? 'Unknown',
+            value: c.OTHER_COMMUNIC_NUM,
+            _epic: epic(c),
+          }))
+      : [],
+    emergencyContacts: Array.isArray(p.relationship_list)
+      ? p.relationship_list.map((row: any): EmergencyContact => {
+          const parts = [row.CITY, row.STATE_C_NAME, row.ZIP_CODE].filter(Boolean);
+          return {
+            name: row.NAME ?? 'Unknown',
+            relationship: str(row.LEGAL_RELATION_C_NAME) ?? str(row.SOCIAL_CLOSENESS_C_NAME),
+            phone: str(row.PRIMARY_OR_FIRST_PHONE),
+            address: parts.length > 0 ? parts.join(', ') : null,
+            isEmergencyContact: row.EMERG_CONTACT_YN === 'Y',
+            _epic: epic(row),
+          };
+        })
+      : [],
     _epic: epic(p),
   };
 }
@@ -723,6 +862,62 @@ function projectMessage(m: any): Message {
   };
 }
 
+function projectCoverage(c: any): InsuranceCoverage {
+  // Subscriber info is in member_list children; use first self-member
+  const selfMember = (c.member_list ?? []).find((m: any) => m.MEM_REL_TO_SUB_C_NAME === 'Self') ?? (c.member_list ?? [])[0];
+  return {
+    id: sid(c.COVERAGE_ID),
+    type: str(c.COVERAGE_TYPE_C_NAME),
+    payorName: str(c.PAYOR_NAME),
+    planName: str(c.FREE_TXT_PLAN_NAME),
+    groupName: str(c.GROUP_NAME),
+    groupNumber: str(c.GROUP_NUM),
+    subscriberId: str(selfMember?.MEM_NUMBER),
+    effectiveDate: toISODate(selfMember?.MEM_EFF_FROM_DATE ?? c.CVG_EFF_DT),
+    terminationDate: toISODate(selfMember?.MEM_EFF_TO_DATE ?? c.CVG_TERM_DT),
+    _epic: epic(c),
+  };
+}
+
+function projectReferral(ref: any): Referral {
+  const firstReason = (ref.reasons ?? [])[0];
+  return {
+    id: sid(ref.REFERRAL_ID),
+    status: str(ref.RFL_STATUS_C_NAME),
+    type: str(ref.RFL_TYPE_C_NAME),
+    specialty: str(ref.PROV_SPEC_C_NAME),
+    referringProvider: str(ref.REFERRING_PROV_ID_REFERRING_PROV_NAM),
+    referredToProvider: str(ref.REFERRAL_PROV_ID),
+    entryDate: toISODate(ref.ENTRY_DATE),
+    expirationDate: toISODate(ref.EXP_DATE),
+    reason: str(firstReason?.REFERRAL_REASON_C_NAME ?? ref.RSN_FOR_RFL_C_NAME),
+    _epic: epic(ref),
+  };
+}
+
+function projectDocument(d: any): ClinicalDocument {
+  return {
+    id: sid(d.DOC_INFO_ID),
+    type: str(d.DOC_INFO_TYPE_C_NAME),
+    description: str(d.DOC_DESCR),
+    status: str(d.DOC_STAT_C_NAME),
+    receivedDate: toISODateTime(d.SCAN_INST_DTTM ?? d.SCAN_TIME),
+    receivedBy: str(d.RECV_BY_USER_ID_NAME),
+    _epic: epic(d),
+  };
+}
+
+function projectEpisode(e: any): Episode {
+  return {
+    id: sid(e.EPISODE_ID),
+    name: str(e.NAME),
+    status: str(e.STATUS_C_NAME),
+    startDate: toISODate(e.START_DATE),
+    endDate: toISODate(e.END_DATE),
+    _epic: epic(e),
+  };
+}
+
 function projectBilling(r: R): BillingSummary {
   const txs = r.billing?.transactions ?? [];
   const charges: Charge[] = [];
@@ -786,4 +981,34 @@ function projectBilling(r: R): BillingSummary {
   ];
 
   return { charges, payments, claims, accounts };
+}
+
+// ─── Goals ─────────────────────────────────────────────────────────────────
+
+function projectGoals(r: R): PatientGoal[] {
+  const goals = (r.patient as any).patient_goals_info;
+  if (!Array.isArray(goals)) return [];
+  return goals.map((g: any): PatientGoal => ({
+    id: sid(g.GOAL_ID),
+    name: str(g.GOAL_TEMPLATE_ID_GOAL_TEMPLATE_NAME),
+    status: str(g.GOAL_STATUS_C_NAME),
+    type: str(g.AMB_GOAL_TYPE_C_NAME),
+    createdDate: toISODateTime(g.CREATE_INST_DTTM),
+    createdBy: str(g.USER_ID_NAME),
+    _epic: epic(g),
+  }));
+}
+
+// ─── Questionnaire Responses ───────────────────────────────────────────────
+
+function projectQuestionnaires(r: R): QuestionnaireResponse[] {
+  const answers = (r.patient as any).questionnaire_answers;
+  if (!Array.isArray(answers)) return [];
+  return answers.map((a: any): QuestionnaireResponse => ({
+    formId: sid(a.QUESR_ANS_FORM_ID),
+    formName: str(a.QUESR_ANS_FORM_ID_FORM_NAME),
+    encounterId: a.QUESR_ANS_CSN_ID ? sid(a.QUESR_ANS_CSN_ID) : null,
+    completedDate: toISODateTime(a.QUESR_ANS_DATETIME),
+    _epic: epic(a),
+  }));
 }
