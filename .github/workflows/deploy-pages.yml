@@ -1,0 +1,80 @@
+name: Deploy Billing Explorer to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Create data symlinks
+        run: |
+          ln -sfn "$(pwd)/data/sample/tsv" tsv
+          ln -sfn "$(pwd)/data/sample/schemas" schemas
+
+      - name: Load TSVs into SQLite
+        run: python3 src/load_sqlite.py
+
+      - name: Project patient record
+        run: bun run src/project.ts --db ehi_clean.db --out patient_record.json
+
+      - name: Run tests
+        run: |
+          bun run test/test_project.ts --db ehi_clean.db
+          bun run test/test_healthrecord.ts
+
+      - name: Generate billing explorer data
+        run: bun run billing-explorer/generate.ts
+
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p _site
+          cp billing-explorer/index.html _site/
+          cp billing-explorer/style.css _site/
+          cp billing-explorer/app.jsx _site/
+          cp billing-explorer/data.json _site/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
