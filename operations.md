@@ -23,7 +23,7 @@ src/                              Core pipeline
   project.ts                        Project SQLite → patient_record.json
   PatientRecord.ts                  Typed domain model over Epic-shaped JSON
   HealthRecord.ts                   Clean projection: Epic terms → human terms
-  load_sqlite.py                    Load TSVs + schemas into SQLite
+  load_sqlite.ts                    Load TSVs + schemas into SQLite
   split_config.json                 Split table join configuration
   strict_row.ts                     Proxy-based column access validation
 
@@ -81,7 +81,7 @@ composed into workflows below.
 
 #### A1. Load TSVs into SQLite
 ```bash
-python3 src/load_sqlite.py
+bun run src/load_sqlite.ts
 ```
 Reads `tsv/*.tsv` and `schemas/*.json`, creates `ehi_clean.db`.
 550 tables, ~11K rows. Takes ~2 seconds.

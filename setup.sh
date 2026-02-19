@@ -63,7 +63,7 @@ bun install
 
 echo ""
 echo "═══ Loading TSVs into SQLite ═══"
-python3 src/load_sqlite.py
+bun run src/load_sqlite.ts
 
 echo ""
 echo "═══ Projecting patient record ═══"

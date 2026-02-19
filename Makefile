@@ -8,7 +8,7 @@ setup:
 	./setup.sh
 
 load:
-	python3 src/load_sqlite.py
+	$(BUN) run src/load_sqlite.ts
 
 project:
 	$(BUN) run src/project.ts --db ehi_clean.db --out patient_record.json

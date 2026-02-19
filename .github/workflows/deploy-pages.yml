@@ -23,11 +23,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -42,7 +37,7 @@ jobs:
           ln -sfn "$(pwd)/data/sample/schemas" schemas
 
       - name: Load TSVs into SQLite
-        run: python3 src/load_sqlite.py
+        run: bun run src/load_sqlite.ts
 
       - name: Project patient record
         run: bun run src/project.ts --db ehi_clean.db --out patient_record.json
