@@ -376,6 +376,7 @@ const coverageChildren: ChildSpec[] = [
   { table: "COVERAGE_SPONSOR", fkCol: "CVG_ID", key: "sponsor" },
   { table: "CVG_AP_CLAIMS", fkCol: "COVERAGE_ID", key: "claims" },
   { table: "CVG_SUBSCR_ADDR", fkCol: "CVG_ID", key: "subscriber_address" },
+  { table: "SERVICE_BENEFITS", fkCol: "CVG_FOR_SVC_TYPE_ID", key: "service_benefits" },
 ];
 
 const medChildren: ChildSpec[] = [
@@ -811,6 +812,33 @@ function projectBilling(patId: unknown): EpicRow {
     if (tableExists("INV_PMT_RECOUP")) inv.payment_recoup = children("INV_PMT_RECOUP", "INVOICE_ID", inv.INVOICE_ID);
   }
 
+  // Claim reconciliation — top-level (most have no HSP_ACCOUNT_ID)
+  // Links to patient via DEPARTMENT_ID/LOC_ID (same billing area) or invoice chain
+  let reconciliations: EpicRow[] = [];
+  if (tableExists("RECONCILE_CLM")) {
+    // Filter: reconciliation claims whose invoice matches our claims or whose dept matches our encounters
+    const allRecon = q(`SELECT * FROM RECONCILE_CLM`);
+    const patInvoices = new Set(claims.map((c: EpicRow) => c.INV_NUM).filter(Boolean));
+    const patDepts = new Set(patCSNs.length > 0
+      ? q(`SELECT DISTINCT DEPARTMENT_ID FROM PAT_ENC WHERE PAT_ID = ?`, [patId]).map(r => r.DEPARTMENT_ID)
+      : []);
+    reconciliations = allRecon.filter((r: EpicRow) => {
+      if (patInvoices.has(r.CLAIM_INVOICE_NUM)) return true;
+      // Also pick up HSP-linked ones already attached to our hospital accounts
+      if (r.HSP_ACCOUNT_ID && hars.some(h => h.HSP_ACCOUNT_ID === r.HSP_ACCOUNT_ID)) return true;
+      return false;
+    });
+    for (const rec of reconciliations) {
+      if (tableExists("RECONCILE_CLAIM_STATUS"))
+        rec.status_timeline = children("RECONCILE_CLAIM_STATUS", "CLAIM_RECON_ID", rec.CLAIM_REC_ID);
+      if (tableExists("RECONCILE_CLM_OT"))
+        rec.status_detail = children("RECONCILE_CLM_OT", "CLAIM_REC_ID", rec.CLAIM_REC_ID);
+    }
+  }
+
+  // Service benefits — attach to coverage via CVG_FOR_SVC_TYPE_ID
+  // (already on coverage objects from the inline block above, but not as children)
+
   return {
     transactions: txRows,
     visits,
@@ -819,6 +847,7 @@ function projectBilling(patId: unknown): EpicRow {
     remittances: remits,
     claims,
     invoices,
+    reconciliations,
   };
 }
 

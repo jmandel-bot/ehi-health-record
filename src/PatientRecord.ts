@@ -469,6 +469,12 @@ export class BillingTransaction {
   actions: EpicRow[] = [];
   chargeDiagnoses: EpicDiagnosisRow[] = [];
   eobInfo: EpicRow[] = [];
+  matchHistory: EpicRow[] = [];
+  chargeRevisionHistory: EpicRow[] = [];
+  statementClaimHistory: EpicRow[] = [];
+  statementDates: EpicRow[] = [];
+  voidInfo: EpicRow[] = [];
+  eobInfoI: EpicRow[] = [];
 
   constructor(raw: EpicRow) {
     Object.assign(this, raw);
@@ -488,6 +494,12 @@ export class BillingTransaction {
         else if (key.includes('eob')) this.eobInfo.push(...arr);
       }
     }
+    this.matchHistory = (raw.match_history as EpicRow[]) ?? [];
+    this.chargeRevisionHistory = (raw.charge_revision_history as EpicRow[]) ?? [];
+    this.statementClaimHistory = (raw.statement_claim_history as EpicRow[]) ?? [];
+    this.statementDates = (raw.statement_dates as EpicRow[]) ?? [];
+    this.voidInfo = (raw.void_info as EpicRow[]) ?? [];
+    this.eobInfoI = (raw.eob_info_i as EpicRow[]) ?? [];
   }
 }
 
@@ -609,6 +621,74 @@ export class GuarantorAccount {
     this.creationInfo = (raw.creation_info as EpicRow[]) ?? [];
     this.addressHistory = (raw.address_history as EpicRow[]) ?? [];
     this.phoneHistory = (raw.phone_history as EpicRow[]) ?? [];
+  }
+}
+
+// ─── Claim Reconciliation (RECONCILE_CLAIM) ───────────────────────────────
+
+export class ClaimReconciliation {
+  CLAIM_REC_ID: EpicID;
+  CLAIM_INVOICE_NUM?: string;
+  CUR_EPIC_STATUS_C_NAME?: string;
+  EPIC_CLM_STS_C_NAME?: string;
+  TOTAL_BILLED?: number;
+  PAYOR_ID?: EpicID;
+  DEPARTMENT_ID?: EpicID;
+  LOC_ID?: EpicID;
+  SERVICE_AREA_ID?: EpicID;
+  RECORD_TYPE_C_NAME?: string;
+  CLAIM_CLOSED_DATE?: string;
+
+  // Child arrays
+  statusTimeline: EpicRow[] = [];
+  statusDetail: EpicRow[] = [];
+
+  constructor(raw: EpicRow) {
+    Object.assign(this, raw);
+    this.CLAIM_REC_ID = raw.CLAIM_REC_ID as EpicID;
+    this.CLAIM_INVOICE_NUM = raw.CLAIM_INVOICE_NUM as string;
+    this.CUR_EPIC_STATUS_C_NAME = raw.CUR_EPIC_STATUS_C_NAME as string;
+    this.EPIC_CLM_STS_C_NAME = raw.EPIC_CLM_STS_C_NAME as string;
+    this.TOTAL_BILLED = raw.TOTAL_BILLED as number;
+    this.PAYOR_ID = raw.PAYOR_ID as EpicID;
+    this.DEPARTMENT_ID = raw.DEPARTMENT_ID as EpicID;
+    this.LOC_ID = raw.LOC_ID as EpicID;
+    this.SERVICE_AREA_ID = raw.SERVICE_AREA_ID as EpicID;
+    this.RECORD_TYPE_C_NAME = raw.RECORD_TYPE_C_NAME as string;
+    this.CLAIM_CLOSED_DATE = raw.CLAIM_CLOSED_DATE as string;
+    this.statusTimeline = (raw.status_timeline as EpicRow[]) ?? [];
+    this.statusDetail = (raw.status_detail as EpicRow[]) ?? [];
+  }
+
+  /** Find the matching BillingClaim by invoice number */
+  matchingClaim(record: PatientRecordRef): BillingClaim | undefined {
+    if (!this.CLAIM_INVOICE_NUM) return undefined;
+    return record.billing.claims.find(c => c.invoiceNumber === this.CLAIM_INVOICE_NUM);
+  }
+}
+
+// ─── Service Benefit (CVG_SVC_BENEFITS) ────────────────────────────────────
+
+export class ServiceBenefit {
+  serviceTypeName?: string;
+  copayAmount?: number;
+  deductibleAmount?: number;
+  deductibleMetAmount?: number;
+  coinsPercent?: number;
+  outOfPocketMax?: number;
+  outOfPocketRemaining?: number;
+  inNetworkYN?: string;
+
+  constructor(raw: EpicRow) {
+    Object.assign(this, raw);
+    this.serviceTypeName = raw.CVG_SVC_TYPE_ID_SERVICE_TYPE_NAME as string;
+    this.copayAmount = raw.COPAY_AMOUNT as number;
+    this.deductibleAmount = raw.DEDUCTIBLE_AMOUNT as number;
+    this.deductibleMetAmount = raw.DEDUCTIBLE_MET_AMT as number;
+    this.coinsPercent = raw.COINS_PERCENT as number;
+    this.outOfPocketMax = raw.OUT_OF_POCKET_MAX as number;
+    this.outOfPocketRemaining = raw.OUT_OF_PCKT_REMAIN as number;
+    this.inNetworkYN = raw.IN_NETWORK_YN as string;
   }
 }
 
@@ -909,6 +989,7 @@ export interface BillingRecord {
   claims: BillingClaim[];
   remittances: Remittance[];
   invoices: Invoice[];
+  reconciliations: ClaimReconciliation[];
 }
 
 // ─── Patient Record ────────────────────────────────────────────────────────
@@ -958,7 +1039,12 @@ export class PatientRecord {
     this.problems = ((json.problems as EpicRow[]) ?? []).map(r => new Problem(r));
     this.medications = (json.medications as EpicMedicationRow[]) ?? [];
     this.immunizations = (json.immunizations as EpicRow[]) ?? [];
-    this.coverage = (json.coverage as EpicRow[]) ?? [];
+    this.coverage = ((json.coverage as EpicRow[]) ?? []).map(c => {
+      if (Array.isArray(c.service_benefits)) {
+        c.service_benefits = (c.service_benefits as EpicRow[]).map(sb => new ServiceBenefit(sb));
+      }
+      return c;
+    });
     this.referrals = (json.referrals as EpicRow[]) ?? [];
     this.documents = (json.documents as EpicRow[]) ?? [];
     this.episodes = (json.episodes as EpicRow[]) ?? [];
@@ -986,6 +1072,7 @@ export class PatientRecord {
       claims: ((billing.claims as EpicRow[]) ?? []).map(c => new BillingClaim(c)),
       remittances: ((billing.remittances as EpicRow[]) ?? []).map(r => new Remittance(r)),
       invoices: ((billing.invoices as EpicRow[]) ?? []).map(i => new Invoice(i)),
+      reconciliations: ((billing.reconciliations as EpicRow[]) ?? []).map(r => new ClaimReconciliation(r)),
     };
 
     // Messages

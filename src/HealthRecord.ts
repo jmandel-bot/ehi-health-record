@@ -373,6 +373,10 @@ export interface BillingSummary {
   transactionActions: TransactionAction[];
   eobLineItems: EOBLineItem[];
   collectionEvents: CollectionEvent[];
+  remittances: RemittanceRecord[];
+  reconciliations: ClaimReconciliationRecord[];
+  invoices: InvoiceRecord[];
+  serviceBenefits: ServiceBenefitRecord[];
 }
 
 export interface Charge {
@@ -417,6 +421,18 @@ export interface Charge {
   adjudicatedCoinsurance: number | null;
   /** Adjudicated self-pay amount from benefits engine */
   adjudicatedSelfPay: number | null;
+  /** Whether this charge has been voided */
+  isVoided: boolean;
+  /** Date the charge was voided */
+  voidDate: ISODate;
+  /** Replacement charge TX_ID (if voided and reposted) */
+  replacementChargeId: Id | null;
+  /** Payment match history — who matched which payment to this charge, when */
+  matchHistory: ChargeMatchHistory[];
+  /** Statement/claim submission history for this charge */
+  claimHistory: ChargeClaimHistory[];
+  /** Dates when statements were sent for this charge */
+  statementDates: ISODate[];
   _epic: EpicRaw;
 }
 
@@ -622,6 +638,152 @@ export interface CollectionEvent {
   nonCollectionReason: string | null;
   /** Free text comment for non-collection */
   nonCollectionComment: string | null;
+  _epic: EpicRaw;
+}
+
+// ─── Remittances ───────────────────────────────────────────────────────────
+
+/** ERA/835 remittance — payer explanation of payment with adjudication and service-level detail */
+export interface RemittanceRecord {
+  id: Id;
+  creationDate: ISODate;
+  paymentAmount: number | null;
+  paymentMethod: string | null;
+  adjudication: RemittanceAdjudication | null;   // from claim_info[0]
+  serviceLines: RemittanceServiceLine[];          // from service_lines
+  adjustments: RemittanceAdjustment[];            // from service_level_adjustments
+  _epic: EpicRaw;
+}
+
+export interface RemittanceAdjudication {
+  invoiceNumber: string | null;
+  claimStatus: string | null;             // "Processed as Primary"
+  chargedAmount: number | null;
+  paidAmount: number | null;
+  patientResponsibility: number | null;
+  claimControlNumber: string | null;      // ICN
+  filingCode: string | null;              // "Preferred provider organization (PPO)"
+}
+
+export interface RemittanceServiceLine {
+  line: number | null;
+  procedureCode: string | null;           // "HC:99213:95"
+  chargedAmount: number | null;
+  paidAmount: number | null;
+  unitsPaid: number | null;
+  revenueCode: string | null;             // NUBC revenue code
+  chargeTransactionId: Id | null;         // SVC_LINE_CHG_PB_ID or HB_ID — links to Charge
+  _epic: EpicRaw;
+}
+
+export interface RemittanceAdjustment {
+  line: number | null;
+  serviceLine: string | null;             // which service line this adjustment applies to
+  adjustmentGroup: string | null;         // "Contractual Obligation", "Patient Responsibility"
+  reasonCode: string | null;              // CARC code e.g. "45"
+  amount: number | null;
+  quantity: number | null;
+  _epic: EpicRaw;
+}
+
+// ─── Claim Reconciliation ──────────────────────────────────────────────────
+
+/** Claim lifecycle tracking — status changes from submission through payment/rejection */
+export interface ClaimReconciliationRecord {
+  id: Id;
+  invoiceNumber: string | null;
+  currentStatus: string | null;           // "Open", "Closed"
+  claimStatus: string | null;             // "Accepted from Run", "Rejected"
+  totalBilled: number | null;
+  closedDate: ISODate;
+  timeline: ClaimStatusEvent[];           // from status_timeline + status_detail
+  _epic: EpicRaw;
+}
+
+export interface ClaimStatusEvent {
+  date: ISODate;
+  statusCode: string | null;              // "Accepted in H.IP – Electronic Claim Sent"
+  action: string | null;                  // "Accept Claim", "No Action"
+  message: string | null;                 // detailed status message
+  payerAmountSubmitted: number | null;
+  payerAmountPaid: number | null;
+  payerCheckDate: ISODate;
+  payerCheckNumber: string | null;
+  fileName: string | null;                // e.g. "/epic/xfer/.../file.02067910.277"
+  errorMessage: string | null;
+  _epic: EpicRaw;
+}
+
+// ─── Invoices ──────────────────────────────────────────────────────────────
+
+/** Invoice — links charges to claims, bridges billing transactions to claim submissions */
+export interface InvoiceRecord {
+  id: Id;
+  invoiceNumber: string | null;
+  status: string | null;                  // "Rejected", "Accepted"
+  type: string | null;                    // "Claim"
+  insuranceAmount: number | null;
+  selfPayAmount: number | null;
+  serviceFromDate: ISODate;
+  serviceToDate: ISODate;
+  payerName: string | null;               // MAILING_NAME
+  coverageId: Id | null;
+  chargeTransactionIds: Id[];             // from tx_pieces — the charges on this invoice
+  _epic: EpicRaw;
+}
+
+// ─── Service Benefits ──────────────────────────────────────────────────────
+
+/** Per-service-type benefit detail from insurance coverage verification */
+export interface ServiceBenefitRecord {
+  coverageId: Id;
+  serviceType: string | null;             // "PSYCH-IP", "Office Visit", "Lab"
+  copayAmount: number | null;
+  deductibleAmount: number | null;
+  deductibleMet: number | null;
+  deductibleRemaining: number | null;
+  coinsurancePercent: number | null;
+  outOfPocketMax: number | null;
+  outOfPocketRemaining: number | null;
+  outOfPocketMet: boolean | null;
+  inNetwork: boolean | null;
+  networkLevel: string | null;            // "N/A", "In Network"
+  familyTier: string | null;              // "Individual", "Family"
+  maxVisits: number | null;
+  remainingVisits: number | null;
+  annualBenefitMax: number | null;
+  annualBenefitRemaining: number | null;
+  lifetimeBenefitMax: number | null;
+  lifetimeBenefitRemaining: number | null;
+  _epic: EpicRaw;
+}
+
+// ─── Charge enrichment sub-types ───────────────────────────────────────────
+
+/** Record of a payment being matched to a charge */
+export interface ChargeMatchHistory {
+  matchDate: ISODate;
+  matchDateTime: ISODateTime;
+  matchedTransactionId: Id | null;        // the payment TX that was matched
+  amount: number | null;
+  insuranceAmount: number | null;
+  patientAmount: number | null;
+  invoiceNumber: string | null;
+  matchedBy: string | null;               // user who performed the match
+  unmatchDate: ISODate;                   // if later unmatched
+  unmatchComment: string | null;
+  _epic: EpicRaw;
+}
+
+/** Claim/statement history entry for a charge */
+export interface ChargeClaimHistory {
+  type: string | null;                    // "Claim" or "Statement"
+  date: ISODate;
+  amount: number | null;
+  invoiceNumber: string | null;
+  paymentAmount: number | null;
+  paymentDate: ISODate;
+  acceptDate: ISODate;
   _epic: EpicRaw;
 }
 
@@ -1352,9 +1514,39 @@ function projectBilling(r: R): BillingSummary {
         adjudicatedCopay: num(tx.BEN_ADJ_COPAY_AMT),
         adjudicatedCoinsurance: num(tx.BEN_ADJ_COINS_AMT),
         adjudicatedSelfPay: num(tx.BEN_SELF_PAY_AMT),
-        // HSP_TRANSACTIONS enrichment (when present)
-        // TX_AMOUNT, BILLED_AMOUNT, ALLOWED_AMOUNT, DEDUCTIBLE_AMOUNT, etc.
-        // are handled via the same field names — they just won't be present for ARPB txs
+        // Void tracking
+        isVoided: tx.VOID_DATE != null || tx.INACTIVE_TYPE_C_NAME === 'Voided',
+        voidDate: toISODate(tx.VOID_DATE),
+        replacementChargeId: str(tx.REPOST_ETR_ID),
+        // Match history — who matched which payment to this charge, when
+        matchHistory: (tx.match_history ?? []).map((mh: any): ChargeMatchHistory => ({
+          matchDate: toISODate(mh.MTCH_TX_HX_DT),
+          matchDateTime: toISODateTime(mh.MTCH_TX_HX_DTTM),
+          matchedTransactionId: str(mh.MTCH_TX_HX_ID),
+          amount: num(mh.MTCH_TX_HX_AMT),
+          insuranceAmount: num(mh.MTCH_TX_HX_INS_AMT),
+          patientAmount: num(mh.MTCH_TX_HX_PAT_AMT),
+          invoiceNumber: str(mh.MTCH_TX_HX_INV_NUM),
+          matchedBy: str(mh.MTCH_TX_HX_DSUSR_ID_NAME),
+          unmatchDate: toISODate(mh.MTCH_TX_HX_UN_DT),
+          unmatchComment: str(mh.MTCH_TX_HX_UN_COM),
+          _epic: epic(mh),
+        })),
+        // Statement/claim history
+        claimHistory: (tx.statement_claim_history ?? []).map((sc: any): ChargeClaimHistory => ({
+          type: str(sc.BC_HX_TYPE_C_NAME),
+          date: toISODate(sc.BC_HX_DATE),
+          amount: num(sc.BC_HX_AMOUNT),
+          invoiceNumber: str(sc.BC_HX_INVOICE_NUM),
+          paymentAmount: num(sc.BC_HX_PAYMENT_AMT),
+          paymentDate: toISODate(sc.BC_HX_PAYMENT_DATE),
+          acceptDate: toISODate(sc.BC_HX_ACCEPT_DATE),
+          _epic: epic(sc),
+        })),
+        // Statement dates from ARPB_TX_STMT_DT (when patient was billed)
+        statementDates: (tx.statement_dates ?? tx.statementDates ?? [])
+          .map((sd: any) => toISODate(sd.STATEMENT_DATE))
+          .filter((d: ISODate) => d != null),
         _epic: epic(tx),
       });
     } else if (t === 'Payment' || t === 'Adjustment') {
@@ -1544,7 +1736,138 @@ function projectBilling(r: R): BillingSummary {
     }
   }
 
-  return { charges, payments, claims, accounts, transactionActions, eobLineItems, collectionEvents };
+  // --- Remittances (ERA/835) ---
+  const billing = r.billing as any;
+  const remittances: RemittanceRecord[] = (billing?.remittances ?? []).map((rem: any): RemittanceRecord => {
+    const ci = (rem.claim_info ?? [])[0];
+    return {
+      id: sid(rem.IMAGE_ID),
+      creationDate: toISODate(rem.CREATION_DATE),
+      paymentAmount: num(rem.PAYMENT_AMOUNT),
+      paymentMethod: str(rem.PAYMENT_METHOD_C_NAME),
+      adjudication: ci ? {
+        invoiceNumber: str(ci.INV_NO ?? ci.FILE_INV_NUM),
+        claimStatus: str(ci.CLM_STAT_CD_C_NAME),
+        chargedAmount: num(ci.CLAIM_CHRG_AMT),
+        paidAmount: num(ci.CLAIM_PAID_AMT),
+        patientResponsibility: num(ci.PAT_RESP_AMT),
+        claimControlNumber: str(ci.ICN_NO),
+        filingCode: str(ci.CLM_FILING_CODE_C_NAME),
+      } : null,
+      serviceLines: (rem.service_lines ?? []).map((sl: any): RemittanceServiceLine => ({
+        line: num(sl.LINE),
+        procedureCode: str(sl.PROC_IDENTIFIER),
+        chargedAmount: num(sl.LINE_ITEM_CHG_AMT),
+        paidAmount: num(sl.PROV_PAYMENT_AMT),
+        unitsPaid: num(sl.UNITS_PAID_CNT),
+        revenueCode: str(sl.NUBC_REV_CD),
+        chargeTransactionId: str(sl.SVC_LINE_CHG_PB_ID ?? sl.SVC_LINE_CHG_HB_ID),
+        _epic: epic(sl),
+      })),
+      adjustments: (rem.service_level_adjustments ?? []).map((adj: any): RemittanceAdjustment => ({
+        line: num(adj.LINE),
+        serviceLine: str(adj.CAS_SERVICE_LINE),
+        adjustmentGroup: str(adj.SVC_CAS_GRP_CODE_C_NAME),
+        reasonCode: str(adj.SVC_ADJ_REASON_CD),
+        amount: num(adj.SVC_ADJ_AMT),
+        quantity: num(adj.SVC_ADJ_QTY),
+        _epic: epic(adj),
+      })),
+      _epic: epic(rem),
+    };
+  });
+
+  // --- Claim Reconciliations ---
+  const reconciliations: ClaimReconciliationRecord[] = (billing?.reconciliations ?? []).map((rec: any): ClaimReconciliationRecord => {
+    // Merge timeline and detail by CONTACT_DATE_REAL for richer events
+    const detailByContact = new Map<number, any>();
+    for (const d of (rec.status_detail ?? [])) {
+      detailByContact.set(d.CONTACT_DATE_REAL, d);
+    }
+
+    const timeline: ClaimStatusEvent[] = (rec.status_timeline ?? []).map((tl: any): ClaimStatusEvent => {
+      const detail = detailByContact.get(tl.CONTACT_DATE_REAL);
+      return {
+        date: toISODate(tl.CONTACT_DATE),
+        statusCode: str(tl.CLM_STAT_CODE_C_NAME),
+        action: str(tl.CLM_MAPPED_ACT_C_NAME),
+        message: str(tl.CLM_STATUS_MSG),
+        payerAmountSubmitted: num(detail?.PAYR_CLM_AMT_SUBMT ?? tl.CLM_STAT_DATA),
+        payerAmountPaid: num(detail?.PAYOR_CLM_AMT_PAID),
+        payerCheckDate: toISODate(detail?.PAYER_CHECK_DATE),
+        payerCheckNumber: str(detail?.PAYER_CHECK_NUM),
+        fileName: str(detail?.FILE_NAME),
+        errorMessage: str(detail?.ERR_MSG),
+        _epic: epic(tl),
+      };
+    });
+
+    return {
+      id: sid(rec.CLAIM_REC_ID),
+      invoiceNumber: str(rec.CLAIM_INVOICE_NUM),
+      currentStatus: str(rec.CUR_EPIC_STATUS_C_NAME),
+      claimStatus: str(rec.EPIC_CLM_STS_C_NAME),
+      totalBilled: num(rec.TOTAL_BILLED),
+      closedDate: toISODate(rec.CLAIM_CLOSED_DATE),
+      timeline,
+      _epic: epic(rec),
+    };
+  });
+
+  // --- Invoices ---
+  const invoices: InvoiceRecord[] = (billing?.invoices ?? []).map((inv: any): InvoiceRecord => {
+    const bi = (inv.basic_info ?? [])[0];  // first basic_info line has the invoice detail
+    return {
+      id: sid(inv.INVOICE_ID),
+      invoiceNumber: str(bi?.INV_NUM),
+      status: str(bi?.INV_STATUS_C_NAME),
+      type: str(bi?.INV_TYPE_C_NAME),
+      insuranceAmount: num(inv.INSURANCE_AMT),
+      selfPayAmount: num(inv.SELF_PAY_AMT),
+      serviceFromDate: toISODate(bi?.FROM_SVC_DATE),
+      serviceToDate: toISODate(bi?.TO_SVC_DATE),
+      payerName: str(bi?.MAILING_NAME),
+      coverageId: bi?.CVG_ID ? sid(bi.CVG_ID) : null,
+      chargeTransactionIds: (inv.tx_pieces ?? []).map((tp: any) => sid(tp.TX_ID)),
+      _epic: epic(inv),
+    };
+  });
+
+  // --- Service Benefits (from coverage) ---
+  const serviceBenefits: ServiceBenefitRecord[] = [];
+  const coverageArr = (r as any).coverage ?? [];
+  for (const cvg of coverageArr) {
+    const cvgId = sid(cvg.COVERAGE_ID);
+    for (const sb of (cvg.service_benefits ?? [])) {
+      serviceBenefits.push({
+        coverageId: cvgId,
+        serviceType: str(sb.CVG_SVC_TYPE_ID_SERVICE_TYPE_NAME),
+        copayAmount: num(sb.COPAY_AMOUNT),
+        deductibleAmount: num(sb.DEDUCTIBLE_AMOUNT),
+        deductibleMet: num(sb.DEDUCTIBLE_MET_AMT),
+        deductibleRemaining: num(sb.DEDUCT_REMAIN_AMT),
+        coinsurancePercent: num(sb.COINS_PERCENT),
+        outOfPocketMax: num(sb.OUT_OF_POCKET_MAX),
+        outOfPocketRemaining: num(sb.OUT_OF_PCKT_REMAIN),
+        outOfPocketMet: ynBool(sb.OUT_OF_PCKET_MET_YN),
+        inNetwork: ynBool(sb.IN_NETWORK_YN),
+        networkLevel: str(sb.NET_LVL_SVC_C_NAME),
+        familyTier: str(sb.FAMILY_TIER_SVC_C_NAME),
+        maxVisits: num(sb.MAX_VISITS),
+        remainingVisits: num(sb.REMAINING_VISITS),
+        annualBenefitMax: num(sb.ANNUAL_BEN_MAX_AMT),
+        annualBenefitRemaining: num(sb.ANNUAL_BEN_REMAIN),
+        lifetimeBenefitMax: num(sb.LIFETIME_BEN_MAX),
+        lifetimeBenefitRemaining: num(sb.LIFETIME_BEN_REMAIN),
+        _epic: epic(sb),
+      });
+    }
+  }
+
+  return {
+    charges, payments, claims, accounts, transactionActions, eobLineItems, collectionEvents,
+    remittances, reconciliations, invoices, serviceBenefits,
+  };
 }
 
 // ─── Goals ─────────────────────────────────────────────────────────────────
