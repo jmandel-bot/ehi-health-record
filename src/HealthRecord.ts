@@ -1661,6 +1661,17 @@ function projectBilling(r: R): BillingSummary {
     }
   }
 
+  // Build a lookup from charge amount → procedure name (via CLARITY_EAP).
+  // Epic doesn't export CPT→description mapping, but charges have _procedure_name
+  // from CLARITY_EAP. We match service lines to charges by billed amount.
+  const procNameByAmount = new Map<number, string>();
+  for (const tx of txs) {
+    const t = tx as any;
+    if (t._procedure_name && typeof t.AMOUNT === 'number' && t.DEBIT_CREDIT_FLAG_NAME === 'Debit') {
+      procNameByAmount.set(t.AMOUNT, t._procedure_name);
+    }
+  }
+
   // --- Claims (CLM_VALUES) ---
   const claims = (r.billing?.claims ?? []).map((c: any): Claim => {
     // Build billing provider detail if NPI or name present
@@ -1704,7 +1715,7 @@ function projectBilling(r: R): BillingSummary {
       serviceLines: (c.service_lines ?? []).map((sl: any): ClaimServiceLine => ({
         line: sl.LINE ?? null,
         procedureCode: str(sl.LN_PROC_CD),
-        procedureDescription: str(sl.LN_PROC_DESC),
+        procedureDescription: str(sl.LN_PROC_DESC) ?? procNameByAmount.get(num(sl.LN_AMT) ?? 0) ?? null,
         modifier: str(sl.LN_PROC_MOD),
         quantity: num(sl.LN_QTY),
         chargedAmount: num(sl.LN_AMT),

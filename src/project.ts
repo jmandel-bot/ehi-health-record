@@ -738,7 +738,7 @@ function projectBilling(patId: unknown): EpicRow {
   }
   for (const tx of txRows) {
     attachChildren(tx, tx.TX_ID, txChildren);
-    tx._procedure_name = lookupName("CLARITY_EAP", "PROC_ID", "PROC_NAME", tx.PROCEDURE_ID);
+    tx._procedure_name = lookupName("CLARITY_EAP", "PROC_ID", "PROC_NAME", tx.PROC_ID);
   }
 
   // Visits — via encounter CSN chain
