@@ -154,109 +154,61 @@
           },
           {
             "date": "2023-10-05",
+            "sortKey": 66752.03,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Accepted in H.IP – Electronic Claim Sent",
+            "detail": "Accepted in H.IP – Electronic Claim Sent — Claim/encounter has been forwarded to entity.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2023-10-05",
+            "sortKey": 66752.04,
             "type": "recon",
             "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Claim/encounter has been forwarded to entity.",
+            "sublabel": "Accept Claim",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2023-10-05",
+            "sortKey": 66752.05,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
           {
-            "date": "2023-10-05",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-10-05",
+            "date": "2023-10-13",
+            "sortKey": 66760.03,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-10-05",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
+            "detail": "Accepted in H.IP – Electronic Claim Sent — Claim/encounter has been forwarded to entity.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2023-10-13",
+            "sortKey": 66760.04,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Accepted in H.IP – Electronic Claim Sent",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2023-10-13",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Claim/encounter has been forwarded to entity.",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-10-13",
+            "sortKey": 66760.05,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-10-13",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-10-13",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-10-13",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
@@ -654,27 +606,6 @@
               },
               {
                 "date": "2023-10-13",
-                "statusCode": "Claim/encounter has been forwarded to entity.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 330,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/file.02067910.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110539507",
-                  "CONTACT_DATE_REAL": 66760.03,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/13/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Claim/encounter has been forwarded to entity.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Forwarded-The claim has been forwarded to another entity",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2023-10-13",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -698,27 +629,6 @@
               },
               {
                 "date": "2023-10-13",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 330,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00650271.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110539507",
-                  "CONTACT_DATE_REAL": 66760.04,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/13/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2023-10-13",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -738,27 +648,6 @@
                   "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
                   "CLM_ACT_CODE_C_NAME": "Accept",
                   "CLM_STATUS_MSG": "ACCEPTED FOR PROCESSING."
-                }
-              },
-              {
-                "date": "2023-10-13",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 330,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00650271.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110539507",
-                  "CONTACT_DATE_REAL": 66760.05,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/13/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
             ]
@@ -796,27 +685,6 @@
               },
               {
                 "date": "2023-10-05",
-                "statusCode": "Claim/encounter has been forwarded to entity.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 114,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/file.02060262.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110203431",
-                  "CONTACT_DATE_REAL": 66752.03,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Claim/encounter has been forwarded to entity.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Forwarded-The claim has been forwarded to another entity",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2023-10-05",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -840,27 +708,6 @@
               },
               {
                 "date": "2023-10-05",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 114,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646335.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110203431",
-                  "CONTACT_DATE_REAL": 66752.04,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2023-10-05",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -880,27 +727,6 @@
                   "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
                   "CLM_ACT_CODE_C_NAME": "Accept",
                   "CLM_STATUS_MSG": "ACCEPTED FOR PROCESSING."
-                }
-              },
-              {
-                "date": "2023-10-05",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 114,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646335.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110203431",
-                  "CONTACT_DATE_REAL": 66752.05,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
             ]
@@ -1318,55 +1144,31 @@
           },
           {
             "date": "2023-10-04",
+            "sortKey": 66751.03,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Accepted in H.IP – Electronic Claim Sent",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-10-04",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Claim/encounter has been forwarded to entity.",
+            "detail": "Accepted in H.IP – Electronic Claim Sent — Claim/encounter has been forwarded to entity.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2023-10-05",
+            "sortKey": 66752,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2023-10-05",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-10-05",
+            "sortKey": 66752.01,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-10-05",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
@@ -1728,27 +1530,6 @@
                 }
               },
               {
-                "date": "2023-10-04",
-                "statusCode": "Claim/encounter has been forwarded to entity.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 203,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/file.02059022.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110156845",
-                  "CONTACT_DATE_REAL": 66751.03,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/4/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Claim/encounter has been forwarded to entity.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Forwarded-The claim has been forwarded to another entity",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
                 "date": "2023-10-05",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
@@ -1773,27 +1554,6 @@
               },
               {
                 "date": "2023-10-05",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 203,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646047.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110156845",
-                  "CONTACT_DATE_REAL": 66752,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2023-10-05",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -1813,27 +1573,6 @@
                   "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
                   "CLM_ACT_CODE_C_NAME": "Accept",
                   "CLM_STATUS_MSG": "ACCEPTED FOR PROCESSING."
-                }
-              },
-              {
-                "date": "2023-10-05",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 203,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646047.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110156845",
-                  "CONTACT_DATE_REAL": 66752.01,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
             ]
@@ -2244,55 +1983,31 @@
           },
           {
             "date": "2023-03-13",
+            "sortKey": 66546.03,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Accepted in H.IP – Electronic Claim Sent",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-03-13",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Claim/encounter has been forwarded to entity.",
+            "detail": "Accepted in H.IP – Electronic Claim Sent — Claim/encounter has been forwarded to entity.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2023-03-14",
+            "sortKey": 66547,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2023-03-14",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-03-14",
+            "sortKey": 66547.01,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2023-03-14",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
@@ -2525,27 +2240,6 @@
                 }
               },
               {
-                "date": "2023-03-13",
-                "statusCode": "Claim/encounter has been forwarded to entity.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 226,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/file.01849462.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "102143190",
-                  "CONTACT_DATE_REAL": 66546.03,
-                  "LINE": 2,
-                  "CONTACT_DATE": "3/13/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Claim/encounter has been forwarded to entity.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Forwarded-The claim has been forwarded to another entity",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
                 "date": "2023-03-14",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
@@ -2570,27 +2264,6 @@
               },
               {
                 "date": "2023-03-14",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 226,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00544138.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "102143190",
-                  "CONTACT_DATE_REAL": 66547,
-                  "LINE": 2,
-                  "CONTACT_DATE": "3/14/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2023-03-14",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -2610,27 +2283,6 @@
                   "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
                   "CLM_ACT_CODE_C_NAME": "Accept",
                   "CLM_STATUS_MSG": "ACCEPTED FOR PROCESSING."
-                }
-              },
-              {
-                "date": "2023-03-14",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 226,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00544138.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "102143190",
-                  "CONTACT_DATE_REAL": 66547.01,
-                  "LINE": 2,
-                  "CONTACT_DATE": "3/14/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
             ]
@@ -3156,55 +2808,31 @@
           },
           {
             "date": "2022-12-07",
+            "sortKey": 66450.03,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Accepted in H.IP – Electronic Claim Sent",
+            "detail": "Accepted in H.IP – Electronic Claim Sent — Claim/encounter has been forwarded to entity.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2022-12-07",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Claim/encounter has been forwarded to entity.",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2022-12-07",
+            "sortKey": 66450.04,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2022-12-07",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2022-12-07",
+            "sortKey": 66450.05,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2022-12-07",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
@@ -3653,27 +3281,6 @@
               },
               {
                 "date": "2022-12-07",
-                "statusCode": "Claim/encounter has been forwarded to entity.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 315,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/file.01738244.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "98402730",
-                  "CONTACT_DATE_REAL": 66450.03,
-                  "LINE": 2,
-                  "CONTACT_DATE": "12/7/2022 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Claim/encounter has been forwarded to entity.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Forwarded-The claim has been forwarded to another entity",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2022-12-07",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -3697,27 +3304,6 @@
               },
               {
                 "date": "2022-12-07",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 315,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00496259.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "98402730",
-                  "CONTACT_DATE_REAL": 66450.04,
-                  "LINE": 2,
-                  "CONTACT_DATE": "12/7/2022 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2022-12-07",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -3737,27 +3323,6 @@
                   "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
                   "CLM_ACT_CODE_C_NAME": "Accept",
                   "CLM_STATUS_MSG": "ACCEPTED FOR PROCESSING."
-                }
-              },
-              {
-                "date": "2022-12-07",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 315,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00496259.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "98402730",
-                  "CONTACT_DATE_REAL": 66450.05,
-                  "LINE": 2,
-                  "CONTACT_DATE": "12/7/2022 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
             ]
@@ -4617,55 +4182,31 @@
           },
           {
             "date": "2022-09-21",
+            "sortKey": 66373.03,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Accepted in H.IP – Electronic Claim Sent",
+            "detail": "Accepted in H.IP – Electronic Claim Sent — Claim/encounter has been forwarded to entity.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2022-09-21",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Claim/encounter has been forwarded to entity.",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2022-09-21",
+            "sortKey": 66373.04,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2022-09-21",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2022-09-21",
+            "sortKey": 66373.05,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2022-09-21",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
@@ -5000,27 +4541,6 @@
               },
               {
                 "date": "2022-09-21",
-                "statusCode": "Claim/encounter has been forwarded to entity.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 516,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/file.01594489.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "95212572",
-                  "CONTACT_DATE_REAL": 66373.03,
-                  "LINE": 2,
-                  "CONTACT_DATE": "9/21/2022 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Claim/encounter has been forwarded to entity.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Forwarded-The claim has been forwarded to another entity",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2022-09-21",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -5044,27 +4564,6 @@
               },
               {
                 "date": "2022-09-21",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 516,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00459874.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "95212572",
-                  "CONTACT_DATE_REAL": 66373.04,
-                  "LINE": 2,
-                  "CONTACT_DATE": "9/21/2022 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2022-09-21",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -5084,27 +4583,6 @@
                   "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
                   "CLM_ACT_CODE_C_NAME": "Accept",
                   "CLM_STATUS_MSG": "ACCEPTED FOR PROCESSING."
-                }
-              },
-              {
-                "date": "2022-09-21",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 516,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00459874.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "95212572",
-                  "CONTACT_DATE_REAL": 66373.05,
-                  "LINE": 2,
-                  "CONTACT_DATE": "9/21/2022 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
             ]
@@ -5647,55 +5125,31 @@
           },
           {
             "date": "2022-09-23",
+            "sortKey": 66375.03,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Accepted in H.IP – Electronic Claim Sent",
+            "detail": "Accepted in H.IP – Electronic Claim Sent — Claim/encounter has been forwarded to entity.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2022-09-23",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Claim/encounter has been forwarded to entity.",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2022-09-23",
+            "sortKey": 66375.04,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
           {
             "date": "2022-09-23",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2022-09-23",
+            "sortKey": 66375.05,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
-            "detail": "Payer – Accepted Claim",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2022-09-23",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "No Action",
-            "detail": "Accepted for processing.",
+            "detail": "Payer – Accepted Claim — Accepted for processing.",
             "amount": null,
             "amountLabel": null
           },
@@ -6077,27 +5531,6 @@
               },
               {
                 "date": "2022-09-23",
-                "statusCode": "Claim/encounter has been forwarded to entity.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 173,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/file.01597838.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "95305293",
-                  "CONTACT_DATE_REAL": 66375.03,
-                  "LINE": 2,
-                  "CONTACT_DATE": "9/23/2022 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Claim/encounter has been forwarded to entity.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Forwarded-The claim has been forwarded to another entity",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2022-09-23",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -6121,27 +5554,6 @@
               },
               {
                 "date": "2022-09-23",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 173,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00460914.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "95305293",
-                  "CONTACT_DATE_REAL": 66375.04,
-                  "LINE": 2,
-                  "CONTACT_DATE": "9/23/2022 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2022-09-23",
                 "statusCode": "Payer – Accepted Claim",
                 "action": "Accept Claim",
                 "message": "ACCEPTED FOR PROCESSING.",
@@ -6161,27 +5573,6 @@
                   "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
                   "CLM_ACT_CODE_C_NAME": "Accept",
                   "CLM_STATUS_MSG": "ACCEPTED FOR PROCESSING."
-                }
-              },
-              {
-                "date": "2022-09-23",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 173,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00460914.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "95305293",
-                  "CONTACT_DATE_REAL": 66375.05,
-                  "LINE": 2,
-                  "CONTACT_DATE": "9/23/2022 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
             ]
@@ -6997,6 +6388,7 @@
           },
           {
             "date": "2020-08-17",
+            "sortKey": 65608.01,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7006,6 +6398,7 @@
           },
           {
             "date": "2020-08-17",
+            "sortKey": 65608.02,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7015,6 +6408,7 @@
           },
           {
             "date": "2020-08-17",
+            "sortKey": 65608.03,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7024,6 +6418,7 @@
           },
           {
             "date": "2020-08-17",
+            "sortKey": 65608.04,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7033,6 +6428,7 @@
           },
           {
             "date": "2020-08-17",
+            "sortKey": 65608.05,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7042,6 +6438,7 @@
           },
           {
             "date": "2020-08-17",
+            "sortKey": 65608.06,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7051,6 +6448,7 @@
           },
           {
             "date": "2020-08-17",
+            "sortKey": 65608.07,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7060,6 +6458,7 @@
           },
           {
             "date": "2020-08-17",
+            "sortKey": 65608.08,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7069,6 +6468,7 @@
           },
           {
             "date": "2020-08-17",
+            "sortKey": 65608.09,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7107,6 +6507,7 @@
           },
           {
             "date": "2020-09-18",
+            "sortKey": 65640,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7798,6 +7199,7 @@
           },
           {
             "date": "2020-01-13",
+            "sortKey": 65391.01,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7807,6 +7209,7 @@
           },
           {
             "date": "2020-01-13",
+            "sortKey": 65391.02,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7816,6 +7219,7 @@
           },
           {
             "date": "2020-01-13",
+            "sortKey": 65391.03,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7825,6 +7229,7 @@
           },
           {
             "date": "2020-01-13",
+            "sortKey": 65391.04,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7834,6 +7239,7 @@
           },
           {
             "date": "2020-01-13",
+            "sortKey": 65391.05,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7843,6 +7249,7 @@
           },
           {
             "date": "2020-01-13",
+            "sortKey": 65391.06,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7852,6 +7259,7 @@
           },
           {
             "date": "2020-01-13",
+            "sortKey": 65391.07,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7861,6 +7269,7 @@
           },
           {
             "date": "2020-01-13",
+            "sortKey": 65391.08,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -7930,6 +7339,7 @@
           },
           {
             "date": "2020-01-29",
+            "sortKey": 65407,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -8800,6 +8210,7 @@
           },
           {
             "date": "2018-08-30",
+            "sortKey": 64890.01,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -8809,6 +8220,7 @@
           },
           {
             "date": "2018-08-30",
+            "sortKey": 64890.02,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -8818,6 +8230,7 @@
           },
           {
             "date": "2018-08-31",
+            "sortKey": 64891,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -8827,6 +8240,7 @@
           },
           {
             "date": "2018-08-31",
+            "sortKey": 64891.01,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -8836,6 +8250,7 @@
           },
           {
             "date": "2018-08-31",
+            "sortKey": 64891.02,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -8863,15 +8278,6 @@
           },
           {
             "date": "2018-09-10",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "Accept Claim",
-            "detail": "S - Submit",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2018-09-10",
             "type": "action",
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
@@ -8880,6 +8286,16 @@
             "amountLabel": "Adjustment",
             "chargeId": "129124339",
             "isVoidedCharge": false
+          },
+          {
+            "date": "2018-09-10",
+            "sortKey": 64901,
+            "type": "recon",
+            "label": "Claim Status (276/277)",
+            "sublabel": "Accept Claim",
+            "detail": "S - Submit",
+            "amount": null,
+            "amountLabel": null
           }
         ],
         "charges": [
@@ -9511,6 +8927,7 @@
           },
           {
             "date": "2018-08-30",
+            "sortKey": 64890.01,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -9520,6 +8937,7 @@
           },
           {
             "date": "2018-08-30",
+            "sortKey": 64890.02,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -9529,6 +8947,7 @@
           },
           {
             "date": "2018-08-31",
+            "sortKey": 64891,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -9538,6 +8957,7 @@
           },
           {
             "date": "2018-08-31",
+            "sortKey": 64891.01,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -9547,6 +8967,7 @@
           },
           {
             "date": "2018-08-31",
+            "sortKey": 64891.02,
             "type": "recon",
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
@@ -9583,15 +9004,6 @@
           },
           {
             "date": "2018-09-10",
-            "type": "recon",
-            "label": "Claim Status (276/277)",
-            "sublabel": "Accept Claim",
-            "detail": "S - Submit",
-            "amount": null,
-            "amountLabel": null
-          },
-          {
-            "date": "2018-09-10",
             "type": "action",
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
@@ -9611,6 +9023,16 @@
             "amountLabel": "Adjustment",
             "chargeId": "129124216",
             "isVoidedCharge": false
+          },
+          {
+            "date": "2018-09-10",
+            "sortKey": 64901,
+            "type": "recon",
+            "label": "Claim Status (276/277)",
+            "sublabel": "Accept Claim",
+            "detail": "S - Submit",
+            "amount": null,
+            "amountLabel": null
           }
         ],
         "charges": [

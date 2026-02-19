@@ -308,13 +308,15 @@ function buildEncounterData(visit: Visit) {
   // 5. Recon events (Bug 3: no dollar amounts for status polling)
   for (const rec of allRecons) {
     for (const t of ((rec as any).timeline ?? [])) {
+      const desc = t.description ? ` — ${t.description}` : '';
       timeline.push({
         date: t.date,
+        sortKey: t.sortKey ?? 0,  // CONTACT_DATE_REAL for sub-day ordering
         type: 'recon',
         label: 'Claim Status (276/277)',
         sublabel: t.action,
-        detail: t.statusCode,
-        amount: null,  // Bug 3: status polling isn't money movement
+        detail: `${t.statusCode ?? ''}${desc}`,
+        amount: null,
         amountLabel: null,
       });
     }
@@ -407,7 +409,10 @@ function buildEncounterData(visit: Visit) {
     if (!a.date && !b.date) return 0;
     if (!a.date) return -1;
     if (!b.date) return 1;
-    return a.date.localeCompare(b.date);
+    const dc = a.date.localeCompare(b.date);
+    if (dc !== 0) return dc;
+    // Sub-day ordering via sortKey (CONTACT_DATE_REAL for recon events)
+    return (a.sortKey ?? 0) - (b.sortKey ?? 0);
   });
   
   // ─── Summary ────────────────────────────────────────────

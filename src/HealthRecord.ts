@@ -706,9 +706,11 @@ export interface ClaimReconciliationRecord {
 
 export interface ClaimStatusEvent {
   date: ISODate;
+  sortKey: number;                        // CONTACT_DATE_REAL — preserves sub-day ordering
   statusCode: string | null;              // "Accepted in H.IP – Electronic Claim Sent"
   action: string | null;                  // "Accept Claim", "No Action"
   message: string | null;                 // detailed status message
+  description: string | null;             // LINE 2 description (collapsed from pair)
   payerAmountSubmitted: number | null;
   payerAmountPaid: number | null;
   payerCheckDate: ISODate;
@@ -1791,22 +1793,38 @@ function projectBilling(r: R): BillingSummary {
       detailByContact.set(d.CONTACT_DATE_REAL, d);
     }
 
-    const timeline: ClaimStatusEvent[] = (rec.status_timeline ?? []).map((tl: any): ClaimStatusEvent => {
-      const detail = detailByContact.get(tl.CONTACT_DATE_REAL);
-      return {
-        date: toISODate(tl.CONTACT_DATE),
-        statusCode: str(tl.CLM_STAT_CODE_C_NAME),
-        action: str(tl.CLM_MAPPED_ACT_C_NAME),
-        message: str(tl.CLM_STATUS_MSG),
-        payerAmountSubmitted: num(detail?.PAYR_CLM_AMT_SUBMT ?? tl.CLM_STAT_DATA),
+    // Collapse LINE pairs: LINE 1 = status event, LINE 2 = description echo
+    // Group by CONTACT_DATE_REAL, take LINE 1 as primary, LINE 2 as description
+    const timelineRows = rec.status_timeline ?? [];
+    const byContact = new Map<number, any[]>();
+    for (const tl of timelineRows) {
+      const key = tl.CONTACT_DATE_REAL;
+      if (!byContact.has(key)) byContact.set(key, []);
+      byContact.get(key)!.push(tl);
+    }
+
+    const timeline: ClaimStatusEvent[] = [];
+    for (const [contactReal, lines] of byContact) {
+      const primary = lines.find((l: any) => l.LINE === 1) ?? lines[0];
+      const secondary = lines.find((l: any) => l.LINE === 2);
+      const detail = detailByContact.get(contactReal);
+      timeline.push({
+        date: toISODate(primary.CONTACT_DATE),
+        sortKey: contactReal,
+        statusCode: str(primary.CLM_STAT_CODE_C_NAME),
+        action: str(primary.CLM_MAPPED_ACT_C_NAME),
+        message: str(primary.CLM_STATUS_MSG),
+        description: secondary ? str(secondary.CLM_STAT_CODE_C_NAME) : null,
+        payerAmountSubmitted: num(detail?.PAYR_CLM_AMT_SUBMT ?? primary.CLM_STAT_DATA),
         payerAmountPaid: num(detail?.PAYOR_CLM_AMT_PAID),
         payerCheckDate: toISODate(detail?.PAYER_CHECK_DATE),
         payerCheckNumber: str(detail?.PAYER_CHECK_NUM),
         fileName: str(detail?.FILE_NAME),
         errorMessage: str(detail?.ERR_MSG),
-        _epic: epic(tl),
-      };
-    });
+        _epic: epic(primary),
+      });
+    }
+    timeline.sort((a, b) => a.sortKey - b.sortKey);
 
     return {
       id: sid(rec.CLAIM_REC_ID),
