@@ -16,16 +16,7 @@ ARPB_TRANSACTIONS (TX_ID = 355871699)
   OUTSTANDING_AMT: $0.00        ← fully resolved (we're looking at final state)
 ```
 
-The claim goes out on October 13 (invoice `L1008016200`). Blue Cross accepts it the same day:
-
-```sql
--- Claim submission record
-SELECT * FROM ARPB_TX_STMCLAIMHX WHERE TX_ID = 355871699;
--- BC_HX_TYPE = 'Claim', BC_HX_DATE = 10/13/2023, BC_HX_AMOUNT = $330
--- BC_HX_PAYMENT_AMT = $330, BC_HX_PAYMENT_DATE = 10/23/2023
-```
-
-Ten days later, the 835 remittance arrives electronically. Here's where the money splits:
+The claim goes out October 13 (invoice `L1008016200`). Ten days later, the 835 remittance arrives. Here's where the money splits:
 
 ```
 Remittance (CL_REMIT, IMAGE_ID = 229308484)
@@ -141,40 +132,13 @@ Charge `315026147` — a $315 professional visit posted December 6, 2022 — get
 
 **Step 1: Denial arrives** (December 20)
 
-```sql
-SELECT ACTION_TYPE_C_NAME, DENIAL_CODE, DENIAL_CODE_REMIT_CODE_NAME
-FROM ARPB_TX_ACTIONS WHERE TX_ID = 315026147;
-```
+`ARPB_TX_ACTIONS` records two rows: Denied (CARC 16 — "Lacks information needed for adjudication") and Research (RARC MA63 — "Incomplete/invalid principal diagnosis").
 
-| Action | Code | Meaning |
-|---|---|---|
-| Denied | 16 | "Lacks information needed for adjudication" |
-| Research | MA63 | "Incomplete/invalid principal diagnosis" |
-
-Epic creates two `BDC_INFO` records (Billing Denial Coordination) to track the follow-up:
-
-```
-BDC_INFO (BDC_ID = 43401924):
-  BDC_NAME:       "DENIAL RECORD FOR CHARGE 315026147"
-  GRP_CODE:       Contractual Obligation
-  REMIT_CODE:     16 - LACKS INFO NEEDED FOR ADJUDICATION
-  RECORD_SOURCE:  Payment Received
-  RECORD_STATUS:  Completed
-  RESOLVE_REASON: PB Charges Reposted
-```
+Epic creates two `BDC_INFO` records to track follow-up. BDC_ID `43401924`: "DENIAL RECORD FOR CHARGE 315026147", remit code 16, group=Contractual Obligation, status=Completed, resolve reason="PB Charges Reposted".
 
 **Step 2: Void and correct** (December 20, same day)
 
-Billing staff member HIRZY, HEIDI L voids the original charge:
-
-```
-ARPB_TX_VOID (TX_ID = 315026147):
-  REPOST_TYPE:       Correction
-  DEL_CHARGE_USER:   HIRZYHL
-  DEL_REVERSE_DATE:  12/20/2022
-```
-
-The voided charge gets `VOID_DATE = 12/20/2022` set on `ARPB_TRANSACTIONS`.
+Billing staff HIRZY, HEIDI L voids the original via `ARPB_TX_VOID`: REPOST_TYPE=Correction. The charge gets `VOID_DATE = 12/20/2022` on `ARPB_TRANSACTIONS`.
 
 **Step 3: Repost with corrected diagnosis** (December 20)
 
@@ -187,22 +151,7 @@ Replacement: TX_ID 317236398, REPOST_ETR_ID = 315026147  ← points back
 
 **Step 4: Resubmit and adjudicate** (January 10, 2023)
 
-The replacement claim goes through — but with a twist. The action trail shows a *second* denial, then resolution:
-
-```sql
-SELECT LINE, ACTION_TYPE_C_NAME, ACTION_AMOUNT, DENIAL_CODE
-FROM ARPB_TX_ACTIONS WHERE TX_ID = 317236398 ORDER BY LINE;
-```
-
-| Line | Action | Amount | Code |
-|---|---|---|---|
-| 1 | Resubmit Insurance | $315.00 | — |
-| 2 | Denied | −$315.00 | 16 |
-| 3 | Research | $0 | MA63 |
-| 4 | Research | $0 | MA63 |
-| 5 | Not Allowed Adjustment | $116.09 | 45 (fee schedule) |
-| 6 | Next Responsible Party | $19.89 | 2 (coinsurance) |
-| 7 | Recalculate Discount | $0 | — |
+The replacement claim processes. The action trail on `ARPB_TX_ACTIONS` shows 7 steps: resubmit → (second denial, CARC 16 again) → research (MA63) → not-allowed adjustment ($116.09, CARC 45) → next responsible party ($19.89, CARC 2 = coinsurance) → recalculate.
 
 Final resolution: insurance pays $179.02, writes off $116.09, patient owes $19.89 coinsurance.
 
@@ -253,96 +202,30 @@ The $223.42 payment was auto-matched (no separate action row needed — the matc
 
 The lifecycle of a claim uses four table families, mapped to X12 EDI transactions:
 
-### Outbound: The Claim (837P/837I)
+**Outbound (837):** `CLAIM_INFO` (header) → `INVOICE` → `INV_TX_PIECES` (charge linkage) → `RECONCILE_CLM` + `RECONCILE_CLAIM_STATUS` (status polling). For our $330 charge, RECONCILE_CLM `110539507` tracks invoice `L1008016200` through "Claim forwarded" → "Accepted for processing" on 10/13/2023.
 
-```
-CLAIM_INFO              → Claim header (account, coverage, provider)
-INVOICE                 → Groups charges into a billable invoice
-  └─ INV_TX_PIECES      → Links invoice lines to ARPB_TRANSACTIONS
-RECONCILE_CLM           → Tracks claim by invoice number + payor
-  └─ RECONCILE_CLAIM_STATUS → Status updates (276/277 responses)
-```
-
-For our $330 charge, `RECONCILE_CLM` (ID `110539507`) shows:
-- Invoice: `L1008016200`, Payor: 1302, Total billed: $330
-- Status trail: "Claim forwarded" → "Accepted for processing" (all on 10/13/2023)
-
-### Inbound: The Remittance (835)
-
-```
-CL_REMIT                → Remittance envelope (payment method, amount, trace)
-  └─ CL_RMT_CLM_INFO    → Claim-level: billed, paid, patient resp, ICN
-  └─ CL_RMT_SVCE_LN_INF → Service line: charge amount, paid amount, CPT
-      └─ CL_RMT_SVC_LVL_ADJ → Line-level adjustments (CARC codes + amounts)
-```
-
-This is the raw 835 parsed into tables. The `SVC_LINE_CHG_PB_ID` column on `CL_RMT_SVCE_LN_INF` links directly back to the `ARPB_TRANSACTIONS.TX_ID` it applies to.
+**Inbound (835):** `CL_REMIT` (envelope) → `CL_RMT_CLM_INFO` (claim-level totals) → `CL_RMT_SVCE_LN_INF` (service lines, linked to charges via `SVC_LINE_CHG_PB_ID`) → `CL_RMT_SVC_LVL_ADJ` (CARC adjustments).
 
 ### The Posting Bridge: PMT_EOB_INFO
 
-When Epic processes the remittance, it creates `PMT_EOB_INFO_I` and `PMT_EOB_INFO_II` records on the *payment/adjustment* transactions (not the charge). These hold the parsed EOB breakdown:
+When Epic processes the remittance, it creates `PMT_EOB_INFO_I` and `_II` records on the *payment/adjustment* transactions (not the charge). For our $330 visit's payment (TX 357218465):
 
-```
-PMT_EOB_INFO_I (TX_ID = 357218465, the payment):
-  CVD_AMT:     $223.42    ← covered/allowed amount
-  NONCVD_AMT:  $106.58    ← not covered
-  PAID_AMT:    $223.42    ← actual payment
-  DED_AMT:     (null)     ← no deductible applied
-  COPAY_AMT:   (null)
-  COINS_AMT:   (null)
-
-PMT_EOB_INFO_II (TX_ID = 357218465, LINE 1):
-  AMOUNT:      $106.58
-  EOB_CODES:   45          ← CARC
-  ACTIONS:     1 (NAA = Not Allowed Adjustment)
-  WINNINGRMC:  "45-CHGS EXCD FEE SCH/MAX ALLOWABLE."
-  PEOB_EOB_GRPCODE: Contractual Obligation
-```
+- **PMT_EOB_INFO_I**: CVD_AMT=$223.42, NONCVD_AMT=$106.58, PAID_AMT=$223.42, DED/COPAY/COINS=null
+- **PMT_EOB_INFO_II**: AMOUNT=$106.58, EOB_CODES=45, WINNINGRMC="45-CHGS EXCD FEE SCH/MAX ALLOWABLE.", group=Contractual Obligation
 
 ## 6. The Patient's Bill
 
 ### Front Desk Collection
 
-`FRONT_END_PMT_COLL_HX` records what happened at check-in/check-out. On December 1, 2022:
-
-```
-Encounter 974614965, Check-In:
-  PB_PREV_BAL_DUE:  $7.82    ← system flagged prior balance
-  PB_PREV_BAL_PAID: $0       ← patient didn't pay at first
-
-  (second row, same check-in):
-  PB_PREV_BAL_PAID: $7.82    ← then paid it
-```
-
-This maps to TX_ID `314281735`, a $7.82 patient payment (PROC_ID 7084 = patient payment).
+`FRONT_END_PMT_COLL_HX` records check-in/out collection events. On December 1, 2022, the system flagged $7.82 prior balance due (`PB_PREV_BAL_DUE`); the patient paid it at the desk (`PB_PREV_BAL_PAID = $7.82`), posting as TX_ID `314281735` (PROC_ID 7084 = patient payment).
 
 ### Statements
 
-`GUAR_ACCT_STMT_HX` shows 4 statements sent to this guarantor:
-
-| Date | Invoice | New Charges | New Balance | Credits |
-|---|---|---|---|---|
-| 1/29/2020 | 107147 | $165.00 | $133.29 | −$31.71 |
-| 1/11/2023 | 187621 | $315.00 | $19.89 | −$428.40 |
-| 3/29/2023 | 193828 | $226.00 | $139.97 | −$105.92 |
-| 4/26/2023 | 196069 | $0 | $139.97 | $0 |
-
-Delivery method: "Paper, No Electronic Notification" for all. Per-charge statement dates are in `ARPB_TX_STMT_DT`.
+`GUAR_ACCT_STMT_HX` shows 4 paper statements sent to this guarantor. Each row captures new charges, running balance, and delivery method. Per-charge statement dates are in `ARPB_TX_STMT_DT`.
 
 ### Collections: The Hospital Side
 
-When patient responsibility ($554.27 deductible) goes unpaid on the hospital account, Epic sends it to collections:
-
-```sql
-SELECT * FROM HSP_ACCT_CL_AG_HIS WHERE HSP_ACCOUNT_ID = 376684810;
-```
-
-| Date | Action | Agency | Balance |
-|---|---|---|---|
-| 4/27/2022 | Assign | AVADYNE | $554.27 |
-| 5/12/2022 | Withdraw | AVADYNE | $0.00 |
-
-AVADYNE (`CL_COL_AGNCY.COL_AGNCY_ID = 32`) collected the full $554.27, which posted as a Self-Pay payment on May 11, 2022 (TX_ID `685171641`). The account hit zero-balance on that date (`ACCT_ZERO_BAL_DT = 5/11/2022`).
+When the $554.27 deductible goes unpaid on HSP account 376684810, `HSP_ACCT_CL_AG_HIS` shows: assigned to AVADYNE on 4/27/2022, withdrawn on 5/12/2022 after $554.27 collected. The payment posted as Self-Pay (TX `685171641`), zeroing the account (`ACCT_ZERO_BAL_DT = 5/11/2022`).
 
 ## 7. Table Reference
 
@@ -394,15 +277,15 @@ FHIR's `ExplanationOfBenefit` resource covers the *what* of adjudication. Epic's
 
 | Data Point | Epic Tables | FHIR Gap |
 |---|---|---|
-| **Line-item CARC/RARC codes** | `CL_RMT_SVC_LVL_ADJ`, `PMT_EOB_INFO_II` | FHIR has adjudication categories but not raw CARC/RARC codes with their CAS group codes |
-| **Contractual adjustment amounts** | `ARPB_TX_ACTIONS` (Not Allowed Adjustment), `TOTAL_MTCH_ADJ` | FHIR shows allowed amount but not the explicit write-off as a tracked transaction |
-| **Denial→void→repost chain** | `ARPB_TX_VOID.REPOSTED_ETR_ID`, `ARPB_TRANSACTIONS.REPOST_ETR_ID` | FHIR has no concept of charge correction lineage |
-| **Collection agency records** | `HSP_ACCT_CL_AG_HIS`, `CL_COL_AGNCY` | FHIR has no collections model at all |
-| **Bucket-level hospital accounting** | `HSP_TRANSACTIONS.BUCKET_ID`, `HSP_BKT_*` tables | FHIR doesn't model the insurance→self-pay balance transfer |
-| **Benefit verification detail** | `SERVICE_BENEFITS` (126 rows: copay, deductible remaining, OOP max per service type) | FHIR Coverage has basic cost fields but not per-service-type breakdowns with met/remaining amounts |
-| **Claim status polling history** | `RECONCILE_CLAIM_STATUS` (91 rows of 276/277 responses) | FHIR has no claim lifecycle tracking |
-| **Front desk collection workflow** | `FRONT_END_PMT_COLL_HX` (copay due vs. collected at check-in) | FHIR has no point-of-service collection model |
-| **Statement history** | `GUAR_ACCT_STMT_HX` (dates, balances, delivery method per statement) | FHIR has no patient billing statement model |
-| **Match accounting** | `ARPB_TX_MATCH_HX`, `TOTAL_MATCH_AMT` decomposition | FHIR doesn't expose how specific payments resolve specific charges |
+| **Line-item CARC/RARC codes** | `CL_RMT_SVC_LVL_ADJ`, `PMT_EOB_INFO_II` | No raw CARC/RARC with CAS group codes |
+| **Contractual write-offs as transactions** | `ARPB_TX_ACTIONS`, `TOTAL_MTCH_ADJ` | Shows allowed amount but not the explicit write-off TX |
+| **Denial→void→repost chain** | `ARPB_TX_VOID`, `REPOST_ETR_ID` | No charge correction lineage |
+| **Collection agency records** | `HSP_ACCT_CL_AG_HIS`, `CL_COL_AGNCY` | No collections model |
+| **Bucket-level hospital accounting** | `HSP_TRANSACTIONS.BUCKET_ID`, `HSP_BKT_*` | No insurance→self-pay balance transfer |
+| **Benefit verification (126 rows)** | `SERVICE_BENEFITS` | No per-service-type deductible remaining/OOP met |
+| **Claim status polling (91 rows)** | `RECONCILE_CLAIM_STATUS` | No claim lifecycle tracking |
+| **Front desk collection workflow** | `FRONT_END_PMT_COLL_HX` | No point-of-service collection model |
+| **Statement history** | `GUAR_ACCT_STMT_HX` | No patient billing statement model |
+| **Payment→charge matching** | `ARPB_TX_MATCH_HX` | No visibility into which payment resolved which charge |
 
 For a **patient financial transparency tool**, the critical path is: `ARPB_TRANSACTIONS` (what was charged) → `PMT_EOB_INFO_I` (what insurance allowed/paid) → `ARPB_TX_ACTIONS` (what was denied and why) → `GUAR_ACCT_STMT_HX` (what the patient was billed). The hospital equivalent runs through `HSP_TRANSACTIONS` (with inline allowed/deductible/copay fields) → `HSP_ACCT_CL_AG_HIS` (if it went to collections).

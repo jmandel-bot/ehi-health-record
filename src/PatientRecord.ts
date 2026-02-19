@@ -491,6 +491,380 @@ export class BillingTransaction {
   }
 }
 
+// ─── Hospital Account (HSP_ACCOUNT) ────────────────────────────────────────
+
+export class HospitalAccount {
+  HSP_ACCOUNT_ID: EpicID;
+  accountName?: string;
+  accountClass?: string;
+  financialClass?: string;
+  billingStatus?: string;
+  admissionDateTime?: string;
+  dischargeDateTime?: string;
+  totalCharges?: number;
+  totalAdjustments?: number;
+  totalInsurancePayments?: number;
+  totalSelfPayPayments?: number;
+  primaryPayorId?: string;
+  primaryPlanId?: string;
+  codingStatus?: string;
+  firstBilledDate?: string;
+  baseInvoiceNumber?: string;
+  serviceAreaId?: EpicID;
+
+  // Child arrays
+  billingDrg: EpicRow[] = [];
+  claims: EpicRow[] = [];
+  splitBilling: EpicRow[] = [];
+  bucketAdditionalRecords: EpicRow[] = [];
+
+  constructor(raw: EpicRow) {
+    Object.assign(this, raw);
+    this.HSP_ACCOUNT_ID = raw.HSP_ACCOUNT_ID as EpicID;
+    this.accountName = raw.HSP_ACCOUNT_NAME as string;
+    this.accountClass = raw.ACCT_CLASS_HA_C_NAME as string;
+    this.financialClass = raw.ACCT_FIN_CLASS_C_NAME as string;
+    this.billingStatus = raw.ACCT_BILLSTS_HA_C_NAME as string;
+    this.admissionDateTime = raw.ADM_DATE_TIME as string;
+    this.dischargeDateTime = raw.DISCH_DATE_TIME as string;
+    this.totalCharges = raw.TOT_CHGS as number;
+    this.totalAdjustments = raw.TOT_ADJ as number;
+    this.totalInsurancePayments = raw.TOT_INS_PMT as number;
+    this.totalSelfPayPayments = raw.TOT_SP_PMT as number;
+    this.primaryPayorId = raw.PRIMARY_PAYOR_ID as string;
+    this.primaryPlanId = raw.PRIMARY_PLAN_ID as string;
+    this.codingStatus = raw.CODING_STATUS_C_NAME as string;
+    this.firstBilledDate = raw.FIRST_BILLED_DATE as string;
+    this.baseInvoiceNumber = raw.BASE_INV_NUM as string;
+    this.serviceAreaId = raw.SERV_AREA_ID as EpicID;
+
+    this.billingDrg = (raw.billing_drg as EpicRow[]) ?? [];
+    this.claims = (raw.claims as EpicRow[]) ?? [];
+    this.splitBilling = (raw.split_billing as EpicRow[]) ?? [];
+    this.bucketAdditionalRecords = (raw.bucket_additional_records as EpicRow[]) ?? [];
+  }
+
+  /** Find encounters linked to this hospital account via encounter HAR references */
+  encounters(record: PatientRecordRef): Encounter[] {
+    const harId = this.HSP_ACCOUNT_ID;
+    return record.encounters.filter(e => {
+      const har = (e as unknown as EpicRow).HSP_ACCOUNT_ID;
+      return har === harId || String(har) === String(harId);
+    });
+  }
+}
+
+// ─── Guarantor Account (ACCOUNT) ───────────────────────────────────────────
+
+export class GuarantorAccount {
+  ACCOUNT_ID: EpicID;
+  accountName?: string;
+  accountType?: string;
+  financialClass?: string;
+  billingStatus?: string;
+  isActive?: string;
+  totalBalance?: number;
+  insuranceBalance?: number;
+  patientBalance?: number;
+  hbBalance?: number;
+  hbInsuranceBalance?: number;
+  hbSelfPayBalance?: number;
+  hbBadDebtBalance?: number;
+  hbUndistributedBalance?: number;
+  lastInsPaymentDate?: string;
+  lastSelfPayPaymentDate?: string;
+  lastPatPaymentAmount?: number;
+  serviceAreaId?: EpicID;
+
+  // Child arrays
+  coverageLinks: EpicRow[] = [];
+  addresses: EpicRow[] = [];
+  creationInfo: EpicRow[] = [];
+  addressHistory: EpicRow[] = [];
+  phoneHistory: EpicRow[] = [];
+
+  constructor(raw: EpicRow) {
+    Object.assign(this, raw);
+    this.ACCOUNT_ID = raw.ACCOUNT_ID as EpicID;
+    this.accountName = raw.ACCOUNT_NAME as string;
+    this.accountType = raw.ACCOUNT_TYPE_C_NAME as string;
+    this.financialClass = raw.FIN_CLASS_C_NAME as string;
+    this.billingStatus = raw.BILLING_STATUS_C_NAME as string;
+    this.isActive = raw.IS_ACTIVE as string;
+    this.totalBalance = raw.TOTAL_BALANCE as number;
+    this.insuranceBalance = raw.INSURANCE_BALANCE as number;
+    this.patientBalance = raw.PATIENT_BALANCE as number;
+    this.hbBalance = raw.HB_BALANCE as number;
+    this.hbInsuranceBalance = raw.HB_INSURANCE_BALAN as number;
+    this.hbSelfPayBalance = raw.HB_SELFPAY_BALANCE as number;
+    this.hbBadDebtBalance = raw.HB_BADDEBT_BALANCE as number;
+    this.hbUndistributedBalance = raw.HB_UNDISTRIB_BAL as number;
+    this.lastInsPaymentDate = raw.HB_LAST_INS_PMT_DT as string;
+    this.lastSelfPayPaymentDate = raw.HB_LAST_SP_PMT_DT as string;
+    this.lastPatPaymentAmount = raw.LAST_PAT_PMT_AMT as number;
+    this.serviceAreaId = raw.SERV_AREA_ID as EpicID;
+
+    this.coverageLinks = (raw.coverage_links as EpicRow[]) ?? [];
+    this.addresses = (raw.addresses as EpicRow[]) ?? [];
+    this.creationInfo = (raw.creation_info as EpicRow[]) ?? [];
+    this.addressHistory = (raw.address_history as EpicRow[]) ?? [];
+    this.phoneHistory = (raw.phone_history as EpicRow[]) ?? [];
+  }
+}
+
+// ─── Billing Claim (CLM_VALUES) ────────────────────────────────────────────
+
+export class BillingClaim {
+  RECORD_ID: EpicID;
+  invoiceNumber?: string;
+  totalChargeAmount?: number;
+  createDate?: string;
+  claimCoverageAmountPaid?: number;
+  claimCoverageSequence?: string;
+  claimCoveragePayerName?: string;
+  claimCoveragePayerId?: string;
+  claimCoverageFilingIndicator?: string;
+  claimCoverageGroupNumber?: string;
+  billingType?: string;
+
+  // Provider info
+  billingProviderName?: string;
+  billingProviderNPI?: string;
+  billingProviderTaxonomy?: string;
+  billingProviderTaxId?: string;
+  renderingProviderName?: string;
+  renderingProviderNPI?: string;
+  referringProviderName?: string;
+  referringProviderNPI?: string;
+  serviceFacilityName?: string;
+
+  // Child arrays
+  serviceLines: EpicRow[] = [];
+  diagnoses: EpicDiagnosisRow[] = [];
+  notes: EpicRow[] = [];
+  valueRecords: EpicRow[] = [];
+
+  constructor(raw: EpicRow) {
+    Object.assign(this, raw);
+    this.RECORD_ID = raw.RECORD_ID as EpicID;
+    this.invoiceNumber = raw.INV_NUM as string;
+    this.totalChargeAmount = raw.TTL_CHG_AMT as number;
+    this.createDate = raw.CREATE_DT as string;
+    this.claimCoverageAmountPaid = raw.CLM_CVG_AMT_PAID as number;
+    this.claimCoverageSequence = raw.CLM_CVG_SEQ_CD as string;
+    this.claimCoveragePayerName = raw.CLM_CVG_PYR_NAM as string;
+    this.claimCoveragePayerId = raw.CLM_CVG_PYR_ID as string;
+    this.claimCoverageFilingIndicator = raw.CLM_CVG_FILING_IND as string;
+    this.claimCoverageGroupNumber = raw.CLM_CVG_GRP_NUM as string;
+
+    const facCode = raw.BILL_TYP_FAC_CD as string;
+    const freqCode = raw.BILL_TYP_FREQ_CD as string;
+    this.billingType = (facCode || freqCode)
+      ? [facCode, freqCode].filter(Boolean).join('') : undefined;
+
+    // Provider info
+    this.billingProviderName = raw.BIL_PROV_NAM_LAST
+      ? [raw.BIL_PROV_NAM_LAST, raw.BIL_PROV_NAM_FIRST].filter(Boolean).join(', ') as string
+      : undefined;
+    this.billingProviderNPI = raw.BIL_PROV_NPI as string;
+    this.billingProviderTaxonomy = raw.BIL_PROV_TAXONOMY as string;
+    this.billingProviderTaxId = raw.BIL_PROV_TAXID as string;
+    this.renderingProviderName = raw.REND_PROV_NAM_LAST
+      ? [raw.REND_PROV_NAM_LAST, raw.REND_PROV_NAM_FIRST].filter(Boolean).join(', ') as string
+      : undefined;
+    this.renderingProviderNPI = raw.REND_PROV_NPI as string;
+    this.referringProviderName = raw.REF_PROV_NAM_LAST
+      ? [raw.REF_PROV_NAM_LAST, raw.REF_PROV_NAM_FIRST].filter(Boolean).join(', ') as string
+      : undefined;
+    this.referringProviderNPI = raw.REF_PROV_NPI as string;
+    this.serviceFacilityName = raw.SVC_FAC_NAM as string;
+
+    this.serviceLines = (raw.service_lines as EpicRow[]) ?? [];
+    this.diagnoses = (raw.diagnoses as EpicDiagnosisRow[]) ?? [];
+    this.notes = (raw.notes as EpicRow[]) ?? [];
+    this.valueRecords = (raw.value_records as EpicRow[]) ?? [];
+  }
+}
+
+// ─── Remittance (CL_REMIT) ────────────────────────────────────────────────
+
+export class Remittance {
+  IMAGE_ID: EpicID;
+  creationDate?: string;
+  paymentAmount?: number;
+  paymentMethod?: string;
+  paymentType?: string;
+  creditDebit?: string;
+  senderIdNumber?: string;
+  issueDate?: string;
+  patientId?: string;
+  claimStartDate?: string;
+  claimEndDate?: string;
+  imdType?: string;
+
+  // Child arrays
+  serviceLines: EpicRow[] = [];
+  claimInfo: EpicRow[] = [];
+  claimEntities: EpicRow[] = [];
+  providerSummary: EpicRow[] = [];
+  providerSupplemental: EpicRow[] = [];
+  inpatientAdjustments: EpicRow[] = [];
+  outpatientAdjustments: EpicRow[] = [];
+  serviceLevelAdjustments: EpicRow[] = [];
+  serviceLevelRefs: EpicRow[] = [];
+  serviceAmounts: EpicRow[] = [];
+  serviceDates: EpicRow[] = [];
+  deliveryMethods: EpicRow[] = [];
+  claimDateInfo: EpicRow[] = [];
+
+  constructor(raw: EpicRow) {
+    Object.assign(this, raw);
+    this.IMAGE_ID = raw.IMAGE_ID as EpicID;
+    this.creationDate = raw.CREATION_DATE as string;
+    this.paymentAmount = raw.PAYMENT_AMOUNT as number;
+    this.paymentMethod = raw.PAYMENT_METHOD_C_NAME as string;
+    this.paymentType = raw.PAYMENT_TYPE_C_NAME as string;
+    this.creditDebit = raw.CREDIT_DEBIT_C_NAME as string;
+    this.senderIdNumber = raw.SENDER_IDN_NUM as string;
+    this.issueDate = raw.ISSUE_DATE as string;
+    this.patientId = raw.PAT_ID as string;
+    this.claimStartDate = raw.CLM_START_DATE as string;
+    this.claimEndDate = raw.CLM_END_DATE as string;
+    this.imdType = raw.IMD_TYPE_C_NAME as string;
+
+    this.serviceLines = (raw.service_lines as EpicRow[]) ?? [];
+    this.claimInfo = (raw.claim_info as EpicRow[]) ?? [];
+    this.claimEntities = (raw.claim_entities as EpicRow[]) ?? [];
+    this.providerSummary = (raw.provider_summary as EpicRow[]) ?? [];
+    this.providerSupplemental = (raw.provider_supplemental as EpicRow[]) ?? [];
+    this.inpatientAdjustments = (raw.inpatient_adjustments as EpicRow[]) ?? [];
+    this.outpatientAdjustments = (raw.outpatient_adjustments as EpicRow[]) ?? [];
+    this.serviceLevelAdjustments = (raw.service_level_adjustments as EpicRow[]) ?? [];
+    this.serviceLevelRefs = (raw.service_level_refs as EpicRow[]) ?? [];
+    this.serviceAmounts = (raw.service_amounts as EpicRow[]) ?? [];
+    this.serviceDates = (raw.service_dates as EpicRow[]) ?? [];
+    this.deliveryMethods = (raw.delivery_methods as EpicRow[]) ?? [];
+    this.claimDateInfo = (raw.claim_date_info as EpicRow[]) ?? [];
+  }
+
+  /** Find billing transactions referenced by this remittance's service lines via SVC_LINE_CHG_PB_ID */
+  matchedTransactions(record: PatientRecordRef): BillingTransaction[] {
+    const txIds = new Set(
+      this.serviceLines
+        .map(sl => sl.SVC_LINE_CHG_PB_ID as EpicID)
+        .filter(Boolean)
+        .map(String)
+    );
+    return record.billing.transactions.filter(tx => txIds.has(String(tx.TX_ID)));
+  }
+}
+
+// ─── Invoice (INVOICE) ─────────────────────────────────────────────────────
+
+export class Invoice {
+  INVOICE_ID: EpicID;
+  patientId?: string;
+  accountId?: EpicID;
+  serviceAreaId?: EpicID;
+  locationId?: EpicID;
+  departmentId?: EpicID;
+  providerId?: string;
+  taxId?: string;
+  insuranceAmount?: number;
+  selfPayAmount?: number;
+  initialInsuranceBalance?: number;
+  initialSelfPayBalance?: number;
+  billAreaId?: EpicID;
+  billAreaName?: string;
+  hospitalAccountId?: EpicID;
+
+  // Child arrays
+  basicInfo: EpicRow[] = [];
+  txPieces: EpicRow[] = [];
+  numTxPieces: EpicRow[] = [];
+  claimLineAdditional: EpicRow[] = [];
+  diagnoses: EpicDiagnosisRow[] = [];
+  paymentRecoup: EpicRow[] = [];
+
+  constructor(raw: EpicRow) {
+    Object.assign(this, raw);
+    this.INVOICE_ID = raw.INVOICE_ID as EpicID;
+    this.patientId = raw.PAT_ID as string;
+    this.accountId = raw.ACCOUNT_ID as EpicID;
+    this.serviceAreaId = raw.SERV_AREA_ID as EpicID;
+    this.locationId = raw.LOC_ID as EpicID;
+    this.departmentId = raw.DEPARTMENT_ID as EpicID;
+    this.providerId = raw.PROV_ID as string;
+    this.taxId = raw.TAX_ID as string;
+    this.insuranceAmount = raw.INSURANCE_AMT as number;
+    this.selfPayAmount = raw.SELF_PAY_AMT as number;
+    this.initialInsuranceBalance = raw.INIT_INSURANCE_BAL as number;
+    this.initialSelfPayBalance = raw.INIT_SELF_PAY_BAL as number;
+    this.billAreaId = raw.BILL_AREA_ID as EpicID;
+    this.billAreaName = raw.BILL_AREA_ID_BILL_AREA_NAME as string;
+    this.hospitalAccountId = raw.PB_HOSP_ACT_ID as EpicID;
+
+    this.basicInfo = (raw.basic_info as EpicRow[]) ?? [];
+    this.txPieces = (raw.tx_pieces as EpicRow[]) ?? [];
+    this.numTxPieces = (raw.num_tx_pieces as EpicRow[]) ?? [];
+    this.claimLineAdditional = (raw.claim_line_addl as EpicRow[]) ?? [];
+    this.diagnoses = (raw.diagnoses as EpicDiagnosisRow[]) ?? [];
+    this.paymentRecoup = (raw.payment_recoup as EpicRow[]) ?? [];
+  }
+}
+
+// ─── Cross-reference accessors on existing billing classes ─────────────────
+// (Augmented after class definitions to avoid forward-reference issues)
+
+// BillingTransaction: find remittance service lines referencing this TX_ID
+const _btRemittanceLines = function(this: BillingTransaction, record: PatientRecordRef): EpicRow[] {
+  const txId = String(this.TX_ID);
+  const lines: EpicRow[] = [];
+  for (const rem of record.billing.remittances) {
+    for (const sl of rem.serviceLines) {
+      if (String(sl.SVC_LINE_CHG_PB_ID) === txId) {
+        lines.push(sl);
+      }
+    }
+  }
+  return lines;
+};
+BillingTransaction.prototype.remittanceLines = _btRemittanceLines;
+
+// BillingTransaction: find claim by matching invoice number
+const _btClaim = function(this: BillingTransaction, record: PatientRecordRef): BillingClaim | undefined {
+  // TX rows have IPP_INV_NUMBER which matches CLM_VALUES.INV_NUM
+  const txInvNum = (this as EpicRow).IPP_INV_NUMBER as string;
+  if (txInvNum) {
+    const claim = record.billing.claims.find(c => c.invoiceNumber === txInvNum);
+    if (claim) return claim;
+  }
+  // Fallback: look up via Invoice.txPieces → Invoice.basicInfo.INV_NUM → Claim.INV_NUM
+  const txId = String(this.TX_ID);
+  for (const inv of record.billing.invoices) {
+    const hasTx = inv.txPieces.some(p => String(p.TX_ID) === txId);
+    if (hasTx) {
+      for (const info of inv.basicInfo) {
+        const invNum = info.INV_NUM as string;
+        if (invNum) {
+          const claim = record.billing.claims.find(c => c.invoiceNumber === invNum);
+          if (claim) return claim;
+        }
+      }
+    }
+  }
+  return undefined;
+};
+BillingTransaction.prototype.claim = _btClaim;
+
+// Augment the BillingTransaction type to include the new methods
+declare module './PatientRecord' {
+  interface BillingTransaction {
+    remittanceLines(record: PatientRecordRef): EpicRow[];
+    claim(record: PatientRecordRef): BillingClaim | undefined;
+  }
+}
+
 export class Message {
   MESSAGE_ID: EpicID;
   messageType?: string;
@@ -530,10 +904,11 @@ export class Message {
 export interface BillingRecord {
   transactions: BillingTransaction[];
   visits: BillingVisit[];
-  hospitalAccounts: EpicRow[];
-  guarantorAccounts: EpicRow[];
-  claims: EpicRow[];
-  remittances: EpicRow[];
+  hospitalAccounts: HospitalAccount[];
+  guarantorAccounts: GuarantorAccount[];
+  claims: BillingClaim[];
+  remittances: Remittance[];
+  invoices: Invoice[];
 }
 
 // ─── Patient Record ────────────────────────────────────────────────────────
@@ -606,10 +981,11 @@ export class PatientRecord {
     this.billing = {
       transactions: ((billing.transactions as EpicRow[]) ?? []).map(t => new BillingTransaction(t)),
       visits: ((billing.visits as EpicRow[]) ?? []).map(v => new BillingVisit(v)),
-      hospitalAccounts: (billing.hospital_accounts as EpicRow[]) ?? [],
-      guarantorAccounts: (billing.guarantor_accounts as EpicRow[]) ?? [],
-      claims: (billing.claims as EpicRow[]) ?? [],
-      remittances: (billing.remittances as EpicRow[]) ?? [],
+      hospitalAccounts: ((billing.hospital_accounts as EpicRow[]) ?? []).map(h => new HospitalAccount(h)),
+      guarantorAccounts: ((billing.guarantor_accounts as EpicRow[]) ?? []).map(g => new GuarantorAccount(g)),
+      claims: ((billing.claims as EpicRow[]) ?? []).map(c => new BillingClaim(c)),
+      remittances: ((billing.remittances as EpicRow[]) ?? []).map(r => new Remittance(r)),
+      invoices: ((billing.invoices as EpicRow[]) ?? []).map(i => new Invoice(i)),
     };
 
     // Messages
