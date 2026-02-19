@@ -135,12 +135,14 @@ function Timeline({ events }) {
   return (
     <div className="timeline">
       {events.map((ev, i) => (
-        <div key={i} className={`tl-event ${ev.type}`}>
+        <div key={i} className={`tl-event ${ev.type}${ev.isVoidedCharge ? ' voided-event' : ''}`}
+             style={ev.isVoidedCharge ? {opacity: 0.5} : undefined}>
           <div className="tl-dot" />
           <div>
             <span className="tl-date">{fmtDateShort(ev.date)}</span>
             {ev.amount != null && (
               <span className={`tl-amount ${ev.amount >= 0 ? 'positive' : 'negative'}`}>
+                {ev.amountLabel ? <span className="tl-amount-label">{ev.amountLabel}: </span> : null}
                 {ev.amount >= 0 ? '+' : ''}{fmt(ev.amount)}
               </span>
             )}
@@ -173,14 +175,19 @@ function ChargeTable({ charges }) {
       <tbody>
         {charges.map((c, i) => {
           const status = c.isVoided ? 'voided' : (c.outstanding === 0 ? 'resolved' : 'outstanding');
+          const rowStyle = c.isVoided ? {opacity: 0.45, textDecoration: 'line-through'} : {};
           return (
-            <tr key={i}>
-              <td><span className={`status-dot ${status}`} />{status}</td>
+            <tr key={i} style={rowStyle}>
+              <td>
+                <span className={`status-dot ${status}`} />{status}
+                {c.isVoided && c.voidType && <span style={{fontSize:11, color:'var(--red2)', marginLeft:4}}>({c.voidType})</span>}
+                {c.originalChargeId && <span style={{fontSize:11, color:'var(--cyan)', marginLeft:4}}>(replaces #{c.originalChargeId})</span>}
+              </td>
               <td>{c.service}</td>
               <td style={{color: 'var(--text2)'}}>{c.specialty ?? '—'}</td>
               <td className="amt">{fmt(c.amount)}</td>
               <td className="amt" style={{color: 'var(--green2)'}}>
-                {fmt((c.matchHistory ?? []).reduce((s, m) => s + (m.matchAmount ?? 0), 0) * -1 || null)}
+                {fmt((c.matchHistory ?? []).reduce((s, m) => s + (m.amount ?? 0), 0) * -1 || null)}
               </td>
               <td className="amt" style={{color: 'var(--amber2)'}}>
                 {fmt((c.matchHistory ?? []).reduce((s, m) => s + (m.adjustmentAmount ?? 0), 0) * -1 || null)}

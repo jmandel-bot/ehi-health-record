@@ -210,3 +210,14 @@ a { color: var(--accent2); text-decoration: none; }
   .money-flow { flex-wrap: wrap; }
   .story-header { flex-wrap: wrap; }
 }
+
+/* Amount labels in timeline */
+.tl-amount-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  opacity: 0.8;
+}
+.voided-event .tl-label {
+  font-style: italic;
+}

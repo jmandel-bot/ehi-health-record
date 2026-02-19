@@ -425,8 +425,12 @@ export interface Charge {
   isVoided: boolean;
   /** Date the charge was voided */
   voidDate: ISODate;
-  /** Replacement charge TX_ID (if voided and reposted) */
-  replacementChargeId: Id | null;
+  /** For replacement charges: the original (voided) charge TX_ID this replaced */
+  originalChargeId: Id | null;
+  /** User who voided this charge */
+  voidedBy: string | null;
+  /** Void/repost type (e.g., "Correction") */
+  voidType: string | null;
   /** Payment match history — who matched which payment to this charge, when */
   matchHistory: ChargeMatchHistory[];
   /** Statement/claim submission history for this charge */
@@ -1517,7 +1521,9 @@ function projectBilling(r: R): BillingSummary {
         // Void tracking
         isVoided: tx.VOID_DATE != null || tx.INACTIVE_TYPE_C_NAME === 'Voided',
         voidDate: toISODate(tx.VOID_DATE),
-        replacementChargeId: str(tx.REPOST_ETR_ID),
+        originalChargeId: str(tx.void_info?.[0]?.OLD_ETR_ID),
+        voidedBy: str(tx.void_info?.[0]?.DEL_CHARGE_USER_ID_NAME),
+        voidType: str(tx.void_info?.[0]?.REPOST_TYPE_C_NAME),
         // Match history — who matched which payment to this charge, when
         matchHistory: (tx.match_history ?? []).map((mh: any): ChargeMatchHistory => ({
           matchDate: toISODate(mh.MTCH_TX_HX_DT),

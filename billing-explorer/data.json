@@ -35,7 +35,7 @@
         "provider": "RAMMELKAMP, ZOE L",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [
           "Post concussion syndrome"
         ],
@@ -53,7 +53,7 @@
         "provider": "NACK, SAMANTHA R",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
         "orders": [],
         "hasBilling": false,
@@ -69,18 +69,14 @@
         "provider": "RAMMELKAMP, ZOE L",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": "Completed",
         "diagnoses": [
           "Screening for hyperlipidemia",
           "Screening for diabetes mellitus",
           "Preventative health care",
           "Post concussion syndrome"
         ],
-        "orders": [
-          "INFLUENZA (FLUARIX) IIV4",
-          "LIPID PANEL",
-          "HEMOGLOBIN A1C"
-        ],
+        "orders": [],
         "hasBilling": true,
         "billingStatus": "Closed",
         "financialClass": "Blue Cross"
@@ -102,7 +98,8 @@
             "label": "Clinical Visit",
             "sublabel": "Visit",
             "detail": "RAMMELKAMP, ZOE L at dept",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-09-28",
@@ -110,7 +107,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 23870",
             "detail": "Internal Medicine Mod: 25",
-            "amount": 330
+            "amount": 330,
+            "amountLabel": "Billed",
+            "chargeId": "355871699",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-09-28",
@@ -118,7 +118,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 22128",
             "detail": "",
-            "amount": 60
+            "amount": 60,
+            "amountLabel": "Billed",
+            "chargeId": "354520701",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-09-28",
@@ -126,15 +129,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 96431",
             "detail": "",
-            "amount": 54
-          },
-          {
-            "date": "2023-09-28",
-            "type": "invoice",
-            "label": "Claim Filed (837)",
-            "sublabel": "L1007990080",
-            "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Closed",
-            "amount": 0
+            "amount": 54,
+            "amountLabel": "Billed",
+            "chargeId": "354520699",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-09-28",
@@ -142,7 +140,17 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1008016200",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Closed",
-            "amount": 0
+            "amount": null,
+            "amountLabel": null
+          },
+          {
+            "date": "2023-09-28",
+            "type": "invoice",
+            "label": "Claim Filed (837)",
+            "sublabel": "L1007990080",
+            "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Closed",
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-05",
@@ -150,7 +158,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Accepted in H.IP – Electronic Claim Sent",
-            "amount": 114
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-05",
@@ -158,7 +167,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Claim/encounter has been forwarded to entity.",
-            "amount": 114
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-05",
@@ -166,7 +176,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 114
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-05",
@@ -174,7 +185,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 114
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-05",
@@ -182,7 +194,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 114
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-05",
@@ -190,7 +203,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 114
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-13",
@@ -198,7 +212,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Accepted in H.IP – Electronic Claim Sent",
-            "amount": 330
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-13",
@@ -206,7 +221,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Claim/encounter has been forwarded to entity.",
-            "amount": 330
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-13",
@@ -214,7 +230,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 330
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-13",
@@ -222,7 +239,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 330
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-13",
@@ -230,7 +248,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 330
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-13",
@@ -238,7 +257,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 330
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-18",
@@ -246,7 +266,8 @@
             "label": "ERA Received (835)",
             "sublabel": "Processed as Primary",
             "detail": "Charged: $114 → Paid: $38.85",
-            "amount": 38.85
+            "amount": 38.85,
+            "amountLabel": "Paid"
           },
           {
             "date": "2023-10-18",
@@ -254,7 +275,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$33",
-            "amount": -33
+            "amount": -33,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2023-10-18",
@@ -262,7 +284,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$42.15",
-            "amount": -42.15
+            "amount": -42.15,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2023-10-18",
@@ -270,7 +293,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $42.15 → $0",
-            "amount": -42.15
+            "amount": -42.15,
+            "amountLabel": "Adjustment",
+            "chargeId": "354520701",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-10-18",
@@ -278,7 +304,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $33 → $0",
-            "amount": -33
+            "amount": -33,
+            "amountLabel": "Adjustment",
+            "chargeId": "354520699",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-10-21",
@@ -286,7 +315,8 @@
             "label": "ERA Received (835)",
             "sublabel": "Processed as Primary",
             "detail": "Charged: $330 → Paid: $223.42",
-            "amount": 223.42
+            "amount": 223.42,
+            "amountLabel": "Paid"
           },
           {
             "date": "2023-10-21",
@@ -294,7 +324,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$106.58",
-            "amount": -106.58
+            "amount": -106.58,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2023-10-23",
@@ -302,7 +333,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $106.58 → $0",
-            "amount": -106.58
+            "amount": -106.58,
+            "amountLabel": "Adjustment",
+            "chargeId": "355871699",
+            "isVoidedCharge": false
           }
         ],
         "charges": [
@@ -374,7 +408,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           },
           {
             "id": "354520701",
@@ -442,7 +478,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           },
           {
             "id": "354520699",
@@ -510,10 +548,26 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           }
         ],
         "invoices": [
+          {
+            "id": "65425314",
+            "number": "L1008016200",
+            "status": "Closed",
+            "type": "Claim",
+            "insAmount": 0,
+            "selfPay": 0,
+            "payer": "BLUE CROSS WI PPO/FEDERAL",
+            "fromDate": "2023-09-28",
+            "toDate": "2023-09-28",
+            "chargeIds": [
+              "355871699"
+            ]
+          },
           {
             "id": "65226259",
             "number": "L1007990080",
@@ -527,20 +581,6 @@
             "chargeIds": [
               "354520699",
               "354520701"
-            ]
-          },
-          {
-            "id": "65425314",
-            "number": "L1008016200",
-            "status": "Closed",
-            "type": "Claim",
-            "insAmount": 0,
-            "selfPay": 0,
-            "payer": "BLUE CROSS WI PPO/FEDERAL",
-            "fromDate": "2023-09-28",
-            "toDate": "2023-09-28",
-            "chargeIds": [
-              "355871699"
             ]
           }
         ],
@@ -581,165 +621,6 @@
           }
         ],
         "recons": [
-          {
-            "id": "110203431",
-            "invoiceNumber": "L1007990080",
-            "currentStatus": "Open",
-            "claimStatus": "Accepted from Run",
-            "totalBilled": 114,
-            "closedDate": null,
-            "timeline": [
-              {
-                "date": "2023-10-05",
-                "statusCode": "Accepted in H.IP – Electronic Claim Sent",
-                "action": "Accept Claim",
-                "message": "CLAIM FORWARDED",
-                "payerAmountSubmitted": 114,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/file.02060262.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110203431",
-                  "CONTACT_DATE_REAL": 66752.03,
-                  "LINE": 1,
-                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted in H.IP – Electronic Claim Sent",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Forwarded-The claim has been forwarded to another entity",
-                  "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
-                  "CLM_ACT_CODE_C_NAME": "Accept",
-                  "CLM_STATUS_MSG": "CLAIM FORWARDED"
-                }
-              },
-              {
-                "date": "2023-10-05",
-                "statusCode": "Claim/encounter has been forwarded to entity.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 114,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/file.02060262.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110203431",
-                  "CONTACT_DATE_REAL": 66752.03,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Claim/encounter has been forwarded to entity.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Forwarded-The claim has been forwarded to another entity",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2023-10-05",
-                "statusCode": "Payer – Accepted Claim",
-                "action": "Accept Claim",
-                "message": "ACCEPTED FOR PROCESSING.",
-                "payerAmountSubmitted": 114,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646335.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110203431",
-                  "CONTACT_DATE_REAL": 66752.04,
-                  "LINE": 1,
-                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Payer – Accepted Claim",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
-                  "CLM_ACT_CODE_C_NAME": "Accept",
-                  "CLM_STATUS_MSG": "ACCEPTED FOR PROCESSING."
-                }
-              },
-              {
-                "date": "2023-10-05",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 114,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646335.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110203431",
-                  "CONTACT_DATE_REAL": 66752.04,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              },
-              {
-                "date": "2023-10-05",
-                "statusCode": "Payer – Accepted Claim",
-                "action": "Accept Claim",
-                "message": "ACCEPTED FOR PROCESSING.",
-                "payerAmountSubmitted": 114,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646335.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110203431",
-                  "CONTACT_DATE_REAL": 66752.05,
-                  "LINE": 1,
-                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Payer – Accepted Claim",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
-                  "CLM_ACT_CODE_C_NAME": "Accept",
-                  "CLM_STATUS_MSG": "ACCEPTED FOR PROCESSING."
-                }
-              },
-              {
-                "date": "2023-10-05",
-                "statusCode": "Accepted for processing.",
-                "action": "No Action",
-                "message": null,
-                "payerAmountSubmitted": 114,
-                "payerAmountPaid": null,
-                "payerCheckDate": null,
-                "payerCheckNumber": null,
-                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646335.277",
-                "errorMessage": null,
-                "_epic": {
-                  "CLAIM_RECON_ID": "110203431",
-                  "CONTACT_DATE_REAL": 66752.05,
-                  "LINE": 2,
-                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
-                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
-                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
-                  "CLM_MAPPED_ACT_C_NAME": "No Action"
-                }
-              }
-            ],
-            "_epic": {
-              "CLAIM_REC_ID": "110203431",
-              "CLAIM_INVOICE_NUM": "L1007990080",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 114,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801002,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "2722845",
-              "EXT_STS_RCV_YN": "Y",
-              "CROSSOVER_CLAIM_YN": "N",
-              "POST_ACK_STATUS_YN": "N"
-            }
-          },
           {
             "id": "110539507",
             "invoiceNumber": "L1008016200",
@@ -880,27 +761,206 @@
                   "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
-            ],
-            "_epic": {
-              "CLAIM_REC_ID": "110539507",
-              "CLAIM_INVOICE_NUM": "L1008016200",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 330,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801002,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "2729057",
-              "EXT_STS_RCV_YN": "Y",
-              "CROSSOVER_CLAIM_YN": "N",
-              "POST_ACK_STATUS_YN": "N"
-            }
+            ]
+          },
+          {
+            "id": "110203431",
+            "invoiceNumber": "L1007990080",
+            "currentStatus": "Open",
+            "claimStatus": "Accepted from Run",
+            "totalBilled": 114,
+            "closedDate": null,
+            "timeline": [
+              {
+                "date": "2023-10-05",
+                "statusCode": "Accepted in H.IP – Electronic Claim Sent",
+                "action": "Accept Claim",
+                "message": "CLAIM FORWARDED",
+                "payerAmountSubmitted": 114,
+                "payerAmountPaid": null,
+                "payerCheckDate": null,
+                "payerCheckNumber": null,
+                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/file.02060262.277",
+                "errorMessage": null,
+                "_epic": {
+                  "CLAIM_RECON_ID": "110203431",
+                  "CONTACT_DATE_REAL": 66752.03,
+                  "LINE": 1,
+                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
+                  "CLM_STAT_CODE_C_NAME": "Accepted in H.IP – Electronic Claim Sent",
+                  "CLM_CAT_CODE_C_NAME": "ACK/Forwarded-The claim has been forwarded to another entity",
+                  "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
+                  "CLM_ACT_CODE_C_NAME": "Accept",
+                  "CLM_STATUS_MSG": "CLAIM FORWARDED"
+                }
+              },
+              {
+                "date": "2023-10-05",
+                "statusCode": "Claim/encounter has been forwarded to entity.",
+                "action": "No Action",
+                "message": null,
+                "payerAmountSubmitted": 114,
+                "payerAmountPaid": null,
+                "payerCheckDate": null,
+                "payerCheckNumber": null,
+                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/file.02060262.277",
+                "errorMessage": null,
+                "_epic": {
+                  "CLAIM_RECON_ID": "110203431",
+                  "CONTACT_DATE_REAL": 66752.03,
+                  "LINE": 2,
+                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
+                  "CLM_STAT_CODE_C_NAME": "Claim/encounter has been forwarded to entity.",
+                  "CLM_CAT_CODE_C_NAME": "ACK/Forwarded-The claim has been forwarded to another entity",
+                  "CLM_MAPPED_ACT_C_NAME": "No Action"
+                }
+              },
+              {
+                "date": "2023-10-05",
+                "statusCode": "Payer – Accepted Claim",
+                "action": "Accept Claim",
+                "message": "ACCEPTED FOR PROCESSING.",
+                "payerAmountSubmitted": 114,
+                "payerAmountPaid": null,
+                "payerCheckDate": null,
+                "payerCheckNumber": null,
+                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646335.277",
+                "errorMessage": null,
+                "_epic": {
+                  "CLAIM_RECON_ID": "110203431",
+                  "CONTACT_DATE_REAL": 66752.04,
+                  "LINE": 1,
+                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
+                  "CLM_STAT_CODE_C_NAME": "Payer – Accepted Claim",
+                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
+                  "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
+                  "CLM_ACT_CODE_C_NAME": "Accept",
+                  "CLM_STATUS_MSG": "ACCEPTED FOR PROCESSING."
+                }
+              },
+              {
+                "date": "2023-10-05",
+                "statusCode": "Accepted for processing.",
+                "action": "No Action",
+                "message": null,
+                "payerAmountSubmitted": 114,
+                "payerAmountPaid": null,
+                "payerCheckDate": null,
+                "payerCheckNumber": null,
+                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646335.277",
+                "errorMessage": null,
+                "_epic": {
+                  "CLAIM_RECON_ID": "110203431",
+                  "CONTACT_DATE_REAL": 66752.04,
+                  "LINE": 2,
+                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
+                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
+                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
+                  "CLM_MAPPED_ACT_C_NAME": "No Action"
+                }
+              },
+              {
+                "date": "2023-10-05",
+                "statusCode": "Payer – Accepted Claim",
+                "action": "Accept Claim",
+                "message": "ACCEPTED FOR PROCESSING.",
+                "payerAmountSubmitted": 114,
+                "payerAmountPaid": null,
+                "payerCheckDate": null,
+                "payerCheckNumber": null,
+                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646335.277",
+                "errorMessage": null,
+                "_epic": {
+                  "CLAIM_RECON_ID": "110203431",
+                  "CONTACT_DATE_REAL": 66752.05,
+                  "LINE": 1,
+                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
+                  "CLM_STAT_CODE_C_NAME": "Payer – Accepted Claim",
+                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
+                  "CLM_MAPPED_ACT_C_NAME": "Accept Claim",
+                  "CLM_ACT_CODE_C_NAME": "Accept",
+                  "CLM_STATUS_MSG": "ACCEPTED FOR PROCESSING."
+                }
+              },
+              {
+                "date": "2023-10-05",
+                "statusCode": "Accepted for processing.",
+                "action": "No Action",
+                "message": null,
+                "payerAmountSubmitted": 114,
+                "payerAmountPaid": null,
+                "payerCheckDate": null,
+                "payerCheckNumber": null,
+                "fileName": "/epic/xfer/APLPBclaims/HealthcareIP/report.00646335.277",
+                "errorMessage": null,
+                "_epic": {
+                  "CLAIM_RECON_ID": "110203431",
+                  "CONTACT_DATE_REAL": 66752.05,
+                  "LINE": 2,
+                  "CONTACT_DATE": "10/5/2023 12:00:00 AM",
+                  "CLM_STAT_CODE_C_NAME": "Accepted for processing.",
+                  "CLM_CAT_CODE_C_NAME": "ACK/Receipt-Claim has been received.  - Does not necessarily mean it has been accepted for adjudication",
+                  "CLM_MAPPED_ACT_C_NAME": "No Action"
+                }
+              }
+            ]
           }
         ],
         "remits": [
+          {
+            "id": "229308484",
+            "creationDate": "2023-10-21",
+            "paymentAmount": null,
+            "paymentMethod": "Remittance",
+            "adjudication": {
+              "invoiceNumber": "L1008016200",
+              "claimStatus": "Processed as Primary",
+              "chargedAmount": 330,
+              "paidAmount": 223.42,
+              "patientResponsibility": null,
+              "claimControlNumber": "2023286CD3233",
+              "filingCode": "Preferred provider organization (PPO)"
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "HC:99396:25",
+                "chargedAmount": 330,
+                "paidAmount": 223.42,
+                "unitsPaid": 1,
+                "revenueCode": null,
+                "chargeTransactionId": "355871699",
+                "_epic": {
+                  "IMAGE_ID": "229308484",
+                  "LINE": 1,
+                  "SERVICE_LINE": "1",
+                  "PROC_IDENTIFIER": "HC:99396:25",
+                  "LINE_ITEM_CHG_AMT": 330,
+                  "PROV_PAYMENT_AMT": 223.42,
+                  "UNITS_PAID_CNT": 1,
+                  "SVC_LINE_CHG_PB_ID": 355871699
+                }
+              }
+            ],
+            "adjustments": [
+              {
+                "line": 1,
+                "serviceLine": "1",
+                "adjustmentGroup": "Contractual Obligation",
+                "reasonCode": "45",
+                "amount": 106.58,
+                "quantity": null,
+                "_epic": {
+                  "IMAGE_ID": "229308484",
+                  "LINE": 1,
+                  "CAS_SERVICE_LINE": "1",
+                  "SVC_CAS_GRP_CODE_C_NAME": "Contractual Obligation",
+                  "SVC_ADJ_REASON_CD": "45",
+                  "SVC_ADJ_AMT": 106.58
+                }
+              }
+            ]
+          },
           {
             "id": "228893430",
             "creationDate": "2023-10-18",
@@ -988,99 +1048,7 @@
                   "SVC_ADJ_AMT": 42.15
                 }
               }
-            ],
-            "_epic": {
-              "IMAGE_ID": "228893430",
-              "creationDate": "10/18/2023 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "9/28/2023 12:00:00 AM",
-              "claimEndDate": "9/28/2023 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "10/18/2023 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "228893185",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "9/28/2023 12:00:00 AM",
-              "CLM_END_DATE": "9/28/2023 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
-          },
-          {
-            "id": "229308484",
-            "creationDate": "2023-10-21",
-            "paymentAmount": null,
-            "paymentMethod": "Remittance",
-            "adjudication": {
-              "invoiceNumber": "L1008016200",
-              "claimStatus": "Processed as Primary",
-              "chargedAmount": 330,
-              "paidAmount": 223.42,
-              "patientResponsibility": null,
-              "claimControlNumber": "2023286CD3233",
-              "filingCode": "Preferred provider organization (PPO)"
-            },
-            "serviceLines": [
-              {
-                "line": 1,
-                "procedureCode": "HC:99396:25",
-                "chargedAmount": 330,
-                "paidAmount": 223.42,
-                "unitsPaid": 1,
-                "revenueCode": null,
-                "chargeTransactionId": "355871699",
-                "_epic": {
-                  "IMAGE_ID": "229308484",
-                  "LINE": 1,
-                  "SERVICE_LINE": "1",
-                  "PROC_IDENTIFIER": "HC:99396:25",
-                  "LINE_ITEM_CHG_AMT": 330,
-                  "PROV_PAYMENT_AMT": 223.42,
-                  "UNITS_PAID_CNT": 1,
-                  "SVC_LINE_CHG_PB_ID": 355871699
-                }
-              }
-            ],
-            "adjustments": [
-              {
-                "line": 1,
-                "serviceLine": "1",
-                "adjustmentGroup": "Contractual Obligation",
-                "reasonCode": "45",
-                "amount": 106.58,
-                "quantity": null,
-                "_epic": {
-                  "IMAGE_ID": "229308484",
-                  "LINE": 1,
-                  "CAS_SERVICE_LINE": "1",
-                  "SVC_CAS_GRP_CODE_C_NAME": "Contractual Obligation",
-                  "SVC_ADJ_REASON_CD": "45",
-                  "SVC_ADJ_AMT": 106.58
-                }
-              }
-            ],
-            "_epic": {
-              "IMAGE_ID": "229308484",
-              "creationDate": "10/21/2023 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "9/28/2023 12:00:00 AM",
-              "claimEndDate": "9/28/2023 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "10/21/2023 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "229308329",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "9/28/2023 12:00:00 AM",
-              "CLM_END_DATE": "9/28/2023 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
+            ]
           }
         ],
         "actions": [
@@ -1275,17 +1243,13 @@
         "provider": "MAC LAB APL",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": "Completed",
         "diagnoses": [
           "Screening for diabetes mellitus",
           "Screening for hyperlipidemia",
           "Preventative health care"
         ],
-        "orders": [
-          "HEPATITIS C ANTIBODY",
-          "LIPID PANEL",
-          "HEMOGLOBIN A1C"
-        ],
+        "orders": [],
         "hasBilling": true,
         "billingStatus": "Closed",
         "financialClass": "Blue Cross"
@@ -1307,7 +1271,8 @@
             "label": "Clinical Visit",
             "sublabel": "Visit",
             "detail": "MAC LAB APL at dept",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-09-28",
@@ -1315,7 +1280,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 13199",
             "detail": "Internal Medicine Mod: MCP",
-            "amount": 33
+            "amount": 33,
+            "amountLabel": "Billed",
+            "chargeId": "354336210",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-09-28",
@@ -1323,7 +1291,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 19732",
             "detail": "Internal Medicine Mod: MCP",
-            "amount": 120
+            "amount": 120,
+            "amountLabel": "Billed",
+            "chargeId": "354336209",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-09-28",
@@ -1331,7 +1302,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 20302",
             "detail": "Internal Medicine Mod: MCP",
-            "amount": 50
+            "amount": 50,
+            "amountLabel": "Billed",
+            "chargeId": "354336208",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-09-28",
@@ -1339,7 +1313,8 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1007985430",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Closed",
-            "amount": 0
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-04",
@@ -1347,7 +1322,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Accepted in H.IP – Electronic Claim Sent",
-            "amount": 203
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-04",
@@ -1355,7 +1331,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Claim/encounter has been forwarded to entity.",
-            "amount": 203
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-05",
@@ -1363,7 +1340,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 203
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-05",
@@ -1371,7 +1349,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 203
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-05",
@@ -1379,7 +1358,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 203
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-05",
@@ -1387,7 +1367,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 203
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-10-18",
@@ -1395,7 +1376,8 @@
             "label": "ERA Received (835)",
             "sublabel": "Processed as Primary",
             "detail": "Charged: $203 → Paid: $19.25",
-            "amount": 19.25
+            "amount": 19.25,
+            "amountLabel": "Paid"
           },
           {
             "date": "2023-10-18",
@@ -1403,7 +1385,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$42.81",
-            "amount": -42.81
+            "amount": -42.81,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2023-10-18",
@@ -1411,7 +1394,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$110.08",
-            "amount": -110.08
+            "amount": -110.08,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2023-10-18",
@@ -1419,7 +1403,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$30.86",
-            "amount": -30.86
+            "amount": -30.86,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2023-10-18",
@@ -1427,7 +1412,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $30.86 → $0",
-            "amount": -30.86
+            "amount": -30.86,
+            "amountLabel": "Adjustment",
+            "chargeId": "354336210",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-10-18",
@@ -1435,7 +1423,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $110.08 → $0",
-            "amount": -110.08
+            "amount": -110.08,
+            "amountLabel": "Adjustment",
+            "chargeId": "354336209",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-10-18",
@@ -1443,7 +1434,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $42.81 → $0",
-            "amount": -42.81
+            "amount": -42.81,
+            "amountLabel": "Adjustment",
+            "chargeId": "354336208",
+            "isVoidedCharge": false
           }
         ],
         "charges": [
@@ -1515,7 +1509,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           },
           {
             "id": "354336209",
@@ -1585,7 +1581,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           },
           {
             "id": "354336208",
@@ -1655,7 +1653,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           }
         ],
         "invoices": [
@@ -1836,24 +1836,7 @@
                   "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
-            ],
-            "_epic": {
-              "CLAIM_REC_ID": "110156845",
-              "CLAIM_INVOICE_NUM": "L1007985430",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 203,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801005,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "2721616",
-              "EXT_STS_RCV_YN": "Y",
-              "CROSSOVER_CLAIM_YN": "N",
-              "POST_ACK_STATUS_YN": "N"
-            }
+            ]
           }
         ],
         "remits": [
@@ -1979,26 +1962,7 @@
                   "SVC_ADJ_AMT": 30.86
                 }
               }
-            ],
-            "_epic": {
-              "IMAGE_ID": "228893273",
-              "creationDate": "10/18/2023 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "9/28/2023 12:00:00 AM",
-              "claimEndDate": "9/28/2023 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "10/18/2023 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "228893185",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "9/28/2023 12:00:00 AM",
-              "CLM_END_DATE": "9/28/2023 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
+            ]
           }
         ],
         "actions": [
@@ -2195,7 +2159,7 @@
         "provider": "LOUGH, KAREN L",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
         "orders": [],
         "hasBilling": false,
@@ -2211,7 +2175,7 @@
         "provider": "RAMMELKAMP, ZOE L",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": "Completed",
         "diagnoses": [
           "Post concussion syndrome"
         ],
@@ -2237,7 +2201,8 @@
             "label": "Clinical Visit",
             "sublabel": "Visit",
             "detail": "RAMMELKAMP, ZOE L at dept",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-03-02",
@@ -2245,15 +2210,17 @@
             "label": "Front Desk Check-In",
             "sublabel": "Check-In",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-03-02",
             "type": "collection",
-            "label": "Front Desk Check-In",
+            "label": "Front Desk Check-Out",
             "sublabel": "Check-Out",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-03-02",
@@ -2261,7 +2228,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 23660",
             "detail": "Internal Medicine",
-            "amount": 226
+            "amount": 226,
+            "amountLabel": "Billed",
+            "chargeId": "328283034",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-03-02",
@@ -2269,7 +2239,8 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1007449820",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Closed",
-            "amount": 0
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-03-13",
@@ -2277,7 +2248,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Accepted in H.IP – Electronic Claim Sent",
-            "amount": 226
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-03-13",
@@ -2285,7 +2257,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Claim/encounter has been forwarded to entity.",
-            "amount": 226
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-03-14",
@@ -2293,7 +2266,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 226
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-03-14",
@@ -2301,7 +2275,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 226
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-03-14",
@@ -2309,7 +2284,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 226
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-03-14",
@@ -2317,7 +2293,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 226
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-03-27",
@@ -2325,7 +2302,8 @@
             "label": "ERA Received (835)",
             "sublabel": "Processed as Primary",
             "detail": "Charged: $226 → Paid: $0",
-            "amount": 0
+            "amount": 0,
+            "amountLabel": "Paid"
           },
           {
             "date": "2023-03-27",
@@ -2333,7 +2311,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$86.03",
-            "amount": -86.03
+            "amount": -86.03,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2023-03-27",
@@ -2341,7 +2320,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Patient Responsibility",
             "detail": "CARC 1: -$139.97",
-            "amount": -139.97
+            "amount": -139.97,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2023-03-28",
@@ -2349,7 +2329,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $226 → $139.97",
-            "amount": -86.03
+            "amount": -86.03,
+            "amountLabel": "Adjustment",
+            "chargeId": "328283034",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-03-28",
@@ -2357,15 +2340,21 @@
             "label": "Next Responsible Party",
             "sublabel": "Code 1",
             "detail": "1-DEDUCTIBLE AMOUNT • Balance: $139.97 → $139.97",
-            "amount": -139.97
+            "amount": -139.97,
+            "amountLabel": "Transferred",
+            "chargeId": "328283034",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-03-28",
             "type": "action",
             "label": "Recalculate Discount",
             "sublabel": null,
-            "detail": " • Balance: $0 → $139.97",
-            "amount": null
+            "detail": "• Balance: $0 → $139.97",
+            "amount": null,
+            "amountLabel": null,
+            "chargeId": "328283034",
+            "isVoidedCharge": false
           }
         ],
         "charges": [
@@ -2463,7 +2452,9 @@
             ],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           }
         ],
         "invoices": [
@@ -2642,23 +2633,7 @@
                   "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
-            ],
-            "_epic": {
-              "CLAIM_REC_ID": "102143190",
-              "CLAIM_INVOICE_NUM": "L1007449820",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 226,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801002,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "2568477",
-              "EXT_STS_RCV_YN": "Y",
-              "CROSSOVER_CLAIM_YN": "N"
-            }
+            ]
           }
         ],
         "remits": [
@@ -2730,26 +2705,7 @@
                   "SVC_ADJ_AMT": 139.97
                 }
               }
-            ],
-            "_epic": {
-              "IMAGE_ID": "204543235",
-              "creationDate": "3/27/2023 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "3/2/2023 12:00:00 AM",
-              "claimEndDate": "3/2/2023 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "3/27/2023 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "204542891",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "3/2/2023 12:00:00 AM",
-              "CLM_END_DATE": "3/2/2023 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
+            ]
           }
         ],
         "actions": [
@@ -3075,7 +3031,7 @@
         "provider": "RAMMELKAMP, ZOE L",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [
           "Post concussion syndrome"
         ],
@@ -3093,14 +3049,11 @@
         "provider": "RAMMELKAMP, ZOE L",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [
           "Post concussion syndrome"
         ],
-        "orders": [
-          "AMB REFERRAL TO NEUROLOGY",
-          "AMB REFERRAL TO NEUROLOGY"
-        ],
+        "orders": [],
         "hasBilling": false,
         "billingStatus": null,
         "financialClass": null
@@ -3114,20 +3067,18 @@
         "provider": "RAMMELKAMP, ZOE L",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": "Completed",
         "diagnoses": [
           "Post concussion syndrome"
         ],
-        "orders": [
-          "AMB REFERRAL TO NEUROLOGY"
-        ],
+        "orders": [],
         "hasBilling": true,
-        "billingStatus": "Closed",
+        "billingStatus": "Accepted",
         "financialClass": "Blue Cross"
       },
       "billing": {
         "summary": {
-          "totalCharged": 630,
+          "totalCharged": 315,
           "totalPaid": 0,
           "totalAdjusted": 116.09,
           "outstandingFinal": 0,
@@ -3142,47 +3093,48 @@
             "label": "Clinical Visit",
             "sublabel": "Visit",
             "detail": "RAMMELKAMP, ZOE L at dept",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-12-01",
             "type": "collection",
-            "label": "Front Desk Check-In",
+            "label": "Front Desk Check-In (1 of 2)",
             "sublabel": "Check-In",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-12-01",
             "type": "collection",
-            "label": "Front Desk Check-In",
+            "label": "Front Desk Check-In (2 of 2)",
             "sublabel": "Check-In",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-12-01",
             "type": "charge",
-            "label": "Charge Posted",
+            "label": "Replacement Charge Posted",
             "sublabel": "Proc 23662",
             "detail": "Internal Medicine",
-            "amount": 315
+            "amount": 315,
+            "amountLabel": "Billed",
+            "chargeId": "317236398",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-12-01",
             "type": "charge",
-            "label": "Charge Posted",
+            "label": "Charge Posted (VOIDED → reposted)",
             "sublabel": "Proc 23662",
             "detail": "Internal Medicine",
-            "amount": 315
-          },
-          {
-            "date": "2022-12-01",
-            "type": "invoice",
-            "label": "Claim Filed (837)",
-            "sublabel": "L1007201490",
-            "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Voided",
-            "amount": 0
+            "amount": 315,
+            "amountLabel": "Billed",
+            "chargeId": "315026147",
+            "isVoidedCharge": true
           },
           {
             "date": "2022-12-01",
@@ -3190,7 +3142,17 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1007233830",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Accepted",
-            "amount": 0
+            "amount": null,
+            "amountLabel": null
+          },
+          {
+            "date": "2022-12-01",
+            "type": "invoice",
+            "label": "Claim Filed (837)",
+            "sublabel": "L1007201490",
+            "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Voided",
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-12-07",
@@ -3198,7 +3160,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Accepted in H.IP – Electronic Claim Sent",
-            "amount": 315
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-12-07",
@@ -3206,7 +3169,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Claim/encounter has been forwarded to entity.",
-            "amount": 315
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-12-07",
@@ -3214,7 +3178,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 315
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-12-07",
@@ -3222,7 +3187,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 315
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-12-07",
@@ -3230,7 +3196,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 315
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-12-07",
@@ -3238,7 +3205,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 315
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-12-18",
@@ -3246,7 +3214,8 @@
             "label": "ERA Received (835)",
             "sublabel": "Denied",
             "detail": "Charged: $315 → Paid: $0",
-            "amount": 0
+            "amount": 0,
+            "amountLabel": "Paid"
           },
           {
             "date": "2022-12-18",
@@ -3254,47 +3223,59 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 16: -$315",
-            "amount": -315
+            "amount": -315,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2022-12-20",
             "type": "action",
             "label": "Resubmit Insurance",
             "sublabel": null,
-            "detail": " • Balance: $315 → $315",
-            "amount": -315
+            "detail": "• Balance: $315 → $315",
+            "amount": -315,
+            "amountLabel": "Resubmit Insurance",
+            "chargeId": "317236398",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-12-20",
             "type": "action",
-            "label": "Denied",
+            "label": "Denied (on voided charge)",
             "sublabel": "Code 16",
             "detail": "16-LACKS INFO NEEDED FOR ADJUDICATION. • Balance: $315 → $315",
-            "amount": -315
+            "amount": -315,
+            "amountLabel": "Denied",
+            "chargeId": "315026147",
+            "isVoidedCharge": true
           },
           {
             "date": "2022-12-20",
             "type": "action",
-            "label": "Research",
+            "label": "Research (on voided charge)",
             "sublabel": "Code 6063",
             "detail": "MA63 INCMPL/INV PRINCIPAL DX. • Balance: $315 → $315",
-            "amount": null
+            "amount": null,
+            "amountLabel": null,
+            "chargeId": "315026147",
+            "isVoidedCharge": true
           },
           {
             "date": "2023-01-08",
             "type": "remittance",
-            "label": "ERA Received (835)",
+            "label": "ERA Reversal (835)",
             "sublabel": "Reversal of previous payment",
-            "detail": "Charged: $-315 → Paid: $0",
-            "amount": 0
+            "detail": "Reversal of $315 charge",
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-01-08",
             "type": "adjustment",
-            "label": "ERA Adjustment",
+            "label": "ERA Reversal Adjustment",
             "sublabel": "Contractual Obligation",
-            "detail": "CARC 16: -$-315",
-            "amount": 315
+            "detail": "CARC 16: reversal of $315",
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2023-01-10",
@@ -3302,7 +3283,10 @@
             "label": "Denied",
             "sublabel": "Code 16",
             "detail": "16-LACKS INFO NEEDED FOR ADJUDICATION. • Balance: $315 → $315",
-            "amount": 315
+            "amount": 315,
+            "amountLabel": "Denied",
+            "chargeId": "317236398",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-01-10",
@@ -3310,7 +3294,10 @@
             "label": "Research",
             "sublabel": "Code 6063",
             "detail": "MA63 INCMPL/INV PRINCIPAL DX. • Balance: $315 → $315",
-            "amount": null
+            "amount": null,
+            "amountLabel": null,
+            "chargeId": "317236398",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-01-10",
@@ -3318,7 +3305,10 @@
             "label": "Research",
             "sublabel": "Code 6063",
             "detail": "MA63 INCMPL/INV PRINCIPAL DX. • Balance: $315 → $315",
-            "amount": null
+            "amount": null,
+            "amountLabel": null,
+            "chargeId": "317236398",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-01-10",
@@ -3326,7 +3316,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $135.98 → $19.89",
-            "amount": -116.09
+            "amount": -116.09,
+            "amountLabel": "Adjustment",
+            "chargeId": "317236398",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-01-10",
@@ -3334,15 +3327,21 @@
             "label": "Next Responsible Party",
             "sublabel": "Code 2",
             "detail": "2-COINSURANCE AMOUNT • Balance: $19.89 → $19.89",
-            "amount": -19.89
+            "amount": -19.89,
+            "amountLabel": "Transferred",
+            "chargeId": "317236398",
+            "isVoidedCharge": false
           },
           {
             "date": "2023-01-10",
             "type": "action",
             "label": "Recalculate Discount",
             "sublabel": null,
-            "detail": " • Balance: $0 → $19.89",
-            "amount": null
+            "detail": "• Balance: $0 → $19.89",
+            "amount": null,
+            "amountLabel": null,
+            "chargeId": "317236398",
+            "isVoidedCharge": false
           }
         ],
         "charges": [
@@ -3491,7 +3490,9 @@
             ],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": "315026147"
+            "originalChargeId": "315026147",
+            "voidedBy": null,
+            "voidType": null
           },
           {
             "id": "315026147",
@@ -3538,24 +3539,12 @@
             "statementDates": [],
             "isVoided": true,
             "voidDate": "2022-12-20",
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": "HIRZY, HEIDI L",
+            "voidType": "Correction"
           }
         ],
         "invoices": [
-          {
-            "id": "58319567",
-            "number": "L1007201490",
-            "status": "Voided",
-            "type": "Claim",
-            "insAmount": 0,
-            "selfPay": 0,
-            "payer": "BLUE CROSS WI PPO/FEDERAL",
-            "fromDate": "2022-12-01",
-            "toDate": "2022-12-01",
-            "chargeIds": [
-              "315026147"
-            ]
-          },
           {
             "id": "58660400",
             "number": "L1007233830",
@@ -3569,26 +3558,23 @@
             "chargeIds": [
               "317236398"
             ]
+          },
+          {
+            "id": "58319567",
+            "number": "L1007201490",
+            "status": "Voided",
+            "type": "Claim",
+            "insAmount": 0,
+            "selfPay": 0,
+            "payer": "BLUE CROSS WI PPO/FEDERAL",
+            "fromDate": "2022-12-01",
+            "toDate": "2022-12-01",
+            "chargeIds": [
+              "315026147"
+            ]
           }
         ],
         "claims": [
-          {
-            "id": "142198034",
-            "submitDate": "2022-12-07",
-            "status": "P",
-            "totalCharged": 315,
-            "totalPaid": 0,
-            "payer": "BLUE CROSS WI PPO/FEDERAL",
-            "provider": "RAMMELKAMP, ZOE",
-            "invoiceNumber": "L1007201490",
-            "billingProvider": {
-              "name": "ASSOCIATED PHYSICIANS LLP",
-              "npi": "1861412785",
-              "taxonomy": "193200000X",
-              "taxId": "391837462",
-              "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
-          },
           {
             "id": "142971646",
             "submitDate": "2022-12-20",
@@ -3605,9 +3591,35 @@
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
             }
+          },
+          {
+            "id": "142198034",
+            "submitDate": "2022-12-07",
+            "status": "P",
+            "totalCharged": 315,
+            "totalPaid": 0,
+            "payer": "BLUE CROSS WI PPO/FEDERAL",
+            "provider": "RAMMELKAMP, ZOE",
+            "invoiceNumber": "L1007201490",
+            "billingProvider": {
+              "name": "ASSOCIATED PHYSICIANS LLP",
+              "npi": "1861412785",
+              "taxonomy": "193200000X",
+              "taxId": "391837462",
+              "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
+            }
           }
         ],
         "recons": [
+          {
+            "id": "98976876",
+            "invoiceNumber": "L1007233830",
+            "currentStatus": "Open",
+            "claimStatus": "Accepted from Run",
+            "totalBilled": 315,
+            "closedDate": null,
+            "timeline": []
+          },
           {
             "id": "98402730",
             "invoiceNumber": "L1007201490",
@@ -3748,48 +3760,7 @@
                   "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
-            ],
-            "_epic": {
-              "CLAIM_REC_ID": "98402730",
-              "CLAIM_INVOICE_NUM": "L1007201490",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 315,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801002,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "2498305",
-              "EXT_STS_RCV_YN": "Y",
-              "CROSSOVER_CLAIM_YN": "N"
-            }
-          },
-          {
-            "id": "98976876",
-            "invoiceNumber": "L1007233830",
-            "currentStatus": "Open",
-            "claimStatus": "Accepted from Run",
-            "totalBilled": 315,
-            "closedDate": null,
-            "timeline": [],
-            "_epic": {
-              "CLAIM_REC_ID": "98976876",
-              "CLAIM_INVOICE_NUM": "L1007233830",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 315,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801002,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "2508144",
-              "EXT_STS_RCV_YN": "N",
-              "CROSSOVER_CLAIM_YN": "N"
-            }
+            ]
           }
         ],
         "remits": [
@@ -3846,26 +3817,7 @@
                   "SVC_ADJ_AMT": 315
                 }
               }
-            ],
-            "_epic": {
-              "IMAGE_ID": "192950267",
-              "creationDate": "12/18/2022 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "12/1/2022 12:00:00 AM",
-              "claimEndDate": "12/1/2022 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "12/18/2022 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "192950108",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "12/1/2022 12:00:00 AM",
-              "CLM_END_DATE": "12/1/2022 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
+            ]
           },
           {
             "id": "195454936",
@@ -3920,26 +3872,7 @@
                   "SVC_ADJ_AMT": -315
                 }
               }
-            ],
-            "_epic": {
-              "IMAGE_ID": "195454936",
-              "creationDate": "1/8/2023 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "12/1/2022 12:00:00 AM",
-              "claimEndDate": "12/1/2022 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "1/8/2023 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "195454909",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "12/1/2022 12:00:00 AM",
-              "CLM_END_DATE": "12/1/2022 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
+            ]
           }
         ],
         "actions": [
@@ -4611,17 +4544,13 @@
         "provider": "RAMMELKAMP, ZOE L",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": "Completed",
         "diagnoses": [
           "Primary hypertension",
           "Preventative health care",
           "Post concussion syndrome"
         ],
-        "orders": [
-          "BASIC METABOLIC PANEL",
-          "BASIC METABOLIC PANEL",
-          "HEPATITIS C ANTIBODY"
-        ],
+        "orders": [],
         "hasBilling": true,
         "billingStatus": "Closed",
         "financialClass": "Blue Cross"
@@ -4643,7 +4572,8 @@
             "label": "Clinical Visit",
             "sublabel": "Visit",
             "detail": "RAMMELKAMP, ZOE L at dept",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-08-29",
@@ -4651,7 +4581,8 @@
             "label": "Front Desk Check-In",
             "sublabel": "Check-In",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-08-29",
@@ -4659,7 +4590,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 23660",
             "detail": "Internal Medicine Mod: 25",
-            "amount": 222
+            "amount": 222,
+            "amountLabel": "Billed",
+            "chargeId": "302543307",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-08-29",
@@ -4667,7 +4601,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 23868",
             "detail": "Internal Medicine",
-            "amount": 294
+            "amount": 294,
+            "amountLabel": "Billed",
+            "chargeId": "302543306",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-08-29",
@@ -4675,7 +4612,8 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1006928390",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Closed",
-            "amount": 0
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-21",
@@ -4683,7 +4621,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Accepted in H.IP – Electronic Claim Sent",
-            "amount": 516
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-21",
@@ -4691,7 +4630,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Claim/encounter has been forwarded to entity.",
-            "amount": 516
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-21",
@@ -4699,7 +4639,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 516
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-21",
@@ -4707,7 +4648,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 516
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-21",
@@ -4715,7 +4657,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 516
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-21",
@@ -4723,7 +4666,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 516
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-10-02",
@@ -4731,7 +4675,8 @@
             "label": "ERA Received (835)",
             "sublabel": "Processed as Primary",
             "detail": "Charged: $516 → Paid: $272.89",
-            "amount": 272.89
+            "amount": 272.89,
+            "amountLabel": "Paid"
           },
           {
             "date": "2022-10-02",
@@ -4739,7 +4684,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$84.11",
-            "amount": -84.11
+            "amount": -84.11,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2022-10-02",
@@ -4747,7 +4693,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$152.01",
-            "amount": -152.01
+            "amount": -152.01,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2022-10-02",
@@ -4755,7 +4702,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Patient Responsibility",
             "detail": "CARC 2: -$6.99",
-            "amount": -6.99
+            "amount": -6.99,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2022-10-04",
@@ -4763,7 +4711,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $159 → $6.99",
-            "amount": -152.01
+            "amount": -152.01,
+            "amountLabel": "Adjustment",
+            "chargeId": "302543307",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-10-04",
@@ -4771,15 +4722,21 @@
             "label": "Next Responsible Party",
             "sublabel": "Code 2",
             "detail": "2-COINSURANCE AMOUNT • Balance: $6.99 → $6.99",
-            "amount": -6.99
+            "amount": -6.99,
+            "amountLabel": "Transferred",
+            "chargeId": "302543307",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-10-04",
             "type": "action",
             "label": "Recalculate Discount",
             "sublabel": null,
-            "detail": " • Balance: $0 → $6.99",
-            "amount": null
+            "detail": "• Balance: $0 → $6.99",
+            "amount": null,
+            "amountLabel": null,
+            "chargeId": "302543307",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-10-04",
@@ -4787,15 +4744,21 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $84.11 → $0",
-            "amount": -84.11
+            "amount": -84.11,
+            "amountLabel": "Adjustment",
+            "chargeId": "302543306",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-10-04",
             "type": "action",
             "label": "Recalculate Discount",
             "sublabel": null,
-            "detail": " • Balance: $0 → $0",
-            "amount": null
+            "detail": "• Balance: $0 → $0",
+            "amount": null,
+            "amountLabel": null,
+            "chargeId": "302543306",
+            "isVoidedCharge": false
           }
         ],
         "charges": [
@@ -4892,7 +4855,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           },
           {
             "id": "302543306",
@@ -4960,7 +4925,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           }
         ],
         "invoices": [
@@ -5140,23 +5107,7 @@
                   "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
-            ],
-            "_epic": {
-              "CLAIM_REC_ID": "95212572",
-              "CLAIM_INVOICE_NUM": "L1006928390",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 516,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801002,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "2442823",
-              "EXT_STS_RCV_YN": "Y",
-              "CROSSOVER_CLAIM_YN": "N"
-            }
+            ]
           }
         ],
         "remits": [
@@ -5263,26 +5214,7 @@
                   "SVC_ADJ_AMT": 6.99
                 }
               }
-            ],
-            "_epic": {
-              "IMAGE_ID": "182080752",
-              "creationDate": "10/2/2022 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "8/29/2022 12:00:00 AM",
-              "claimEndDate": "8/29/2022 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "10/2/2022 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "182080625",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "8/29/2022 12:00:00 AM",
-              "CLM_END_DATE": "8/29/2022 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
+            ]
           }
         ],
         "actions": [
@@ -5644,13 +5576,11 @@
         "provider": "MAC LAB APL",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": "Completed",
         "diagnoses": [
           "Primary hypertension"
         ],
-        "orders": [
-          "BASIC METABOLIC PANEL"
-        ],
+        "orders": [],
         "hasBilling": true,
         "billingStatus": "Closed",
         "financialClass": "Blue Cross"
@@ -5672,7 +5602,8 @@
             "label": "Clinical Visit",
             "sublabel": "Visit",
             "detail": "MAC LAB APL at dept",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-08-29",
@@ -5680,7 +5611,8 @@
             "label": "Front Desk Check-In",
             "sublabel": "Check-In",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-08-29",
@@ -5688,7 +5620,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 13199",
             "detail": "Internal Medicine Mod: MCP",
-            "amount": 33
+            "amount": 33,
+            "amountLabel": "Billed",
+            "chargeId": "302968775",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-08-29",
@@ -5696,7 +5631,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 19722",
             "detail": "Internal Medicine Mod: MCP",
-            "amount": 140
+            "amount": 140,
+            "amountLabel": "Billed",
+            "chargeId": "302968774",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-08-29",
@@ -5704,7 +5642,8 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1006942840",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Closed",
-            "amount": 0
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-23",
@@ -5712,7 +5651,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Accepted in H.IP – Electronic Claim Sent",
-            "amount": 173
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-23",
@@ -5720,7 +5660,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Claim/encounter has been forwarded to entity.",
-            "amount": 173
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-23",
@@ -5728,7 +5669,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 173
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-23",
@@ -5736,7 +5678,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 173
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-23",
@@ -5744,7 +5687,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Payer – Accepted Claim",
-            "amount": 173
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-09-23",
@@ -5752,7 +5696,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "No Action",
             "detail": "Accepted for processing.",
-            "amount": 173
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2022-10-02",
@@ -5760,7 +5705,8 @@
             "label": "ERA Received (835)",
             "sublabel": "Processed as Primary",
             "detail": "Charged: $173 → Paid: $7.57",
-            "amount": 7.57
+            "amount": 7.57,
+            "amountLabel": "Paid"
           },
           {
             "date": "2022-10-02",
@@ -5768,7 +5714,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$133.74",
-            "amount": -133.74
+            "amount": -133.74,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2022-10-02",
@@ -5776,7 +5723,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Patient Responsibility",
             "detail": "CARC 2: -$0.62",
-            "amount": -0.62
+            "amount": -0.62,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2022-10-02",
@@ -5784,7 +5732,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$30.86",
-            "amount": -30.86
+            "amount": -30.86,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2022-10-02",
@@ -5792,7 +5741,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Patient Responsibility",
             "detail": "CARC 2: -$0.21",
-            "amount": -0.21
+            "amount": -0.21,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2022-10-04",
@@ -5800,7 +5750,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $31.07 → $0.21",
-            "amount": -30.86
+            "amount": -30.86,
+            "amountLabel": "Adjustment",
+            "chargeId": "302968775",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-10-04",
@@ -5808,15 +5761,21 @@
             "label": "Next Responsible Party",
             "sublabel": "Code 2",
             "detail": "2-COINSURANCE AMOUNT • Balance: $0.21 → $0.21",
-            "amount": -0.21
+            "amount": -0.21,
+            "amountLabel": "Transferred",
+            "chargeId": "302968775",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-10-04",
             "type": "action",
             "label": "Recalculate Discount",
             "sublabel": null,
-            "detail": " • Balance: $0 → $0.21",
-            "amount": null
+            "detail": "• Balance: $0 → $0.21",
+            "amount": null,
+            "amountLabel": null,
+            "chargeId": "302968775",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-10-04",
@@ -5824,7 +5783,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $134.36 → $0.62",
-            "amount": -133.74
+            "amount": -133.74,
+            "amountLabel": "Adjustment",
+            "chargeId": "302968774",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-10-04",
@@ -5832,15 +5794,21 @@
             "label": "Next Responsible Party",
             "sublabel": "Code 2",
             "detail": "2-COINSURANCE AMOUNT • Balance: $0.62 → $0.62",
-            "amount": -0.62
+            "amount": -0.62,
+            "amountLabel": "Transferred",
+            "chargeId": "302968774",
+            "isVoidedCharge": false
           },
           {
             "date": "2022-10-04",
             "type": "action",
             "label": "Recalculate Discount",
             "sublabel": null,
-            "detail": " • Balance: $0 → $0.62",
-            "amount": null
+            "detail": "• Balance: $0 → $0.62",
+            "amount": null,
+            "amountLabel": null,
+            "chargeId": "302968774",
+            "isVoidedCharge": false
           }
         ],
         "charges": [
@@ -5937,7 +5905,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           },
           {
             "id": "302968774",
@@ -6032,7 +6002,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           }
         ],
         "invoices": [
@@ -6212,23 +6184,7 @@
                   "CLM_MAPPED_ACT_C_NAME": "No Action"
                 }
               }
-            ],
-            "_epic": {
-              "CLAIM_REC_ID": "95305293",
-              "CLAIM_INVOICE_NUM": "L1006942840",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 173,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801005,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "2445112",
-              "EXT_STS_RCV_YN": "Y",
-              "CROSSOVER_CLAIM_YN": "N"
-            }
+            ]
           }
         ],
         "remits": [
@@ -6351,26 +6307,7 @@
                   "SVC_ADJ_AMT": 0.21
                 }
               }
-            ],
-            "_epic": {
-              "IMAGE_ID": "182080857",
-              "creationDate": "10/2/2022 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "8/29/2022 12:00:00 AM",
-              "claimEndDate": "8/29/2022 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "10/2/2022 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "182080625",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "8/29/2022 12:00:00 AM",
-              "CLM_END_DATE": "8/29/2022 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
+            ]
           }
         ],
         "actions": [
@@ -6788,11 +6725,9 @@
         "provider": "GENERIC EXTERNAL DATA PROVIDER",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
-        "orders": [
-          "XR ANKLE MIN 3 VIEWS"
-        ],
+        "orders": [],
         "hasBilling": false,
         "billingStatus": null,
         "financialClass": null
@@ -6806,13 +6741,11 @@
         "provider": "GILLESPIE, BENJAMIN T",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [
           "Late effect of traumatic injury to brain"
         ],
-        "orders": [
-          "AMB REFERRAL TO OCCUPATIONAL THERAPY EVAL AND TREAT"
-        ],
+        "orders": [],
         "hasBilling": false,
         "billingStatus": null,
         "financialClass": null
@@ -6826,11 +6759,9 @@
         "provider": "GENERIC EXTERNAL DATA PROVIDER",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
-        "orders": [
-          "COVID-19, EXTERNAL"
-        ],
+        "orders": [],
         "hasBilling": false,
         "billingStatus": null,
         "financialClass": null
@@ -6844,7 +6775,7 @@
         "provider": "LOUGH, KAREN L",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
         "orders": [],
         "hasBilling": false,
@@ -6860,7 +6791,7 @@
         "provider": "PEPIN, PAMELA A",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
         "orders": [],
         "hasBilling": false,
@@ -6876,13 +6807,11 @@
         "provider": "DHILLON, PUNEET S",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [
           "Traumatic injury of head, initial encounter"
         ],
-        "orders": [
-          "MRI BRAIN WO CONTRAST"
-        ],
+        "orders": [],
         "hasBilling": false,
         "billingStatus": null,
         "financialClass": null
@@ -6896,13 +6825,11 @@
         "provider": "PICONE, MARY A",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [
           "Traumatic injury of head, initial encounter"
         ],
-        "orders": [
-          "MRI BRAIN WO CONTRAST"
-        ],
+        "orders": [],
         "hasBilling": false,
         "billingStatus": null,
         "financialClass": null
@@ -6916,7 +6843,7 @@
         "provider": "LOUGH, KAREN L",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
         "orders": [],
         "hasBilling": false,
@@ -6932,7 +6859,7 @@
         "provider": "PICONE, MARY A",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
         "orders": [],
         "hasBilling": false,
@@ -6948,7 +6875,7 @@
         "provider": "PICONE, MARY A",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [
           "Traumatic injury of head, initial encounter"
         ],
@@ -6966,7 +6893,7 @@
         "provider": "BUDZBAN, NICOLE L",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
         "orders": [],
         "hasBilling": false,
@@ -6982,14 +6909,12 @@
         "provider": "PICONE, MARY A",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [
           "Traumatic injury of head, initial encounter",
           "Post-concussion headache"
         ],
-        "orders": [
-          "CT HEAD OR BRAIN W WO CONTRAST"
-        ],
+        "orders": [],
         "hasBilling": false,
         "billingStatus": null,
         "financialClass": null
@@ -7003,13 +6928,11 @@
         "provider": "PICONE, MARY A",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": "Completed",
         "diagnoses": [
           "Traumatic injury of head, initial encounter"
         ],
-        "orders": [
-          "MRI BRAIN WO CONTRAST"
-        ],
+        "orders": [],
         "hasBilling": true,
         "billingStatus": "Closed",
         "financialClass": "Blue Cross"
@@ -7031,23 +6954,26 @@
             "label": "Clinical Visit",
             "sublabel": "Visit",
             "detail": "PICONE, MARY A at dept",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-07-14",
             "type": "collection",
-            "label": "Front Desk Check-In",
+            "label": "Front Desk Check-In (1 of 2)",
             "sublabel": "Check-In",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-07-14",
             "type": "collection",
-            "label": "Front Desk Check-In",
+            "label": "Front Desk Check-In (2 of 2)",
             "sublabel": "Check-In",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-07-14",
@@ -7055,7 +6981,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 23660",
             "detail": "Internal Medicine Mod: 95",
-            "amount": 170
+            "amount": 170,
+            "amountLabel": "Billed",
+            "chargeId": "213432121",
+            "isVoidedCharge": false
           },
           {
             "date": "2020-07-14",
@@ -7063,7 +6992,8 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1004718920",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Closed",
-            "amount": 0
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-08-17",
@@ -7071,7 +7001,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Clean Claim",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-08-17",
@@ -7079,7 +7010,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-08-17",
@@ -7087,7 +7019,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-08-17",
@@ -7095,7 +7028,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-08-17",
@@ -7103,7 +7037,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-08-17",
@@ -7111,7 +7046,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-08-17",
@@ -7119,7 +7055,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-08-17",
@@ -7127,7 +7064,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-08-17",
@@ -7135,7 +7073,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-09-17",
@@ -7143,7 +7082,8 @@
             "label": "ERA Received (835)",
             "sublabel": "Processed as Primary",
             "detail": "Charged: $170 → Paid: $113.3",
-            "amount": 113.3
+            "amount": 113.3,
+            "amountLabel": "Paid"
           },
           {
             "date": "2020-09-17",
@@ -7151,7 +7091,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$56.7",
-            "amount": -56.7
+            "amount": -56.7,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2020-09-17",
@@ -7159,7 +7100,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $56.7 → $0",
-            "amount": -56.7
+            "amount": -56.7,
+            "amountLabel": "Adjustment",
+            "chargeId": "213432121",
+            "isVoidedCharge": false
           },
           {
             "date": "2020-09-18",
@@ -7167,7 +7111,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           }
         ],
         "charges": [
@@ -7239,7 +7184,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           }
         ],
         "invoices": [
@@ -7496,23 +7443,7 @@
                   "CLM_STATUS_MSG": "Received By Payer  (Trace: 2162894-998728-208089 TimeStamp: 2020-09-17 08:48:59). (PAYER RPT10): FINALIZED.  PAYER HAS PROCESSED THIS CLAIM AS THE PRIMARY PAYER. FINALIZED/PAYMENT-THE CLAIM/LINE HAS BEEN PAID. CARRIER: BC BS OF WISCONSIN CARR REF #: 3132172428 CLEARINGHOUSE TRACE #: EP9BXXZ02M9VZ89 CLAIM ORIGINAL REFERENCE #: EP081420741205510 DATA IN ERROR: ACH CATEGORY/STATUS CODE: F1/CH111 REPORT TYPE: 835 STATUS TIME: 2020-09-15 00:00:00"
                 }
               }
-            ],
-            "_epic": {
-              "CLAIM_REC_ID": "66988170",
-              "CLAIM_INVOICE_NUM": "L1004718920",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 170,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801002,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "1911563",
-              "EXT_STS_RCV_YN": "Y",
-              "CROSSOVER_CLAIM_YN": "N"
-            }
+            ]
           }
         ],
         "remits": [
@@ -7570,26 +7501,7 @@
                   "SVC_ADJ_QTY": 1
                 }
               }
-            ],
-            "_epic": {
-              "IMAGE_ID": "103811458",
-              "creationDate": "9/17/2020 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "7/14/2020 12:00:00 AM",
-              "claimEndDate": "7/14/2020 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "9/17/2020 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "103811433",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "7/14/2020 12:00:00 AM",
-              "CLM_END_DATE": "7/14/2020 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
+            ]
           }
         ],
         "actions": [
@@ -7815,15 +7727,13 @@
         "provider": "DHILLON, PUNEET S",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": "Completed",
         "diagnoses": [
           "Gastroesophageal reflux disease, esophagitis presence not specified",
           "Lipoma of head",
           "Nevus"
         ],
-        "orders": [
-          "AMB REFERRAL TO GASTROENTEROLOGY"
-        ],
+        "orders": [],
         "hasBilling": true,
         "billingStatus": "Closed",
         "financialClass": "Blue Cross"
@@ -7845,7 +7755,8 @@
             "label": "Clinical Visit",
             "sublabel": "Visit",
             "detail": "DHILLON, PUNEET S at dept",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-09",
@@ -7853,15 +7764,17 @@
             "label": "Front Desk Check-In",
             "sublabel": "Check-In",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-09",
             "type": "collection",
-            "label": "Front Desk Check-In",
+            "label": "Front Desk Check-Out",
             "sublabel": "Check-Out",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-09",
@@ -7869,7 +7782,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 23660",
             "detail": "Internal Medicine",
-            "amount": 165
+            "amount": 165,
+            "amountLabel": "Billed",
+            "chargeId": "190635377",
+            "isVoidedCharge": false
           },
           {
             "date": "2020-01-09",
@@ -7877,7 +7793,8 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1004236460",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Closed",
-            "amount": 0
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-13",
@@ -7885,7 +7802,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Clean Claim",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-13",
@@ -7893,7 +7811,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-13",
@@ -7901,7 +7820,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-13",
@@ -7909,7 +7829,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-13",
@@ -7917,7 +7838,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-13",
@@ -7925,7 +7847,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-13",
@@ -7933,7 +7856,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-13",
@@ -7941,7 +7865,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2020-01-27",
@@ -7949,7 +7874,8 @@
             "label": "ERA Received (835)",
             "sublabel": "Processed as Primary",
             "detail": "Charged: $165 → Paid: $0",
-            "amount": 0
+            "amount": 0,
+            "amountLabel": "Paid"
           },
           {
             "date": "2020-01-27",
@@ -7957,7 +7883,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$31.71",
-            "amount": -31.71
+            "amount": -31.71,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2020-01-27",
@@ -7965,7 +7892,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Patient Responsibility",
             "detail": "CARC 1: -$133.29",
-            "amount": -133.29
+            "amount": -133.29,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2020-01-27",
@@ -7973,7 +7901,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $165 → $133.29",
-            "amount": -31.71
+            "amount": -31.71,
+            "amountLabel": "Adjustment",
+            "chargeId": "190635377",
+            "isVoidedCharge": false
           },
           {
             "date": "2020-01-27",
@@ -7981,15 +7912,21 @@
             "label": "Next Responsible Party",
             "sublabel": "Code 1",
             "detail": "1-DEDUCTIBLE AMOUNT • Balance: $133.29 → $133.29",
-            "amount": -133.29
+            "amount": -133.29,
+            "amountLabel": "Transferred",
+            "chargeId": "190635377",
+            "isVoidedCharge": false
           },
           {
             "date": "2020-01-27",
             "type": "action",
             "label": "Recalculate Discount",
             "sublabel": null,
-            "detail": " • Balance: $0 → $133.29",
-            "amount": null
+            "detail": "• Balance: $0 → $133.29",
+            "amount": null,
+            "amountLabel": null,
+            "chargeId": "190635377",
+            "isVoidedCharge": false
           },
           {
             "date": "2020-01-29",
@@ -7997,7 +7934,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           }
         ],
         "charges": [
@@ -8094,7 +8032,9 @@
             ],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           }
         ],
         "invoices": [
@@ -8330,23 +8270,7 @@
                   "CLM_STATUS_MSG": "Received By Payer  (Trace: 2096255-998882-182687 TimeStamp: 2020-01-27 08:32:56). (PAYER RPT10): FINALIZED.  PAYER HAS PROCESSED THIS CLAIM AS THE PRIMARY PAYER. FINALIZED-THE CLAIM/ENCOUNTER HAS COMPLETED THE ADJUDICATION CYCLE AND NO MORE ACTION WILL BE TAKEN. CARRIER: BC BS OF WISCONSIN CARR REF #: 3117289622 CLEARINGHOUSE TRACE #: EP5NE8J018ID6J9 CLAIM ORIGINAL REFERENCE #: EP011020736119095 DATA IN ERROR: ACH CATEGORY/STATUS CODE: F0/CH111 REPORT TYPE: 835 STATUS TIME: 2020-01-28 00:00:00"
                 }
               }
-            ],
-            "_epic": {
-              "CLAIM_REC_ID": "60433254",
-              "CLAIM_INVOICE_NUM": "L1004236460",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 165,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801002,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "1755223",
-              "EXT_STS_RCV_YN": "Y",
-              "CROSSOVER_CLAIM_YN": "N"
-            }
+            ]
           }
         ],
         "remits": [
@@ -8421,26 +8345,7 @@
                   "SVC_ADJ_QTY": 1
                 }
               }
-            ],
-            "_epic": {
-              "IMAGE_ID": "85777291",
-              "creationDate": "1/27/2020 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "1/9/2020 12:00:00 AM",
-              "claimEndDate": "1/9/2020 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "1/27/2020 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "85777270",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "1/9/2020 12:00:00 AM",
-              "CLM_END_DATE": "1/9/2020 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
+            ]
           }
         ],
         "actions": [
@@ -8764,7 +8669,7 @@
         "provider": "CAHILL, KATHRYN A",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
         "orders": [],
         "hasBilling": false,
@@ -8780,7 +8685,7 @@
         "provider": "WILD, DAWN M",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
         "orders": [],
         "hasBilling": false,
@@ -8796,17 +8701,15 @@
         "provider": "MAC LAB APL",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": "Completed",
         "diagnoses": [
           "Gastroesophageal reflux disease, esophagitis presence not specified",
           "Dyspepsia"
         ],
-        "orders": [
-          "H. PYLORI ANTIGEN, STOOL"
-        ],
+        "orders": [],
         "hasBilling": false,
-        "billingStatus": "Closed",
-        "financialClass": "Blue Cross"
+        "billingStatus": null,
+        "financialClass": null
       },
       "billing": null
     },
@@ -8817,18 +8720,15 @@
         "provider": "DHILLON, PUNEET S",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": "Completed",
         "diagnoses": [
           "Encounter to establish care",
           "Gastroesophageal reflux disease, esophagitis presence not specified",
           "Dyspepsia"
         ],
-        "orders": [
-          "LIPID PANEL",
-          "H. PYLORI ANTIGEN, STOOL"
-        ],
+        "orders": [],
         "hasBilling": true,
-        "billingStatus": "Closed",
+        "billingStatus": "Rejected",
         "financialClass": "Blue Cross"
       },
       "billing": {
@@ -8848,7 +8748,8 @@
             "label": "Clinical Visit",
             "sublabel": "Visit",
             "detail": "DHILLON, PUNEET S at dept",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-09",
@@ -8856,15 +8757,17 @@
             "label": "Front Desk Check-In",
             "sublabel": "Check-In",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-09",
             "type": "collection",
-            "label": "Front Desk Check-In",
+            "label": "Front Desk Check-Out",
             "sublabel": "Check-Out",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-09",
@@ -8872,7 +8775,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 23868",
             "detail": "Internal Medicine",
-            "amount": 335
+            "amount": 335,
+            "amountLabel": "Billed",
+            "chargeId": "129124339",
+            "isVoidedCharge": false
           },
           {
             "date": "2018-08-09",
@@ -8880,7 +8786,8 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1002792520",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Rejected",
-            "amount": 335
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-09",
@@ -8888,7 +8795,8 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1002834030",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Closed",
-            "amount": 0
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-30",
@@ -8896,7 +8804,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Clean Claim",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-30",
@@ -8904,7 +8813,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-31",
@@ -8912,7 +8822,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-31",
@@ -8920,7 +8831,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-31",
@@ -8928,7 +8840,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-09-08",
@@ -8936,7 +8849,8 @@
             "label": "ERA Received (835)",
             "sublabel": "Processed as Primary",
             "detail": "Charged: $335 → Paid: $230.73",
-            "amount": 230.73
+            "amount": 230.73,
+            "amountLabel": "Paid"
           },
           {
             "date": "2018-09-08",
@@ -8944,7 +8858,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$104.27",
-            "amount": -104.27
+            "amount": -104.27,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2018-09-10",
@@ -8952,7 +8867,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-09-10",
@@ -8960,7 +8876,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $104.27 → $0",
-            "amount": -104.27
+            "amount": -104.27,
+            "amountLabel": "Adjustment",
+            "chargeId": "129124339",
+            "isVoidedCharge": false
           }
         ],
         "charges": [
@@ -9030,7 +8949,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           }
         ],
         "invoices": [
@@ -9217,23 +9138,7 @@
                   "CLM_STATUS_MSG": "Received By Payer  (Trace: 1923265-999238-123286 TimeStamp: 2018-09-08 08:27:38). (PAYER RPT10): FINALIZED.  PAYER HAS PROCESSED THIS CLAIM AS THE PRIMARY PAYER. FINALIZED/PAYMENT-THE CLAIM/LINE HAS BEEN PAID. CARRIER: BC BS OF WISCONSIN CARR REF #: 3382780135 CLEARINGHOUSE TRACE #: EPXT8U80189O279 CLAIM ORIGINAL REFERENCE #: EP082918790317035 DATA IN ERROR: ACH CATEGORY/STATUS CODE: F1/CH111 REPORT TYPE: 835 STATUS TIME: 2018-09-11 00:00:00"
                 }
               }
-            ],
-            "_epic": {
-              "CLAIM_REC_ID": "43461737",
-              "CLAIM_INVOICE_NUM": "L1002834030",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 335,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801002,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "1338229",
-              "EXT_STS_RCV_YN": "Y",
-              "CROSSOVER_CLAIM_YN": "N"
-            }
+            ]
           }
         ],
         "remits": [
@@ -9291,26 +9196,7 @@
                   "SVC_ADJ_QTY": 1
                 }
               }
-            ],
-            "_epic": {
-              "IMAGE_ID": "61020663",
-              "creationDate": "9/8/2018 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "8/9/2018 12:00:00 AM",
-              "claimEndDate": "8/9/2018 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "9/8/2018 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "61020617",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "8/9/2018 12:00:00 AM",
-              "CLM_END_DATE": "8/9/2018 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
+            ]
           }
         ],
         "actions": [
@@ -9529,7 +9415,7 @@
         "provider": "DHILLON, PUNEET S",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": null,
         "diagnoses": [],
         "orders": [],
         "hasBilling": false,
@@ -9545,15 +9431,13 @@
         "provider": "MAC LAB APL",
         "department": null,
         "type": null,
-        "status": "Complete",
+        "status": "Completed",
         "diagnoses": [
           "Encounter to establish care"
         ],
-        "orders": [
-          "LIPID PANEL"
-        ],
+        "orders": [],
         "hasBilling": true,
-        "billingStatus": "Closed",
+        "billingStatus": "Rejected",
         "financialClass": "Blue Cross"
       },
       "billing": {
@@ -9573,7 +9457,8 @@
             "label": "Clinical Visit",
             "sublabel": "Visit",
             "detail": "MAC LAB APL at dept",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-09",
@@ -9581,7 +9466,8 @@
             "label": "Front Desk Check-In",
             "sublabel": "Check-In",
             "detail": "PB Copay Due: $0, HB Copay Due: $0",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-09",
@@ -9589,7 +9475,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 13199",
             "detail": "Internal Medicine Mod: MCP",
-            "amount": 37
+            "amount": 37,
+            "amountLabel": "Billed",
+            "chargeId": "129124217",
+            "isVoidedCharge": false
           },
           {
             "date": "2018-08-09",
@@ -9597,7 +9486,10 @@
             "label": "Charge Posted",
             "sublabel": "Proc 19732",
             "detail": "Internal Medicine Mod: MCP",
-            "amount": 114
+            "amount": 114,
+            "amountLabel": "Billed",
+            "chargeId": "129124216",
+            "isVoidedCharge": false
           },
           {
             "date": "2018-08-09",
@@ -9605,7 +9497,8 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1002792530",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Rejected",
-            "amount": 151
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-09",
@@ -9613,7 +9506,8 @@
             "label": "Claim Filed (837)",
             "sublabel": "L1002834040",
             "detail": "→ BLUE CROSS WI PPO/FEDERAL • Status: Closed",
-            "amount": 0
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-30",
@@ -9621,7 +9515,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "Clean Claim",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-30",
@@ -9629,7 +9524,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-31",
@@ -9637,7 +9533,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-31",
@@ -9645,7 +9542,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-08-31",
@@ -9653,7 +9551,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-09-08",
@@ -9661,7 +9560,8 @@
             "label": "ERA Received (835)",
             "sublabel": "Processed as Primary",
             "detail": "Charged: $151 → Paid: $23.52",
-            "amount": 23.52
+            "amount": 23.52,
+            "amountLabel": "Paid"
           },
           {
             "date": "2018-09-08",
@@ -9669,7 +9569,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$94.48",
-            "amount": -94.48
+            "amount": -94.48,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2018-09-08",
@@ -9677,7 +9578,8 @@
             "label": "ERA Adjustment",
             "sublabel": "Contractual Obligation",
             "detail": "CARC 45: -$33",
-            "amount": -33
+            "amount": -33,
+            "amountLabel": "Adjusted"
           },
           {
             "date": "2018-09-10",
@@ -9685,7 +9587,8 @@
             "label": "Claim Status (276/277)",
             "sublabel": "Accept Claim",
             "detail": "S - Submit",
-            "amount": null
+            "amount": null,
+            "amountLabel": null
           },
           {
             "date": "2018-09-10",
@@ -9693,7 +9596,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $33 → $0",
-            "amount": -33
+            "amount": -33,
+            "amountLabel": "Adjustment",
+            "chargeId": "129124217",
+            "isVoidedCharge": false
           },
           {
             "date": "2018-09-10",
@@ -9701,7 +9607,10 @@
             "label": "Not Allowed Adjustment",
             "sublabel": "Code 45",
             "detail": "45-CHGS EXCD FEE SCH/MAX ALLOWABLE. • Balance: $94.48 → $0",
-            "amount": -94.48
+            "amount": -94.48,
+            "amountLabel": "Adjustment",
+            "chargeId": "129124216",
+            "isVoidedCharge": false
           }
         ],
         "charges": [
@@ -9773,7 +9682,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           },
           {
             "id": "129124216",
@@ -9843,7 +9754,9 @@
             "statementDates": [],
             "isVoided": false,
             "voidDate": null,
-            "replacementId": null
+            "originalChargeId": null,
+            "voidedBy": null,
+            "voidType": null
           }
         ],
         "invoices": [
@@ -10032,23 +9945,7 @@
                   "CLM_STATUS_MSG": "Received By Payer  (Trace: 1923265-999238-123287 TimeStamp: 2018-09-08 08:27:38). (PAYER RPT10): FINALIZED.  PAYER HAS PROCESSED THIS CLAIM AS THE PRIMARY PAYER. FINALIZED/PAYMENT-THE CLAIM/LINE HAS BEEN PAID. CARRIER: BC BS OF WISCONSIN CARR REF #: 3382780135 CLEARINGHOUSE TRACE #: EPXT8U80189O279 CLAIM ORIGINAL REFERENCE #: EP082918790317036 DATA IN ERROR: ACH CATEGORY/STATUS CODE: F1/CH111 REPORT TYPE: 835 STATUS TIME: 2018-09-11 00:00:00"
                 }
               }
-            ],
-            "_epic": {
-              "CLAIM_REC_ID": "43461738",
-              "CLAIM_INVOICE_NUM": "L1002834040",
-              "CUR_EPIC_STATUS_C_NAME": "Open",
-              "EPIC_CLM_STS_C_NAME": "Accepted from Run",
-              "TOTAL_BILLED": 151,
-              "PAYOR_ID": 1302,
-              "DEPARTMENT_ID": 1700801005,
-              "LOC_ID": 1700801,
-              "SERVICE_AREA_ID": 18,
-              "RECORD_TYPE_C_NAME": "Claim",
-              "BENEFIT_PLAN_ID": 130204,
-              "CLAIM_RUN_ID": "1338229",
-              "EXT_STS_RCV_YN": "Y",
-              "CROSSOVER_CLAIM_YN": "N"
-            }
+            ]
           }
         ],
         "remits": [
@@ -10143,26 +10040,7 @@
                   "SVC_ADJ_QTY": 1
                 }
               }
-            ],
-            "_epic": {
-              "IMAGE_ID": "61020664",
-              "creationDate": "9/8/2018 12:00:00 AM",
-              "paymentMethod": "Remittance",
-              "paymentType": "Insurance payment",
-              "patientId": "Z7004242",
-              "claimStartDate": "8/9/2018 12:00:00 AM",
-              "claimEndDate": "8/9/2018 12:00:00 AM",
-              "imdType": "Invoice IMD",
-              "CREATION_DATE": "9/8/2018 12:00:00 AM",
-              "SERVICE_AREA_ID": 18,
-              "PAYMENT_METHOD_C_NAME": "Remittance",
-              "PAYMENT_TYPE_C_NAME": "Insurance payment",
-              "REF_IMG_ID": "61020617",
-              "PAT_ID": "Z7004242",
-              "CLM_START_DATE": "8/9/2018 12:00:00 AM",
-              "CLM_END_DATE": "8/9/2018 12:00:00 AM",
-              "IMD_TYPE_C_NAME": "Invoice IMD"
-            }
+            ]
           }
         ],
         "actions": [
@@ -10924,12 +10802,12 @@
     }
   ],
   "totals": {
-    "totalCharges": 3013,
+    "totalCharges": 2698,
     "totalPaid": 1230.28,
-    "chargeCount": 18,
+    "chargeCount": 17,
     "encountersWithBilling": 10,
     "totalEncounters": 31,
-    "claimCount": 13,
+    "claimCount": 14,
     "rejectedClaims": 2
   }
 }
