@@ -34,6 +34,10 @@ const INSIGHTS = {
     icon: '📡',
     text: `<strong>276/277 Claim Status:</strong> After filing, Epic polls the payer/clearinghouse for status updates. Each response creates a row in <code>RECONCILE_CLAIM_STATUS</code> with the payer's status code and message. "Claim Forwarded" means the clearinghouse accepted it; "Accepted for Processing" means the payer received it. This is the real-time claim tracking pipeline.`
   },
+  claims: {
+    icon: '📨',
+    text: `<strong>837 Claims:</strong> Each card is one electronic claim (837P/837I) filed with the payer. Claims are ordered by submission date (newest first). The invoice number (e.g. L1008016200) is Epic's internal claim ID. <strong>Service Lines</strong> are the individual CPT/HCPCS line items on the claim — these map to the 837 SV1 segment. Descriptions come from <code>CLARITY_EAP</code> (Epic's procedure master), matched to <code>SVC_LN_INFO</code> line items. <strong>Dx codes</strong> are from <code>CLM_DX</code>. A single encounter can produce multiple claims (e.g., one for the office visit CPT, another for labs, another for immunizations).`
+  },
 };
 
 function Insight({ type }) {
@@ -188,10 +192,10 @@ function ChargeTable({ charges }) {
               <td style={{color: 'var(--text2)'}}>{c.specialty ?? '—'}</td>
               <td className="amt">{fmt(c.amount)}</td>
               <td className="amt" style={{color: 'var(--green2)'}}>
-                {fmt((c.matchHistory ?? []).reduce((s, m) => s + (m.amount ?? 0), 0) * -1 || null)}
+                {fmt((c.matchHistory ?? []).reduce((s, m) => s + (m.amount ?? 0), 0) || null)}
               </td>
               <td className="amt" style={{color: 'var(--amber2)'}}>
-                {fmt((c.matchHistory ?? []).reduce((s, m) => s + (m.adjustmentAmount ?? 0), 0) * -1 || null)}
+                {fmt((c.matchHistory ?? []).reduce((s, m) => s + (m.adjustmentAmount ?? 0), 0) || null)}
               </td>
               <td className="amt">{fmt(c.outstanding)}</td>
               <td style={{color: 'var(--text3)'}}>{(c.modifiers ?? []).join(', ') || '—'}</td>
@@ -276,6 +280,7 @@ function StoryCard({ story, defaultOpen }) {
 
           {tab === 'claims' && (
             <div className="story-section">
+              <Insight type="claims" />
               {invoices.map((inv, i) => (
                 <div key={i} style={{marginBottom: 12, padding: '10px 14px', background: 'var(--bg3)', borderRadius: 6}}>
                   <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
