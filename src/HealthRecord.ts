@@ -491,7 +491,39 @@ export interface Claim {
   } | null;
   /** Payer address */
   payerAddress: string | null;
+  /** Service line items on the claim (CPT codes, amounts, dates) */
+  serviceLines: ClaimServiceLine[];
+  /** Diagnosis codes submitted on the claim */
+  diagnoses: ClaimDiagnosis[];
+  /** Claim notes (e.g., "CORRECTED CLAIM") */
+  notes: string[];
   _epic: EpicRaw;
+}
+
+/** Individual service line on a claim (maps to an 837 SV1/SV2 segment) */
+export interface ClaimServiceLine {
+  line: number | null;
+  procedureCode: string | null;       // CPT/HCPCS code (LN_PROC_CD)
+  procedureDescription: string | null; // Human name (LN_PROC_DESC)
+  modifier: string | null;             // Procedure modifier (LN_PROC_MOD)
+  quantity: number | null;             // Units of service (LN_QTY)
+  chargedAmount: number | null;        // Billed amount (LN_AMT)
+  revenueCode: string | null;          // UB revenue code (LN_REV_CD)
+  revenueCodeDescription: string | null;
+  serviceFromDate: ISODate;
+  serviceToDate: ISODate;
+  nonCoveredAmount: number | null;     // Amount payer won't cover
+  _epic: EpicRaw;
+}
+
+/** Diagnosis code submitted on a claim */
+export interface ClaimDiagnosis {
+  line: number | null;
+  code: string | null;                 // ICD-10 code
+  qualifier: string | null;            // Code set qualifier
+  rank: number | null;                 // 1 = principal diagnosis
+  isPresentOnAdmission: string | null; // POA indicator
+  isFromHeader: boolean;               // Whether from claim header vs line
 }
 
 export interface BillingAccount {
@@ -1669,6 +1701,29 @@ function projectBilling(r: R): BillingSummary {
         address: bilProvAddr || null,
       } : null,
       payerAddress: pyrAddr || null,
+      serviceLines: (c.service_lines ?? []).map((sl: any): ClaimServiceLine => ({
+        line: sl.LINE ?? null,
+        procedureCode: str(sl.LN_PROC_CD),
+        procedureDescription: str(sl.LN_PROC_DESC),
+        modifier: str(sl.LN_PROC_MOD),
+        quantity: num(sl.LN_QTY),
+        chargedAmount: num(sl.LN_AMT),
+        revenueCode: str(sl.LN_REV_CD),
+        revenueCodeDescription: str(sl.LN_REV_CD_DESC),
+        serviceFromDate: toISODate(sl.LN_FROM_DT),
+        serviceToDate: toISODate(sl.LN_TO_DT),
+        nonCoveredAmount: num(sl.LN_NON_CVD_AMT),
+        _epic: epic(sl),
+      })),
+      diagnoses: (c.diagnoses ?? []).map((dx: any): ClaimDiagnosis => ({
+        line: dx.LINE ?? null,
+        code: str(dx.CLM_DX),
+        qualifier: str(dx.CLM_DX_QUAL),
+        rank: dx.CLM_DX_RANK ?? null,
+        isPresentOnAdmission: str(dx.CLM_DX_POA),
+        isFromHeader: dx.CLM_DX_FROM_HEADER_YN === 'Y',
+      })),
+      notes: (c.notes ?? []).map((n: any) => n.CLM_NOTE).filter(Boolean),
       _epic: epic(c),
     };
   });

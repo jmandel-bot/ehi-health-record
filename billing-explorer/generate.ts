@@ -494,6 +494,23 @@ function buildEncounterData(visit: Visit) {
     provider: cl.provider,
     invoiceNumber: cl.invoiceNumber,
     billingProvider: cl.billingProviderDetail ?? cl.billingProvider,
+    serviceLines: (cl.serviceLines ?? []).map((sl: any) => ({
+      line: sl.line,
+      procedureCode: sl.procedureCode,
+      procedureDescription: sl.procedureDescription,
+      modifier: sl.modifier,
+      quantity: sl.quantity,
+      chargedAmount: sl.chargedAmount,
+      revenueCode: sl.revenueCode,
+      serviceFromDate: sl.serviceFromDate,
+      serviceToDate: sl.serviceToDate,
+    })),
+    diagnoses: (cl.diagnoses ?? []).map((dx: any) => ({
+      code: dx.code,
+      qualifier: dx.qualifier,
+      rank: dx.rank,
+    })),
+    notes: cl.notes ?? [],
   }));
   
   // ─── Recon data ─────────────────────────────────────────

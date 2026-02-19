@@ -126,8 +126,19 @@ function mergeQuery(baseTable: string, where?: string, params: unknown[] = []): 
       baseCol = "PAT_ENC_CSN_ID";
     }
 
+    // Build join condition — include additional PK columns for composite keys
+    // (e.g. SVC_LN_INFO has PK [RECORD_ID, LINE] — must join on both)
+    const memberPkCols = q(`PRAGMA table_info("${member.table}")`)
+      .filter((r: any) => r.pk > 0)
+      .map((r: any) => r.name as string);
+    let joinCondition = `b."${baseCol}" = "${alias}"."${member.join_col}"`;
+    for (const pkCol of memberPkCols) {
+      if (pkCol !== member.join_col && baseCols.has(pkCol)) {
+        joinCondition += ` AND b."${pkCol}" = "${alias}"."${pkCol}"`;
+      }
+    }
     joins.push(
-      `LEFT JOIN "${member.table}" "${alias}" ON b."${baseCol}" = "${alias}"."${member.join_col}"`
+      `LEFT JOIN "${member.table}" "${alias}" ON ${joinCondition}`
     );
     // Track all cols to avoid dups
     for (const col of splitCols) baseCols.add(col);

@@ -299,6 +299,52 @@ function StoryCard({ story, defaultOpen }) {
                           Billing: {cl.billingProvider.name} · NPI: <code style={{background:'var(--bg4)', padding:'1px 4px', borderRadius:3, color:'var(--cyan)'}}>{cl.billingProvider.npi}</code> · Tax: {cl.billingProvider.taxonomy}
                         </div>
                       )}
+                      {/* Service Lines */}
+                      {cl.serviceLines?.length > 0 && (
+                        <div style={{marginTop: 8}}>
+                          <div style={{fontWeight: 600, color: 'var(--text1)', marginBottom: 4}}>Service Lines (837 SV1)</div>
+                          <table style={{width: '100%', fontSize: 11, borderCollapse: 'collapse'}}>
+                            <thead>
+                              <tr style={{borderBottom: '1px solid var(--border)', color: 'var(--text3)'}}>
+                                <th style={{textAlign:'left', padding:'2px 8px 2px 0'}}>Line</th>
+                                <th style={{textAlign:'left', padding:'2px 8px'}}>CPT/HCPCS</th>
+                                <th style={{textAlign:'left', padding:'2px 8px'}}>Description</th>
+                                <th style={{textAlign:'left', padding:'2px 8px'}}>Mod</th>
+                                <th style={{textAlign:'right', padding:'2px 8px'}}>Qty</th>
+                                <th style={{textAlign:'right', padding:'2px 0 2px 8px'}}>Amount</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {cl.serviceLines.map((sl, k) => (
+                                <tr key={k} style={{borderBottom: '1px solid var(--bg4)'}}>
+                                  <td style={{padding:'3px 8px 3px 0', color:'var(--text3)'}}>{sl.line}</td>
+                                  <td style={{padding:'3px 8px'}}><code style={{color:'var(--yellow)'}}>{sl.procedureCode}</code></td>
+                                  <td style={{padding:'3px 8px', color:'var(--text2)'}}>{sl.procedureDescription || '—'}</td>
+                                  <td style={{padding:'3px 8px', color:'var(--text3)'}}>{sl.modifier || '—'}</td>
+                                  <td style={{padding:'3px 8px', textAlign:'right'}}>{sl.quantity}</td>
+                                  <td style={{padding:'3px 0 3px 8px', textAlign:'right', color:'var(--green)'}}>{fmt(sl.chargedAmount)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                      {/* Diagnoses */}
+                      {cl.diagnoses?.length > 0 && (
+                        <div style={{marginTop: 6}}>
+                          <span style={{fontWeight: 600, color: 'var(--text1)'}}>Dx: </span>
+                          {cl.diagnoses.map((dx, k) => (
+                            <span key={k} style={{marginRight: 8}}>
+                              <code style={{color:'var(--purple)', background:'var(--bg4)', padding:'1px 4px', borderRadius:3}}>{dx.code}</code>
+                              {dx.rank === 1 && <span style={{fontSize:10, color:'var(--text3)'}}> (principal)</span>}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {/* Notes */}
+                      {cl.notes?.length > 0 && cl.notes.map((note, k) => (
+                        <div key={k} style={{marginTop: 4, fontStyle: 'italic', color: 'var(--yellow)'}}>📝 {note}</div>
+                      ))}
                     </div>
                   ))}
                 </div>

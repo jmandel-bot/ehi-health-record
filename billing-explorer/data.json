@@ -558,7 +558,33 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "99396",
+                "procedureDescription": null,
+                "modifier": "25",
+                "quantity": 1,
+                "chargedAmount": 330,
+                "revenueCode": null,
+                "serviceFromDate": "2023-09-28",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "Z00.00",
+                "qualifier": "ABK",
+                "rank": null
+              },
+              {
+                "code": "F07.81",
+                "qualifier": "ABF",
+                "rank": null
+              }
+            ],
+            "notes": []
           },
           {
             "id": "160603141",
@@ -575,7 +601,44 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "90686",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 54,
+                "revenueCode": null,
+                "serviceFromDate": "2023-09-28",
+                "serviceToDate": null
+              },
+              {
+                "line": 2,
+                "procedureCode": "90471",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 60,
+                "revenueCode": null,
+                "serviceFromDate": "2023-09-28",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "Z00.00",
+                "qualifier": "ABK",
+                "rank": null
+              },
+              {
+                "code": "Z23",
+                "qualifier": "ABF",
+                "rank": null
+              }
+            ],
+            "notes": []
           }
         ],
         "recons": [
@@ -1509,7 +1572,55 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "83036",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 50,
+                "revenueCode": null,
+                "serviceFromDate": "2023-09-28",
+                "serviceToDate": null
+              },
+              {
+                "line": 2,
+                "procedureCode": "80061",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 120,
+                "revenueCode": null,
+                "serviceFromDate": "2023-09-28",
+                "serviceToDate": null
+              },
+              {
+                "line": 3,
+                "procedureCode": "36415",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 33,
+                "revenueCode": null,
+                "serviceFromDate": "2023-09-28",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "Z13.1",
+                "qualifier": "ABK",
+                "rank": null
+              },
+              {
+                "code": "Z13.220",
+                "qualifier": "ABF",
+                "rank": null
+              }
+            ],
+            "notes": []
           }
         ],
         "recons": [
@@ -2226,7 +2337,28 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "99213",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 226,
+                "revenueCode": null,
+                "serviceFromDate": "2023-03-02",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "F07.81",
+                "qualifier": "ABK",
+                "rank": null
+              }
+            ],
+            "notes": []
           }
         ],
         "recons": [
@@ -3254,7 +3386,38 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "99214",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 315,
+                "revenueCode": null,
+                "serviceFromDate": "2022-12-01",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "S06.0X0A",
+                "qualifier": "ABK",
+                "rank": null
+              },
+              {
+                "code": "W22.8XXA",
+                "qualifier": "ABF",
+                "rank": null
+              },
+              {
+                "code": "R11.0",
+                "qualifier": "ABF",
+                "rank": null
+              }
+            ],
+            "notes": []
           },
           {
             "id": "142198034",
@@ -3271,7 +3434,28 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "99214",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 315,
+                "revenueCode": null,
+                "serviceFromDate": "2022-12-01",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "F07.81",
+                "qualifier": "ABK",
+                "rank": null
+              }
+            ],
+            "notes": []
           }
         ],
         "recons": [
@@ -4556,7 +4740,49 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "99395",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 294,
+                "revenueCode": null,
+                "serviceFromDate": "2022-08-29",
+                "serviceToDate": null
+              },
+              {
+                "line": 2,
+                "procedureCode": "99213",
+                "procedureDescription": null,
+                "modifier": "25",
+                "quantity": 1,
+                "chargedAmount": 222,
+                "revenueCode": null,
+                "serviceFromDate": "2022-08-29",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "Z00.00",
+                "qualifier": "ABK",
+                "rank": null
+              },
+              {
+                "code": "F07.81",
+                "qualifier": "ABF",
+                "rank": null
+              },
+              {
+                "code": "I10",
+                "qualifier": "ABF",
+                "rank": null
+              }
+            ],
+            "notes": []
           }
         ],
         "recons": [
@@ -5559,7 +5785,39 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "80048",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 140,
+                "revenueCode": null,
+                "serviceFromDate": "2022-08-29",
+                "serviceToDate": null
+              },
+              {
+                "line": 2,
+                "procedureCode": "36415",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 33,
+                "revenueCode": null,
+                "serviceFromDate": "2022-08-29",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "I10",
+                "qualifier": "ABK",
+                "rank": null
+              }
+            ],
+            "notes": []
           }
         ],
         "recons": [
@@ -6695,7 +6953,43 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "99213",
+                "procedureDescription": null,
+                "modifier": "95",
+                "quantity": 1,
+                "chargedAmount": 170,
+                "revenueCode": null,
+                "serviceFromDate": "2020-07-14",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "S09.90XA",
+                "qualifier": "ABK",
+                "rank": null
+              },
+              {
+                "code": "R51",
+                "qualifier": "ABF",
+                "rank": null
+              },
+              {
+                "code": "R11.0",
+                "qualifier": "ABF",
+                "rank": null
+              },
+              {
+                "code": "W20.8XXA",
+                "qualifier": "ABF",
+                "rank": null
+              }
+            ],
+            "notes": []
           }
         ],
         "recons": [
@@ -7557,7 +7851,38 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "99213",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 165,
+                "revenueCode": null,
+                "serviceFromDate": "2020-01-09",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "K21.9",
+                "qualifier": "ABK",
+                "rank": null
+              },
+              {
+                "code": "D17.0",
+                "qualifier": "ABF",
+                "rank": null
+              },
+              {
+                "code": "D22.62",
+                "qualifier": "ABF",
+                "rank": null
+              }
+            ],
+            "notes": []
           }
         ],
         "recons": [
@@ -8499,7 +8824,38 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "99395",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 335,
+                "revenueCode": null,
+                "serviceFromDate": "2018-08-09",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "Z00.00",
+                "qualifier": "ABK",
+                "rank": null
+              },
+              {
+                "code": "K21.9",
+                "qualifier": "ABF",
+                "rank": null
+              },
+              {
+                "code": "R10.13",
+                "qualifier": "ABF",
+                "rank": null
+              }
+            ],
+            "notes": []
           }
         ],
         "recons": [
@@ -9317,7 +9673,39 @@
               "taxonomy": "193200000X",
               "taxId": "391837462",
               "address": "4410 REGENT ST, MADISON, WI, 53705-4901"
-            }
+            },
+            "serviceLines": [
+              {
+                "line": 1,
+                "procedureCode": "80061",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 114,
+                "revenueCode": null,
+                "serviceFromDate": "2018-08-09",
+                "serviceToDate": null
+              },
+              {
+                "line": 2,
+                "procedureCode": "36415",
+                "procedureDescription": null,
+                "modifier": null,
+                "quantity": 1,
+                "chargedAmount": 37,
+                "revenueCode": null,
+                "serviceFromDate": "2018-08-09",
+                "serviceToDate": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "code": "Z13.220",
+                "qualifier": "ABK",
+                "rank": null
+              }
+            ],
+            "notes": []
           }
         ],
         "recons": [
