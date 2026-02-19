@@ -566,6 +566,8 @@ export interface TransactionAction {
   actionRemitCodes: string | null;
   /** System-generated comment */
   actionComment: string | null;
+  /** Staff member who performed this action */
+  performedBy: string | null;
   _epic: EpicRaw;
 }
 
@@ -1596,6 +1598,7 @@ function projectBilling(r: R): BillingSummary {
         coverageAfter: str(a.AFTER_CVG_ID),
         actionRemitCodes: str(a.ACTION_REMIT_CODES),
         actionComment: str(a.ACTION_COMMENT),
+        performedBy: str(a.ACTION_USER_ID_NAME),
         _epic: epic(a),
       });
     }

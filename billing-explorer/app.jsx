@@ -139,7 +139,7 @@ function Timeline({ events }) {
              style={ev.isVoidedCharge ? {opacity: 0.5} : undefined}>
           <div className="tl-dot" />
           <div>
-            <span className="tl-date">{fmtDateShort(ev.date)}</span>
+            <span className="tl-date">{fmtDateShort(ev.date)}{ev.sortKey ? <span style={{opacity:0.5}}>{' #'}{Math.round((ev.sortKey % 1) * 100)}</span> : ''}</span>
             {ev.amount != null && (
               <span className={`tl-amount ${ev.amount >= 0 ? 'positive' : 'negative'}`}>
                 {ev.amountLabel ? <span className="tl-amount-label">{ev.amountLabel}: </span> : null}
@@ -148,6 +148,7 @@ function Timeline({ events }) {
             )}
             <span className="tl-label"> {ev.label}</span>
             {ev.sublabel && <span className="tl-sublabel">{ev.sublabel}</span>}
+            {ev.performedBy && <span className="tl-staff"> — {ev.performedBy}</span>}
             {ev.detail && <div className="tl-detail">{ev.detail}</div>}
           </div>
         </div>

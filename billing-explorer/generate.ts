@@ -289,6 +289,7 @@ function buildEncounterData(visit: Visit) {
       amountLabel: 'Billed',
       chargeId: c.id,
       isVoidedCharge: isVoided,
+      performedBy: isVoided ? c.voidedBy : null,
     });
   }
   
@@ -388,6 +389,7 @@ function buildEncounterData(visit: Visit) {
       amountLabel: amt != null && amt !== 0 ? amountLabel : null,
       chargeId: act.transactionId,
       isVoidedCharge: isOnVoidedCharge,
+      performedBy: act.performedBy,
     });
   }
   
@@ -551,6 +553,7 @@ function buildEncounterData(visit: Visit) {
     coverageAfter: act.coverageAfter,
     actionRemitCodes: act.actionRemitCodes,
     actionComment: act.actionComment,
+    performedBy: act.performedBy,
     _epic: act._epic,
   }));
   

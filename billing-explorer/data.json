@@ -110,7 +110,8 @@
             "amount": 330,
             "amountLabel": "Billed",
             "chargeId": "355871699",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2023-09-28",
@@ -121,7 +122,8 @@
             "amount": 60,
             "amountLabel": "Billed",
             "chargeId": "354520701",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2023-09-28",
@@ -132,7 +134,8 @@
             "amount": 54,
             "amountLabel": "Billed",
             "chargeId": "354520699",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2023-09-28",
@@ -248,7 +251,8 @@
             "amount": -42.15,
             "amountLabel": "Adjustment",
             "chargeId": "354520701",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-10-18",
@@ -259,7 +263,8 @@
             "amount": -33,
             "amountLabel": "Adjustment",
             "chargeId": "354520699",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-10-21",
@@ -288,7 +293,8 @@
             "amount": -106.58,
             "amountLabel": "Adjustment",
             "chargeId": "355871699",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "LYNAUGH, JURATE"
           }
         ],
         "charges": [
@@ -900,6 +906,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "LYNAUGH, JURATE",
             "_epic": {
               "TX_ID": 355871699,
               "LINE": 1,
@@ -960,6 +967,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 354520701,
               "LINE": 1,
@@ -1019,6 +1027,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 354520699,
               "LINE": 1,
@@ -1109,7 +1118,8 @@
             "amount": 33,
             "amountLabel": "Billed",
             "chargeId": "354336210",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2023-09-28",
@@ -1120,7 +1130,8 @@
             "amount": 120,
             "amountLabel": "Billed",
             "chargeId": "354336209",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2023-09-28",
@@ -1131,7 +1142,8 @@
             "amount": 50,
             "amountLabel": "Billed",
             "chargeId": "354336208",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2023-09-28",
@@ -1217,7 +1229,8 @@
             "amount": -30.86,
             "amountLabel": "Adjustment",
             "chargeId": "354336210",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-10-18",
@@ -1228,7 +1241,8 @@
             "amount": -110.08,
             "amountLabel": "Adjustment",
             "chargeId": "354336209",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-10-18",
@@ -1239,7 +1253,8 @@
             "amount": -42.81,
             "amountLabel": "Adjustment",
             "chargeId": "354336208",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           }
         ],
         "charges": [
@@ -1727,6 +1742,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 354336210,
               "LINE": 1,
@@ -1787,6 +1803,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 354336209,
               "LINE": 1,
@@ -1847,6 +1864,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 354336208,
               "LINE": 1,
@@ -1970,7 +1988,8 @@
             "amount": 226,
             "amountLabel": "Billed",
             "chargeId": "328283034",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2023-03-02",
@@ -2047,7 +2066,8 @@
             "amount": -86.03,
             "amountLabel": "Adjustment",
             "chargeId": "328283034",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-03-28",
@@ -2058,7 +2078,8 @@
             "amount": -139.97,
             "amountLabel": "Transferred",
             "chargeId": "328283034",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-03-28",
@@ -2069,7 +2090,8 @@
             "amount": null,
             "amountLabel": null,
             "chargeId": "328283034",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "EPIC, USER"
           }
         ],
         "charges": [
@@ -2383,6 +2405,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 328283034,
               "LINE": 1,
@@ -2443,6 +2466,7 @@
             "coverageAfter": null,
             "actionRemitCodes": "1",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 328283034,
               "LINE": 2,
@@ -2498,6 +2522,7 @@
             "coverageAfter": null,
             "actionRemitCodes": null,
             "actionComment": null,
+            "performedBy": "EPIC, USER",
             "_epic": {
               "TX_ID": 328283034,
               "LINE": 3,
@@ -2775,7 +2800,8 @@
             "amount": 315,
             "amountLabel": "Billed",
             "chargeId": "317236398",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2022-12-01",
@@ -2786,7 +2812,8 @@
             "amount": 315,
             "amountLabel": "Billed",
             "chargeId": "315026147",
-            "isVoidedCharge": true
+            "isVoidedCharge": true,
+            "performedBy": "HIRZY, HEIDI L"
           },
           {
             "date": "2022-12-01",
@@ -2863,7 +2890,8 @@
             "amount": -315,
             "amountLabel": "Resubmit Insurance",
             "chargeId": "317236398",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "BURKE, BRITANY D"
           },
           {
             "date": "2022-12-20",
@@ -2874,7 +2902,8 @@
             "amount": -315,
             "amountLabel": "Denied",
             "chargeId": "315026147",
-            "isVoidedCharge": true
+            "isVoidedCharge": true,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2022-12-20",
@@ -2885,7 +2914,8 @@
             "amount": null,
             "amountLabel": null,
             "chargeId": "315026147",
-            "isVoidedCharge": true
+            "isVoidedCharge": true,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-01-08",
@@ -2914,7 +2944,8 @@
             "amount": 315,
             "amountLabel": "Denied",
             "chargeId": "317236398",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-01-10",
@@ -2925,7 +2956,8 @@
             "amount": null,
             "amountLabel": null,
             "chargeId": "317236398",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-01-10",
@@ -2936,7 +2968,8 @@
             "amount": null,
             "amountLabel": null,
             "chargeId": "317236398",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-01-10",
@@ -2947,7 +2980,8 @@
             "amount": -116.09,
             "amountLabel": "Adjustment",
             "chargeId": "317236398",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-01-10",
@@ -2958,7 +2992,8 @@
             "amount": -19.89,
             "amountLabel": "Transferred",
             "chargeId": "317236398",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2023-01-10",
@@ -2969,7 +3004,8 @@
             "amount": null,
             "amountLabel": null,
             "chargeId": "317236398",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "EPIC, USER"
           }
         ],
         "charges": [
@@ -3463,6 +3499,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": null,
             "actionComment": null,
+            "performedBy": "BURKE, BRITANY D",
             "_epic": {
               "TX_ID": 317236398,
               "LINE": 1,
@@ -3516,6 +3553,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "16",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 317236398,
               "LINE": 2,
@@ -3575,6 +3613,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "MA63",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 317236398,
               "LINE": 3,
@@ -3634,6 +3673,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "MA63",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 317236398,
               "LINE": 4,
@@ -3693,6 +3733,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 317236398,
               "LINE": 5,
@@ -3753,6 +3794,7 @@
             "coverageAfter": null,
             "actionRemitCodes": "2",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 317236398,
               "LINE": 6,
@@ -3808,6 +3850,7 @@
             "coverageAfter": null,
             "actionRemitCodes": null,
             "actionComment": null,
+            "performedBy": "EPIC, USER",
             "_epic": {
               "TX_ID": 317236398,
               "LINE": 7,
@@ -3857,6 +3900,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "16",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 315026147,
               "LINE": 1,
@@ -3915,6 +3959,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "MA63",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 315026147,
               "LINE": 2,
@@ -4158,7 +4203,8 @@
             "amount": 222,
             "amountLabel": "Billed",
             "chargeId": "302543307",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2022-08-29",
@@ -4169,7 +4215,8 @@
             "amount": 294,
             "amountLabel": "Billed",
             "chargeId": "302543306",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2022-08-29",
@@ -4255,7 +4302,8 @@
             "amount": -152.01,
             "amountLabel": "Adjustment",
             "chargeId": "302543307",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2022-10-04",
@@ -4266,7 +4314,8 @@
             "amount": -6.99,
             "amountLabel": "Transferred",
             "chargeId": "302543307",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2022-10-04",
@@ -4277,7 +4326,8 @@
             "amount": null,
             "amountLabel": null,
             "chargeId": "302543307",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "EPIC, USER"
           },
           {
             "date": "2022-10-04",
@@ -4288,7 +4338,8 @@
             "amount": -84.11,
             "amountLabel": "Adjustment",
             "chargeId": "302543306",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2022-10-04",
@@ -4299,7 +4350,8 @@
             "amount": null,
             "amountLabel": null,
             "chargeId": "302543306",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "EPIC, USER"
           }
         ],
         "charges": [
@@ -4718,6 +4770,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 302543307,
               "LINE": 1,
@@ -4778,6 +4831,7 @@
             "coverageAfter": null,
             "actionRemitCodes": "2",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 302543307,
               "LINE": 2,
@@ -4833,6 +4887,7 @@
             "coverageAfter": null,
             "actionRemitCodes": null,
             "actionComment": null,
+            "performedBy": "EPIC, USER",
             "_epic": {
               "TX_ID": 302543307,
               "LINE": 3,
@@ -4882,6 +4937,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 302543306,
               "LINE": 1,
@@ -4941,6 +4997,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": null,
             "actionComment": null,
+            "performedBy": "EPIC, USER",
             "_epic": {
               "TX_ID": 302543306,
               "LINE": 2,
@@ -5101,7 +5158,8 @@
             "amount": 33,
             "amountLabel": "Billed",
             "chargeId": "302968775",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2022-08-29",
@@ -5112,7 +5170,8 @@
             "amount": 140,
             "amountLabel": "Billed",
             "chargeId": "302968774",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2022-08-29",
@@ -5207,7 +5266,8 @@
             "amount": -30.86,
             "amountLabel": "Adjustment",
             "chargeId": "302968775",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2022-10-04",
@@ -5218,7 +5278,8 @@
             "amount": -0.21,
             "amountLabel": "Transferred",
             "chargeId": "302968775",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2022-10-04",
@@ -5229,7 +5290,8 @@
             "amount": null,
             "amountLabel": null,
             "chargeId": "302968775",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "EPIC, USER"
           },
           {
             "date": "2022-10-04",
@@ -5240,7 +5302,8 @@
             "amount": -133.74,
             "amountLabel": "Adjustment",
             "chargeId": "302968774",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2022-10-04",
@@ -5251,7 +5314,8 @@
             "amount": -0.62,
             "amountLabel": "Transferred",
             "chargeId": "302968774",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2022-10-04",
@@ -5262,7 +5326,8 @@
             "amount": null,
             "amountLabel": null,
             "chargeId": "302968774",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "EPIC, USER"
           }
         ],
         "charges": [
@@ -5724,6 +5789,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 302968775,
               "LINE": 1,
@@ -5784,6 +5850,7 @@
             "coverageAfter": null,
             "actionRemitCodes": "2",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 302968775,
               "LINE": 2,
@@ -5839,6 +5906,7 @@
             "coverageAfter": null,
             "actionRemitCodes": null,
             "actionComment": null,
+            "performedBy": "EPIC, USER",
             "_epic": {
               "TX_ID": 302968775,
               "LINE": 3,
@@ -5888,6 +5956,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 302968774,
               "LINE": 1,
@@ -5948,6 +6017,7 @@
             "coverageAfter": null,
             "actionRemitCodes": "2",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 302968774,
               "LINE": 2,
@@ -6003,6 +6073,7 @@
             "coverageAfter": null,
             "actionRemitCodes": null,
             "actionComment": null,
+            "performedBy": "EPIC, USER",
             "_epic": {
               "TX_ID": 302968774,
               "LINE": 3,
@@ -6375,7 +6446,8 @@
             "amount": 170,
             "amountLabel": "Billed",
             "chargeId": "213432121",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2020-07-14",
@@ -6503,7 +6575,8 @@
             "amount": -56.7,
             "amountLabel": "Adjustment",
             "chargeId": "213432121",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2020-09-18",
@@ -6928,6 +7001,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 213432121,
               "LINE": 1,
@@ -7186,7 +7260,8 @@
             "amount": 165,
             "amountLabel": "Billed",
             "chargeId": "190635377",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2020-01-09",
@@ -7313,7 +7388,8 @@
             "amount": -31.71,
             "amountLabel": "Adjustment",
             "chargeId": "190635377",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2020-01-27",
@@ -7324,7 +7400,8 @@
             "amount": -133.29,
             "amountLabel": "Transferred",
             "chargeId": "190635377",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2020-01-27",
@@ -7335,7 +7412,8 @@
             "amount": null,
             "amountLabel": null,
             "chargeId": "190635377",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2020-01-29",
@@ -7781,6 +7859,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 190635377,
               "LINE": 1,
@@ -7841,6 +7920,7 @@
             "coverageAfter": null,
             "actionRemitCodes": "1",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 190635377,
               "LINE": 2,
@@ -7896,6 +7976,7 @@
             "coverageAfter": null,
             "actionRemitCodes": null,
             "actionComment": null,
+            "performedBy": null,
             "_epic": {
               "TX_ID": 190635377,
               "LINE": 3,
@@ -8188,7 +8269,8 @@
             "amount": 335,
             "amountLabel": "Billed",
             "chargeId": "129124339",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2018-08-09",
@@ -8285,7 +8367,8 @@
             "amount": -104.27,
             "amountLabel": "Adjustment",
             "chargeId": "129124339",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2018-09-10",
@@ -8638,6 +8721,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 129124339,
               "LINE": 1,
@@ -8894,7 +8978,8 @@
             "amount": 37,
             "amountLabel": "Billed",
             "chargeId": "129124217",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2018-08-09",
@@ -8905,7 +8990,8 @@
             "amount": 114,
             "amountLabel": "Billed",
             "chargeId": "129124216",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": null
           },
           {
             "date": "2018-08-09",
@@ -9011,7 +9097,8 @@
             "amount": -33,
             "amountLabel": "Adjustment",
             "chargeId": "129124217",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2018-09-10",
@@ -9022,7 +9109,8 @@
             "amount": -94.48,
             "amountLabel": "Adjustment",
             "chargeId": "129124216",
-            "isVoidedCharge": false
+            "isVoidedCharge": false,
+            "performedBy": "GILBECK, KAYLA J"
           },
           {
             "date": "2018-09-10",
@@ -9488,6 +9576,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 129124217,
               "LINE": 1,
@@ -9548,6 +9637,7 @@
             "coverageAfter": "5934765",
             "actionRemitCodes": "45",
             "actionComment": null,
+            "performedBy": "GILBECK, KAYLA J",
             "_epic": {
               "TX_ID": 129124216,
               "LINE": 1,
