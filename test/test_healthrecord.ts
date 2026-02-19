@@ -200,7 +200,8 @@ function walkSchema(obj: unknown, path: string) {
         "diagnoses", "orders", "notes", "vitalSigns", "results",
         "reactions", "reasonsForVisit", "associatedDiagnoses", "race",
         "conditions", "charges", "payments", "claims", "accounts",
-        "snapshots",
+        "transactionActions", "eobLineItems", "collectionEvents",
+        "snapshots", "modifiers", "diagnosisCodes",
       ]);
       if (arrayFields.has(key) && !Array.isArray(value)) {
         schemaErrors.push(`${path}.${key} should be array, got ${typeof value}`);

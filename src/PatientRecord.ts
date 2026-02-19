@@ -344,7 +344,7 @@ export class Encounter {
     this.PAT_ENC_CSN_ID = raw.PAT_ENC_CSN_ID as CSN;
     this.PAT_ID = raw.PAT_ID as string;
     this.contactDate = raw.CONTACT_DATE as string;
-    this.encounterType = null as unknown as string; // ENC_TYPE_C_NAME not in EHI export
+    this.encounterType = raw.ENC_TYPE_C_NAME as string; // audit:optional — not in every EHI export
     this.visitProviderName = raw._visit_provider as string;
     this.diagnoses = (raw.diagnoses as EpicDiagnosisRow[]) ?? [];
     this.reasonsForVisit = (raw.reasons_for_visit as EpicRow[]) ?? [];
@@ -504,7 +504,7 @@ export class Message {
   constructor(raw: EpicRow) {
     Object.assign(this, raw);
     this.MESSAGE_ID = raw.MESSAGE_ID as EpicID;
-    this.messageType = null as unknown as string; // MSG_TYPE_C_NAME not in EHI export
+    this.messageType = raw.MSG_TYPE_C_NAME as string; // audit:optional — not in every EHI export
     this.text = (raw.text as EpicRow[]) ?? [];
     this.rtf_text = (raw.rtf_text as EpicRow[]) ?? [];
     if (typeof raw.extracted_text === 'string') this.extracted_text = raw.extracted_text;

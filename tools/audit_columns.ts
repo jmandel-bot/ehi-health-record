@@ -33,8 +33,20 @@ while ((match = childSpecRE.exec(projectSrc)) !== null) {
 }
 console.log(`  Checked ${specChecked} ChildSpecs, ${specErrors} errors\n`);
 
+// Helper: collect column names marked audit:optional on the same line
+function collectOptionalCols(src: string): Set<string> {
+  const opt = new Set<string>();
+  for (const line of src.split('\n')) {
+    if (!line.includes('audit:optional')) continue;
+    // grab every UPPER_CASE identifier on this line
+    for (const m of line.matchAll(/[A-Z][A-Z_0-9]+/g)) opt.add(m[0]);
+  }
+  return opt;
+}
+
 // 2. Check: every raw.COLUMN_NAME in PatientRecord.ts maps to a real column
 const prSrc = await Bun.file("src/PatientRecord.ts").text();
+const prOptional = collectOptionalCols(prSrc);
 const rawColRE = /raw\.([A-Z_][A-Z_0-9]+)/g;
 const prRawCols = new Set<string>();
 while ((match = rawColRE.exec(prSrc)) !== null) {
@@ -50,18 +62,21 @@ for (const t of allTables) {
 
 console.log("=== PatientRecord.ts raw.COLUMN references ===");
 let prMissing = 0;
+let prOptCount = 0;
 for (const col of [...prRawCols].sort()) {
   if (!allCols.has(col)) {
-    // Check if it's a computed field (prefixed with _)
     if (col.startsWith('_')) continue;
+    if (prOptional.has(col)) { prOptCount++; continue; }
     console.log(`  ✗ raw.${col} — not found in any table`);
     prMissing++;
   }
 }
+if (prOptCount) console.log(`  (${prOptCount} optional columns not in this DB — ok)`);
 console.log(`  ${prRawCols.size} column refs, ${prMissing} not found in DB\n`);
 
 // 3. Check: every column referenced in HealthRecord.ts projections
 const hrSrc = await Bun.file("src/HealthRecord.ts").text();
+const hrOptional = collectOptionalCols(hrSrc);
 const hrColRE = /[a-z]\.([A-Z_][A-Z_0-9]+)/g;
 const hrCols = new Set<string>();
 while ((match = hrColRE.exec(hrSrc)) !== null) {
@@ -70,13 +85,16 @@ while ((match = hrColRE.exec(hrSrc)) !== null) {
 
 console.log("=== HealthRecord.ts projection column references ===");
 let hrMissing = 0;
+let hrOptCount = 0;
 for (const col of [...hrCols].sort()) {
   if (!allCols.has(col)) {
     if (col.startsWith('_')) continue;
+    if (hrOptional.has(col)) { hrOptCount++; continue; }
     console.log(`  ✗ ${col} — not found in any table`);
     hrMissing++;
   }
 }
+if (hrOptCount) console.log(`  (${hrOptCount} optional columns not in this DB — ok)`);
 console.log(`  ${hrCols.size} column refs, ${hrMissing} not found in DB\n`);
 
 // 4. Check: columns that are in the DB and have data, but are never

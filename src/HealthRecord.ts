@@ -130,6 +130,15 @@ export interface Medication {
   prescriber: string | null;
   pharmacy: string | null;
   associatedDiagnoses: string[];
+  quantity: string | null;              // "90 capsule" — dispensed quantity
+  refills: number | null;               // number of refills authorized
+  refillsRemaining: number | null;      // refills still available
+  dispenseAsWritten: boolean | null;     // brand-only dispensing flag
+  orderClass: string | null;            // "Normal", "Controlled Substance"
+  orderingMode: string | null;          // "Outpatient", "Inpatient"
+  priority: string | null;              // "Routine", "Stat"
+  discontinuedDate: ISODateTime;        // when discontinued
+  discontinuedReason: string | null;    // why discontinued
   _epic: EpicRaw;
 }
 
@@ -144,6 +153,11 @@ export interface Immunization {
   manufacturer: string | null;
   administeredBy: string | null;
   status: string | null;
+  product: string | null;             // "Fluarix Quadrivalent" — brand/product name
+  ndcCode: string | null;             // "58160-909-52" — National Drug Code
+  expirationDate: ISODate;            // vaccine lot expiration
+  givenBy: string | null;             // provider who administered (vs. who entered)
+  source: string | null;              // "Confirmed", "MyChart Entered" — data source/verification
   _epic: EpicRaw;
 }
 
@@ -156,6 +170,17 @@ export interface Visit {
   department: string | null;
   type: string | null;
   status: string | null;
+  admissionType: string | null;          // HOSP_ADMSN_TYPE_C_NAME — "Elective"
+  admissionTime: ISODateTime;            // HOSP_ADMSN_TIME
+  dischargeTime: ISODateTime;            // HOSP_DISCHRG_TIME
+  encStatus: string | null;              // CALCULATED_ENC_STAT_C_NAME — "Complete" (vs appt status)
+  copayDue: number | null;               // COPAY_DUE
+  bmi: number | null;                    // BMI — body mass index at visit
+  bsa: number | null;                    // BSA — body surface area at visit
+  referralSource: string | null;         // REFERRAL_SOURCE_ID_REFERRING_PROV_NAM
+  checkedInBy: string | null;            // CHECKIN_USER_ID_NAME
+  closedDate: ISODate;                   // ENC_CLOSE_DATE
+  closedBy: string | null;               // ENC_CLOSED_USER_ID_NAME
   reasonsForVisit: string[];
   diagnoses: VisitDiagnosis[];
   orders: VisitOrder[];
@@ -177,6 +202,14 @@ export interface VisitOrder {
   type: string | null;
   status: string | null;
   orderedDate: ISODateTime;
+  orderClass: string | null;          // "Lab Collect", "Ancillary Performed"
+  priority: string | null;            // "Routine", "Stat"
+  orderTime: ISODateTime;             // when provider placed the order
+  specimenType: string | null;        // "Blood", "Stool", "Serum"
+  resultLab: string | null;           // performing lab name
+  labStatus: string | null;           // "Final result", "Preliminary result"
+  isAbnormal: boolean | null;         // true if any result flagged abnormal
+  authorizingProvider: string | null; // authorizing provider name (denormalized) or ID
   /** Results already flattened through the parent→child order chain */
   results: OrderResult[];
   _epic: EpicRaw;
@@ -199,6 +232,13 @@ export interface VisitNote {
   author: string | null;
   date: ISODateTime;
   text: string;
+  noteStatus: string | null;             // NOTE_STATUS_C_NAME — "Signed"
+  noteFormat: string | null;             // NOTE_FORMAT_C_NAME — "Rich Text"
+  authorType: string | null;             // AUTHOR_PRVD_TYPE_C_NAME — "Physician", "Registered Nurse"
+  sensitivity: string | null;            // SENSITIVE_STAT_C_NAME — "Not Sensitive"
+  sharedWithPatient: boolean | null;     // NOTE_SHARED_W_PAT_HX_YN
+  cosignRequired: string | null;         // COSIGN_REQUIRED_C_NAME
+  noteType: string | null;               // NOTE_TYPE_C_NAME — "RTF Letter", "Progress Notes"
   _epic: EpicRaw;
 }
 
@@ -234,6 +274,9 @@ export interface LabResult {
   orderName: string;
   visitId: Id | null;
   visitDate: ISODate;
+  specimenType: string | null;        // "Blood", "Serum" — from the parent order
+  resultLab: string | null;           // performing lab name — from the parent order
+  labStatus: string | null;           // "Final result" — from the parent order
   component: string;
   value: string;
   unit: string | null;
@@ -248,10 +291,30 @@ export interface LabResult {
 
 /** Latest snapshot of social history */
 export interface SocialHistory {
-  tobacco: { status: string | null; packsPerDay: number | null; quitDate: ISODate };
+  tobacco: {
+    status: string | null;
+    packsPerDay: number | null;
+    quitDate: ISODate;
+    cigarettes: boolean | null;         // uses cigarettes
+    pipes: boolean | null;              // smokes pipe
+    cigars: boolean | null;             // uses cigars
+    snuff: boolean | null;              // uses snuff
+    chew: boolean | null;               // uses chewing tobacco
+  };
   alcohol: { status: string | null; drinksPerWeek: number | null; comment: string | null };
-  drugs: { status: string | null; comment: string | null };
+  drugs: { status: string | null; comment: string | null; illicitDrugUse: string | null };
   sexualActivity: string | null;
+  sexualHealth: {
+    femalePartner: boolean | null;
+    malePartner: boolean | null;
+    contraceptionMethods: string[];     // e.g. ["Condom", "Pill", "IUD"]
+  } | null;
+  dataSources: {
+    tobacco: string | null;             // "Provider", "Patient", etc.
+    alcohol: string | null;
+    drug: string | null;
+    sexual: string | null;
+  } | null;
   asOf: ISODate;
   _epic: EpicRaw;
 }
@@ -307,6 +370,9 @@ export interface BillingSummary {
   payments: Payment[];
   claims: Claim[];
   accounts: BillingAccount[];
+  transactionActions: TransactionAction[];
+  eobLineItems: EOBLineItem[];
+  collectionEvents: CollectionEvent[];
 }
 
 export interface Charge {
@@ -317,6 +383,40 @@ export interface Charge {
   provider: string | null;
   visitId: Id | null;
   diagnosisCodes: string[];
+  /** Outstanding balance remaining on this charge */
+  outstandingAmount: number | null;
+  /** Insurance portion of the charge */
+  insuranceAmount: number | null;
+  /** Patient/self-pay portion of the charge */
+  patientAmount: number | null;
+  /** Total matched payment amount (including adjustments) */
+  totalMatchAmount: number | null;
+  /** Total matched insurance payment amount */
+  totalMatchInsuranceAmount: number | null;
+  /** Total matched adjustment amount */
+  totalMatchAdjustment: number | null;
+  /** Financial class at time of charge (e.g., "Blue Cross") */
+  financialClass: string | null;
+  /** Billing provider ID */
+  billingProvider: string | null;
+  /** Service/performing provider ID */
+  serviceProvider: string | null;
+  /** Provider specialty (e.g., "Internal Medicine") */
+  providerSpecialty: string | null;
+  /** Invoice number */
+  invoiceNumber: string | null;
+  /** Quantity billed */
+  quantity: number | null;
+  /** Procedure modifier codes */
+  modifiers: string[];
+  /** Date this charge was most recently claimed */
+  claimDate: ISODate;
+  /** Adjudicated copay amount from benefits engine */
+  adjudicatedCopay: number | null;
+  /** Adjudicated coinsurance amount from benefits engine */
+  adjudicatedCoinsurance: number | null;
+  /** Adjudicated self-pay amount from benefits engine */
+  adjudicatedSelfPay: number | null;
   _epic: EpicRaw;
 }
 
@@ -327,6 +427,14 @@ export interface Payment {
   method: string | null;
   payer: string | null;
   relatedChargeId: Id | null;
+  /** Payment source (e.g., "Electronic Funds Transfer", "Check") */
+  paymentSource: string | null;
+  /** Outstanding balance after this payment */
+  outstandingAmount: number | null;
+  /** Insurance amount on this transaction */
+  insuranceAmount: number | null;
+  /** Patient/self-pay portion */
+  patientAmount: number | null;
   _epic: EpicRaw;
 }
 
@@ -339,6 +447,30 @@ export interface Claim {
   payer: string | null;
   provider: string | null;
   invoiceNumber: string | null;
+  /** Payer's internal control number (ICN) — unique claim ID in payer's system */
+  claimControlNumber: string | null;
+  /** Payer identifier code */
+  payerIdentifier: string | null;
+  /** Claim filing sequence (e.g., "P" = primary) */
+  filingSequence: string | null;
+  /** Insurance type code */
+  filingIndicator: string | null;
+  /** Coverage group number */
+  groupNumber: string | null;
+  /** Coverage group name */
+  groupName: string | null;
+  /** Bill type: facility + frequency code (e.g., "11" + "1") */
+  billingType: string | null;
+  /** Billing provider details */
+  billingProviderDetail: {
+    name: string | null;
+    npi: string | null;
+    taxonomy: string | null;
+    taxId: string | null;
+    address: string | null;
+  } | null;
+  /** Payer address */
+  payerAddress: string | null;
   _epic: EpicRaw;
 }
 
@@ -351,6 +483,145 @@ export interface BillingAccount {
   totalCharges: number | null;
   totalPayments: number | null;
   balance: number | null;
+  // Guarantor account (ACCOUNT) fields
+  accountType: string | null;            // ACCOUNT_TYPE_C_NAME — "Personal/Family"
+  financialClass: string | null;         // FIN_CLASS_C_NAME — "Blue Cross"
+  insuranceBalance: number | null;       // HB_INSURANCE_BALAN
+  selfPayBalance: number | null;         // HB_SELFPAY_BALANCE
+  lastInsPaymentDate: ISODate;           // HB_LAST_INS_PMT_DT
+  lastPatPaymentDate: ISODate;           // HB_LAST_SP_PMT_DT (self-pay)
+  lastPatPaymentAmount: number | null;   // LAST_PAT_PMT_AMT
+  // Hospital account (HSP_ACCOUNT) fields
+  admissionSource: string | null;        // ADMISSION_SOURCE_C_NAME
+  admissionType: string | null;          // ADMISSION_TYPE_C_NAME
+  patientDischargeStatus: string | null; // PATIENT_STATUS_C_NAME
+  codingStatus: string | null;           // CODING_STATUS_C_NAME
+  primaryPayorId: string | null;         // PRIMARY_PAYOR_ID (numeric — no _NAME join)
+  firstBilledDate: ISODate;              // FIRST_BILLED_DATE
+  invoiceNumber: string | null;          // BASE_INV_NUM
+  _epic: EpicRaw;
+}
+
+/** EOB/remittance action trail — denials, adjustments, transfers per transaction */
+export interface TransactionAction {
+  /** Parent transaction ID */
+  transactionId: Id;
+  /** Line number within the transaction's action list */
+  line: number | null;
+  /** Action type (e.g., "Not Allowed Adjustment", "Denial", "Transfer") */
+  actionType: string | null;
+  /** Date the action was performed */
+  actionDate: ISODate;
+  /** Monetary amount of this action */
+  actionAmount: number | null;
+  /** Denial code number */
+  denialCode: string | null;
+  /** Human-readable denial code description (e.g., "45-CHGS EXCD FEE SCH/MAX ALLOWABLE.") */
+  denialCodeName: string | null;
+  /** Primary CARC/RARC remittance reason code description */
+  remittanceCode: string | null;
+  /** Second remittance reason code description */
+  remittanceCodeTwo: string | null;
+  /** Third remittance reason code description */
+  remittanceCodeThree: string | null;
+  /** Fourth remittance reason code description */
+  remittanceCodeFour: string | null;
+  /** Outstanding amount before the action */
+  outstandingBefore: number | null;
+  /** Outstanding amount after the action */
+  outstandingAfter: number | null;
+  /** Insurance amount before the action */
+  insuranceBefore: number | null;
+  /** Insurance amount after the action */
+  insuranceAfter: number | null;
+  /** Payor on this action */
+  payorId: string | null;
+  /** Payment payor (if action is associated with a payment) */
+  paymentPayorId: string | null;
+  /** Coverage before the action */
+  coverageBefore: string | null;
+  /** Coverage after the action */
+  coverageAfter: string | null;
+  /** Comma-delimited external remittance codes */
+  actionRemitCodes: string | null;
+  /** System-generated comment */
+  actionComment: string | null;
+  _epic: EpicRaw;
+}
+
+/** Payment/EOB line item — per-charge breakdown on a payment */
+export interface EOBLineItem {
+  /** Payment transaction ID */
+  paymentTransactionId: Id;
+  /** Matched charge transaction ID */
+  chargeTransactionId: Id | null;
+  /** Line number */
+  line: number | null;
+  /** Covered amount */
+  coveredAmount: number | null;
+  /** Non-covered amount */
+  nonCoveredAmount: number | null;
+  /** Deductible amount applied */
+  deductibleAmount: number | null;
+  /** Copay amount applied */
+  copayAmount: number | null;
+  /** Coinsurance amount applied */
+  coinsuranceAmount: number | null;
+  /** Coordination of benefits amount */
+  cobAmount: number | null;
+  /** Amount actually paid */
+  paidAmount: number | null;
+  /** Payer's internal control number */
+  claimControlNumber: string | null;
+  /** Denial codes on this line */
+  denialCodes: string | null;
+  /** Winning denial description */
+  winningDenialName: string | null;
+  /** EOB action type (e.g., next responsible party, resubmit) */
+  actionType: string | null;
+  /** Action amount */
+  actionAmount: number | null;
+  /** Invoice number */
+  invoiceNumber: string | null;
+  /** Date charge was matched to payment */
+  matchDate: ISODate;
+  _epic: EpicRaw;
+}
+
+/** Front-desk collection event — copay/prepay/balance collection at check-in */
+export interface CollectionEvent {
+  /** Encounter this collection event is associated with */
+  visitId: Id;
+  /** Line number */
+  line: number | null;
+  /** Date of the encounter */
+  date: ISODate;
+  /** Instant the collection event occurred */
+  collectionInstant: ISODateTime;
+  /** Workflow type (e.g., "Check-In") */
+  workflowType: string | null;
+  /** Event type (e.g., "Collection Event") */
+  eventType: string | null;
+  /** Professional billing copay: due, paid (prior), collected (this event) */
+  pbCopay: { due: number | null; paid: number | null; collected: number | null } | null;
+  /** Hospital billing copay: due, paid (prior), collected (this event) */
+  hbCopay: { due: number | null; paid: number | null; collected: number | null } | null;
+  /** Professional billing prepayment: due, paid (prior), collected (this event) */
+  pbPrepay: { due: number | null; paid: number | null; collected: number | null } | null;
+  /** Hospital billing prepayment: due, paid (prior), collected (this event) */
+  hbPrepay: { due: number | null; paid: number | null; collected: number | null } | null;
+  /** Professional billing previous balance: due, paid (prior), collected (this event) */
+  pbPreviousBalance: { due: number | null; paid: number | null; collected: number | null } | null;
+  /** Hospital billing previous balance: due, paid (prior), collected (this event) */
+  hbPreviousBalance: { due: number | null; paid: number | null; collected: number | null } | null;
+  /** Visit balance: due, paid, collected */
+  visitBalance: { due: number | null; paid: number | null; collected: number | null } | null;
+  /** Prepay discount offered */
+  prepayDiscountOffered: number | null;
+  /** Reason amount was not collected */
+  nonCollectionReason: string | null;
+  /** Free text comment for non-collection */
+  nonCollectionComment: string | null;
   _epic: EpicRaw;
 }
 
@@ -381,6 +652,16 @@ export interface Referral {
   entryDate: ISODate;                // ENTRY_DATE
   expirationDate: ISODate;           // EXP_DATE
   reason: string | null;             // first reason from reasons children, or RSN_FOR_RFL_C_NAME
+  referralClass: string | null;      // RFL_CLASS_C_NAME — "Outgoing"
+  authorizedVisits: number | null;   // AUTH_NUM_OF_VISITS
+  actualVisits: number | null;       // ACTUAL_NUM_VISITS
+  priority: string | null;           // PRIORITY_C_NAME — "Routine"
+  schedulingStatus: string | null;   // SCHED_STATUS_C_NAME — "Do Not Schedule"
+  preAuthRequired: string | null;    // PREAUTH_REQ_C_NAME
+  closeReason: string | null;        // CLOSE_RSN_C_NAME — "Expired-Auto Closed"
+  referredToSpecialty: string | null; // REFD_TO_SPEC_C_NAME — "Radiology"
+  referredToLocation: string | null; // REFD_TO_LOC_POS_ID (numeric ID — no _NAME join available)
+  serviceDate: ISODate;              // SERV_DATE
   _epic: EpicRaw;
 }
 
@@ -488,6 +769,7 @@ function toISODateTime(v: unknown): ISODateTime {
 function str(v: unknown): string | null { return (v == null || v === '') ? null : String(v); }
 function num(v: unknown): number | null { const n = Number(v); return (v == null || v === '' || isNaN(n)) ? null : n; }
 function sid(v: unknown): Id { return String(v ?? ''); }
+function ynBool(v: unknown): boolean | null { return v === 'Y' ? true : v === 'N' ? false : null; }
 
 /**
  * Extract flat scalar fields from an Epic object for the `_epic` escape hatch.
@@ -549,14 +831,14 @@ function projectDemographics(r: R): Demographics {
     dateOfBirth: toISODate(p.BIRTH_DATE), sex: str(p.SEX_C_NAME),
     race: Array.isArray(p.race) ? p.race.map((row: any) => row.PATIENT_RACE_C_NAME).filter(Boolean) : [],
     ethnicity: str(p.ETHNIC_GROUP_C_NAME),
-    language: str(p.LANGUAGE_C_NAME), maritalStatus: null, // MARITAL_STATUS_C_NAME not in EHI export
+    language: str(p.LANGUAGE_C_NAME), maritalStatus: str(p.MARITAL_STATUS_C_NAME), // audit:optional
     address: (p.CITY || p.STATE_C_NAME || p.ZIP) ? {
-      street: null, city: str(p.CITY), // ADD_LINE_1 not in EHI export
+      street: str(p.ADD_LINE_1), city: str(p.CITY), // ADD_LINE_1 audit:optional
       state: str(p.STATE_C_NAME), zip: str(p.ZIP), country: str(p.COUNTRY_C_NAME),
     } : null,
     phone: str(p.HOME_PHONE), email: str(p.EMAIL_ADDRESS),
     mrn: String(p.PAT_MRN_ID ?? ''),
-    primaryCareProvider: str(p._pcp_name), // resolved from CUR_PCP_PROV_ID via CLARITY_SER lookup
+    primaryCareProvider: str(p._pcp_name ?? p.CUR_PCP_PROV_ID_NAME), // CUR_PCP_PROV_ID_NAME audit:optional; _pcp_name resolved via CLARITY_SER
     genderIdentity: str(p.GENDER_IDENTITY_C_NAME),
     sexAssignedAtBirth: str(p.SEX_ASGN_AT_BIRTH_C_NAME),
     preferredName: str(p.PREFERRED_NAME),
@@ -591,8 +873,8 @@ function projectAllergy(a: any): Allergy {
   return {
     id: sid(a.ALLERGY_ID),
     allergen: a.allergenName ?? a.ALLERGEN_ID_ALLERGEN_NAME ?? 'Unknown',
-    type: null, // ALLERGY_TYPE_C_NAME not in EHI export
-    reactions: (a.reactions ?? []).map((r: any) => r.REACTION_C_NAME ?? 'Unknown'),
+    type: str(a.ALLERGY_TYPE_C_NAME), // audit:optional
+    reactions: (a.reactions ?? []).map((r: any) => r.REACTION_NAME ?? r.REACTION_C_NAME ?? 'Unknown'), // REACTION_NAME audit:optional
     severity: str(a.SEVERITY_C_NAME ?? a.ALLERGY_SEVERITY_C_NAME),
     status: str(a.ALRGY_STATUS_C_NAME),
     dateNoted: toISODate(a.DATE_NOTED),
@@ -621,26 +903,44 @@ function projectMedication(m: any): Medication {
     genericName: str(m.DESCRIPTION),
     dose, route: str(m.MED_ROUTE_C_NAME),
     frequency: str(m.HV_DISCR_FREQ_ID_FREQ_NAME),
-    sig: null, // SIG not a column on ORDER_MED; sig text is in ORDER_MED_SIG child table
+    sig: str(m.SIG), // audit:optional — some exports inline SIG on ORDER_MED
     startDate: toISODate(m.START_DATE), endDate: toISODate(m.END_DATE),
     status: str(m.ORDER_STATUS_C_NAME),
     prescriber: str(m.ORD_CREATR_USER_ID_NAME),
     pharmacy: str(m.PHARMACY_ID_PHARMACY_NAME),
     associatedDiagnoses: (m.associatedDiagnoses ?? []).map((d: any) => d.DX_NAME ?? String(d.DX_ID)),
+    quantity: str(m.QUANTITY),
+    refills: num(m.REFILLS),
+    refillsRemaining: num(m.REFILLS_REMAINING),
+    dispenseAsWritten: m.DISP_AS_WRITTEN_YN === 'Y' ? true : m.DISP_AS_WRITTEN_YN === 'N' ? false : null,
+    orderClass: str(m.ORDER_CLASS_C_NAME),
+    orderingMode: str(m.ORDERING_MODE_C_NAME),
+    priority: str(m.ORDER_PRIORITY_C_NAME),
+    discontinuedDate: toISODateTime(m.DISCON_TIME),
+    discontinuedReason: str(m.RSN_FOR_DISCON_C_NAME),
     _epic: epic(m),
   };
 }
 
 function projectImmunization(i: any): Immunization {
+  // Dose: prefer structured amount+unit ("0.5 mL"), fall back to free-text DOSE
+  const structuredDose = (i.IMMNZTN_DOSE_AMOUNT != null && i.IMMNZTN_DOSE_UNIT_C_NAME)
+    ? `${i.IMMNZTN_DOSE_AMOUNT} ${i.IMMNZTN_DOSE_UNIT_C_NAME}` : null;
   return {
     id: sid(i.IMMUNE_ID),
     vaccine: i.IMMUNZATN_ID_NAME ?? 'Unknown',
     date: toISODate(i.IMMUNE_DATE),
     site: str(i.SITE_C_NAME), route: str(i.ROUTE_C_NAME),
-    dose: str(i.DOSE), lotNumber: str(i.LOT_NUM),
+    dose: structuredDose ?? str(i.DOSE),
+    lotNumber: str(i.LOT),
     manufacturer: str(i.MFG_C_NAME),
     administeredBy: str(i.ENTRY_USER_ID_NAME),
     status: str(i.IMMNZTN_STATUS_C_NAME),
+    product: str(i.IMM_PRODUCT),
+    ndcCode: str(i.NDC_NUM_ID_NDC_CODE),
+    expirationDate: toISODate(i.EXPIRATION_DATE),
+    givenBy: str(i.GIVEN_BY_USER_ID_NAME),
+    source: str(i.EXTERNAL_ADMIN_C_NAME),
     _epic: epic(i),
   };
 }
@@ -653,6 +953,17 @@ function projectVisit(v: any, r: R): Visit {
     department: str(v.departmentName),
     type: str(v.encounterType),
     status: str(v.APPT_STATUS_C_NAME),
+    admissionType: str(v.HOSP_ADMSN_TYPE_C_NAME),
+    admissionTime: toISODateTime(v.HOSP_ADMSN_TIME),
+    dischargeTime: toISODateTime(v.HOSP_DISCHRG_TIME),
+    encStatus: str(v.CALCULATED_ENC_STAT_C_NAME),
+    copayDue: num(v.COPAY_DUE),
+    bmi: num(v.BMI),
+    bsa: num(v.BSA),
+    referralSource: str(v.REFERRAL_SOURCE_ID_REFERRING_PROV_NAM),
+    checkedInBy: str(v.CHECKIN_USER_ID_NAME),
+    closedDate: toISODate(v.ENC_CLOSE_DATE),
+    closedBy: str(v.ENC_CLOSED_USER_ID_NAME),
     reasonsForVisit: v.reasonsForVisit ?? [],
     diagnoses: (v.diagnoses ?? []).map((dx: any, i: number): VisitDiagnosis => ({
       name: dx._dx_name ?? dx.DX_NAME ?? `Diagnosis ${dx.DX_ID}`,
@@ -661,14 +972,25 @@ function projectVisit(v: any, r: R): Visit {
     })),
     orders: (v.orders ?? []).map((o: any) => projectOrder(o, r)),
     notes: (v.notes ?? [])
-      .map((n: any): VisitNote => ({
-        id: sid(n.NOTE_ID),
-        type: str(n.IP_NOTE_TYPE_C_NAME),
-        author: str(n.AUTHOR_USER_ID_NAME ?? n.CURRENT_AUTHOR_ID_NAME ?? n.ENTRY_USER_ID_NAME),
-        date: toISODateTime(n.ENTRY_INSTANT_DTTM),
-        text: Array.isArray(n.text) ? n.text.map((t: any) => t.NOTE_TEXT ?? '').join('') : '',
-        _epic: epic(n),
-      }))
+      .map((n: any): VisitNote => {
+        // NOTE_ENC_INFO columns live in encounter_info[0] (joined child array)
+        const ei = (n.encounter_info ?? n.encounterInfo ?? [])[0] as Record<string, unknown> | undefined;
+        return {
+          id: sid(n.NOTE_ID),
+          type: str(n.IP_NOTE_TYPE_C_NAME),
+          author: str(n.AUTHOR_NAME ?? ei?.AUTHOR_USER_ID_NAME ?? n.CURRENT_AUTHOR_ID_NAME ?? n.ENTRY_USER_ID_NAME), // AUTHOR_NAME audit:optional
+          date: toISODateTime(ei?.ENTRY_INSTANT_DTTM ?? n.ENTRY_INSTANT_DTTM ?? n.CREATE_INSTANT_DTTM),
+          text: Array.isArray(n.text) ? n.text.map((t: any) => t.NOTE_TEXT ?? '').join('') : '',
+          noteStatus: str(ei?.NOTE_STATUS_C_NAME),
+          noteFormat: str(ei?.NOTE_FORMAT_C_NAME),
+          authorType: str(ei?.AUTHOR_PRVD_TYPE_C_NAME),
+          sensitivity: str(ei?.SENSITIVE_STAT_C_NAME),
+          sharedWithPatient: ei?.NOTE_SHARED_W_PAT_HX_YN != null ? ei.NOTE_SHARED_W_PAT_HX_YN === 'Y' : null,
+          cosignRequired: str(ei?.COSIGN_REQUIRED_C_NAME),
+          noteType: str(ei?.NOTE_TYPE_C_NAME),
+          _epic: epic(n),
+        };
+      })
       .filter((n: VisitNote) => n.text.trim().length > 0), // drop empty notes
     // EHI limitation: flowsheet measurements have metadata but NO actual values.
     // MEAS_VALUE is not exported by Epic. We wire the metadata for provenance.
@@ -691,6 +1013,14 @@ function projectOrder(o: any, r: R): VisitOrder {
     type: str(o.orderType ?? o.ORDER_TYPE_C_NAME),
     status: str(o.orderStatus ?? o.ORDER_STATUS_C_NAME),
     orderedDate: toISODateTime(o.ORDER_INST ?? o.ORDERING_DATE),
+    orderClass: str(o.ORDER_CLASS_C_NAME),
+    priority: str(o.ORDER_PRIORITY_C_NAME),
+    orderTime: toISODateTime(o.ORDER_TIME),
+    specimenType: str(o.SPECIMEN_TYPE_C_NAME),
+    resultLab: str(o.RESULT_LAB_ID_LLB_NAME),
+    labStatus: str(o.LAB_STATUS_C_NAME),
+    isAbnormal: o.ABNORMAL_YN === 'Y' ? true : o.ABNORMAL_YN === 'N' ? false : null,
+    authorizingProvider: str(o.AUTHRZING_PROV_ID),
     results: rawResults.map(projectResult),
     _epic: epic(o),
   };
@@ -698,7 +1028,7 @@ function projectOrder(o: any, r: R): VisitOrder {
 
 function projectResult(res: any): OrderResult {
   return {
-    component: res.componentName ?? res.COMPONENT_ID_NAME ?? 'Unknown',
+    component: res.componentName ?? res.COMPONENT_ID_NAME ?? res.COMPONENT_ID_COMPONENT_NAME ?? 'Unknown', // COMPONENT_ID_COMPONENT_NAME audit:optional
     value: String(res.ORD_VALUE ?? res.value ?? ''),
     unit: str(res.REFERENCE_UNIT),
     referenceRange: (res.REFERENCE_LOW != null && res.REFERENCE_HIGH != null)
@@ -724,6 +1054,9 @@ function projectAllLabResults(r: R): LabResult[] {
           orderId: sid(o.ORDER_PROC_ID),
           orderName: o.description ?? 'Unknown',
           visitId: sid(v.PAT_ENC_CSN_ID), visitDate: toISODate(v.contactDate),
+          specimenType: str(o.SPECIMEN_TYPE_C_NAME),
+          resultLab: str(o.RESULT_LAB_ID_LLB_NAME),
+          labStatus: str(o.LAB_STATUS_C_NAME),
           ...projectResult(res),
         });
       }
@@ -754,11 +1087,31 @@ function projectSocialHistory(r: R): SocialHistoryTimeline | null {
 }
 
 function projectOneSocialHistory(d: any): SocialHistory {
+  // Collect active contraception methods from the YN flag columns
+  const contraceptionMap: Array<[string, string]> = [
+    ['CONDOM_YN', 'Condom'], ['PILL_YN', 'Pill'], ['DIAPHRAGM_YN', 'Diaphragm'],
+    ['IUD_YN', 'IUD'], ['SURGICAL_YN', 'Surgical'], ['SPERMICIDE_YN', 'Spermicide'],
+    ['IMPLANT_YN', 'Implant'], ['RHYTHM_YN', 'Rhythm'], ['INJECTION_YN', 'Injection'],
+    ['SPONGE_YN', 'Sponge'], ['INSERTS_YN', 'Inserts'], ['ABSTINENCE_YN', 'Abstinence'],
+  ];
+  const contraceptionMethods = contraceptionMap
+    .filter(([col]) => d[col] === 'Y')
+    .map(([, label]) => label);
+
+  const hasSexualData = d.FEMALE_PARTNER_YN != null || d.MALE_PARTNER_YN != null || contraceptionMethods.length > 0;
+  const hasSourceData = d.TOB_SRC_C_NAME != null || d.ALCOHOL_SRC_C_NAME != null ||
+    d.DRUG_SRC_C_NAME != null || d.SEX_SRC_C_NAME != null;
+
   return {
     tobacco: {
       status: str(d.TOBACCO_USER_C_NAME),
-      packsPerDay: null, // SMOKING_PACKS_PER_DAY not in EHI export
-      quitDate: null, // SMOKING_QUIT_DATE not in EHI export
+      packsPerDay: num(d.SMOKING_PACKS_PER_DAY), // audit:optional
+      quitDate: toISODate(d.SMOKING_QUIT_DATE), // audit:optional
+      cigarettes: ynBool(d.CIGARETTES_YN),
+      pipes: ynBool(d.PIPES_YN),
+      cigars: ynBool(d.CIGARS_YN),
+      snuff: ynBool(d.SNUFF_YN),
+      chew: ynBool(d.CHEW_YN),
     },
     alcohol: {
       status: str(d.ALCOHOL_USE_C_NAME),
@@ -768,8 +1121,20 @@ function projectOneSocialHistory(d: any): SocialHistory {
     drugs: {
       status: str(d.IV_DRUG_USER_YN === 'Y' ? 'Yes' : d.IV_DRUG_USER_YN === 'N' ? 'No' : null),
       comment: str(d.ILLICIT_DRUG_CMT),
+      illicitDrugUse: str(d.ILL_DRUG_USER_C_NAME),
     },
     sexualActivity: str(d.SEXUALLY_ACTIVE_C_NAME),
+    sexualHealth: hasSexualData ? {
+      femalePartner: ynBool(d.FEMALE_PARTNER_YN),
+      malePartner: ynBool(d.MALE_PARTNER_YN),
+      contraceptionMethods,
+    } : null,
+    dataSources: hasSourceData ? {
+      tobacco: str(d.TOB_SRC_C_NAME),
+      alcohol: str(d.ALCOHOL_SRC_C_NAME),
+      drug: str(d.DRUG_SRC_C_NAME),
+      sexual: str(d.SEX_SRC_C_NAME),
+    } : null,
     asOf: toISODate(d.CONTACT_DATE),
     _epic: epic(d),
   };
@@ -777,9 +1142,12 @@ function projectOneSocialHistory(d: any): SocialHistory {
 
 function socialHistoryDiffers(a: SocialHistory, b: SocialHistory): boolean {
   return a.tobacco.status !== b.tobacco.status ||
+    a.tobacco.cigarettes !== b.tobacco.cigarettes ||
+    a.tobacco.pipes !== b.tobacco.pipes ||
     a.alcohol.status !== b.alcohol.status ||
     a.alcohol.comment !== b.alcohol.comment ||
     a.drugs.status !== b.drugs.status ||
+    a.drugs.illicitDrugUse !== b.drugs.illicitDrugUse ||
     a.sexualActivity !== b.sexualActivity;
 }
 
@@ -856,7 +1224,7 @@ function projectMessage(m: any): Message {
     from: str(m.FROM_USER_ID_NAME),
     to: str(m.TO_USER_ID_NAME),
     subject: str(m.SUBJECT), body: m.plainText || null,
-    status: str(m.RECORD_STATUS_C_NAME),
+    status: str(m.MSG_STATUS_C_NAME ?? m.RECORD_STATUS_C_NAME), // MSG_STATUS_C_NAME audit:optional
     threadId: str(m.THREAD_ID),
     _epic: epic(m),
   };
@@ -891,6 +1259,16 @@ function projectReferral(ref: any): Referral {
     entryDate: toISODate(ref.ENTRY_DATE),
     expirationDate: toISODate(ref.EXP_DATE),
     reason: str(firstReason?.REFERRAL_REASON_C_NAME ?? ref.RSN_FOR_RFL_C_NAME),
+    referralClass: str(ref.RFL_CLASS_C_NAME),
+    authorizedVisits: num(ref.AUTH_NUM_OF_VISITS),
+    actualVisits: num(ref.ACTUAL_NUM_VISITS),
+    priority: str(ref.PRIORITY_C_NAME),
+    schedulingStatus: str(ref.SCHED_STATUS_C_NAME),
+    preAuthRequired: str(ref.PREAUTH_REQ_C_NAME),
+    closeReason: str(ref.CLOSE_RSN_C_NAME),
+    referredToSpecialty: str(ref.REFD_TO_SPEC_C_NAME),
+    referredToLocation: str(ref.REFD_TO_LOC_POS_ID),
+    serviceDate: toISODate(ref.SERV_DATE),
     _epic: epic(ref),
   };
 }
@@ -922,65 +1300,251 @@ function projectBilling(r: R): BillingSummary {
   const txs = r.billing?.transactions ?? [];
   const charges: Charge[] = [];
   const payments: Payment[] = [];
+  const transactionActions: TransactionAction[] = [];
+  const eobLineItems: EOBLineItem[] = [];
 
   for (const _tx of txs) {
     const tx = _tx as any; // BillingTransaction uses Object.assign — raw columns exist at runtime
     const t = str(tx.TX_TYPE_C_NAME) ?? str(tx.txType);
+
+    // Collect diagnosis codes from charge_diagnoses or diagnoses children, or inline DX fields
+    const dxCodes: string[] = [];
+    for (const d of (tx.charge_diagnoses ?? tx.chargeDiagnoses ?? tx.diagnoses ?? [])) {
+      if (d.DX_ID != null) dxCodes.push(String(d.DX_ID));
+    }
+    // Also grab inline PRIMARY_DX_ID + DX_TWO..SIX if no children produced codes
+    if (dxCodes.length === 0) {
+      for (const col of ['PRIMARY_DX_ID', 'DX_TWO_ID', 'DX_THREE_ID', 'DX_FOUR_ID', 'DX_FIVE_ID', 'DX_SIX_ID']) {
+        if (tx[col] != null) dxCodes.push(String(tx[col]));
+      }
+    }
+
+    // Collect modifiers
+    const mods: string[] = [];
+    for (const col of ['MODIFIER_ONE', 'MODIFIER_TWO', 'MODIFIER_THREE', 'MODIFIER_FOUR']) {
+      const v = str(tx[col]);
+      if (v) mods.push(v);
+    }
+
     if (t === 'Charge') {
       charges.push({
         id: sid(tx.TX_ID), date: toISODate(tx.SERVICE_DATE ?? tx.serviceDate),
-        service: str(tx.PROC_NAME ?? tx.PROC_ID),
-        amount: num(tx.AMOUNT ?? tx.amount),
-        provider: null, // SERV_PROVIDER_ID has no _NAME join in EHI export
+        service: str(tx._procedure_name ?? tx.PROC_NAME ?? tx.PROCEDURE_DESC ?? tx.DFLT_PROC_DESC ?? tx.PROC_ID),
+        amount: num(tx.AMOUNT ?? tx.TX_AMOUNT ?? tx.amount),
+        provider: str(tx.SERV_PROVIDER_ID_NAME),
         visitId: str(tx.VISIT_NUMBER),
-        diagnosisCodes: (tx.chargeDiagnoses ?? []).map((d: any) => String(d.DX_ID ?? '')),
+        diagnosisCodes: dxCodes,
+        // ARPB_TRANSACTIONS enrichment
+        outstandingAmount: num(tx.OUTSTANDING_AMT),
+        insuranceAmount: num(tx.INSURANCE_AMT),
+        patientAmount: num(tx.PATIENT_AMT),
+        totalMatchAmount: num(tx.TOTAL_MATCH_AMT),
+        totalMatchInsuranceAmount: num(tx.TOTAL_MTCH_INS_AMT),
+        totalMatchAdjustment: num(tx.TOTAL_MTCH_ADJ),
+        financialClass: str(tx.ORIGINAL_FC_C_NAME ?? tx.FIN_CLASS_C_NAME),
+        billingProvider: str(tx.BILLING_PROV_ID),
+        serviceProvider: str(tx.SERV_PROVIDER_ID ?? tx.PERFORMING_PROV_ID),
+        providerSpecialty: str(tx.PROV_SPECIALTY_C_NAME),
+        invoiceNumber: str(tx.IPP_INV_NUMBER ?? tx.INVOICE_NUM),
+        quantity: num(tx.PROCEDURE_QUANTITY ?? tx.QUANTITY),
+        modifiers: mods,
+        claimDate: toISODate(tx.CLAIM_DATE),
+        adjudicatedCopay: num(tx.BEN_ADJ_COPAY_AMT),
+        adjudicatedCoinsurance: num(tx.BEN_ADJ_COINS_AMT),
+        adjudicatedSelfPay: num(tx.BEN_SELF_PAY_AMT),
+        // HSP_TRANSACTIONS enrichment (when present)
+        // TX_AMOUNT, BILLED_AMOUNT, ALLOWED_AMOUNT, DEDUCTIBLE_AMOUNT, etc.
+        // are handled via the same field names — they just won't be present for ARPB txs
         _epic: epic(tx),
       });
     } else if (t === 'Payment' || t === 'Adjustment') {
       payments.push({
         id: sid(tx.TX_ID), date: toISODate(tx.POST_DATE ?? tx.postDate),
-        amount: num(tx.AMOUNT ?? tx.amount), method: t,
-        payer: null, // PAYOR_ID has no _NAME join in EHI export
-        relatedChargeId: null, // MATCH_CHARGE_TX_ID not in ARPB_TRANSACTIONS
+        amount: num(tx.AMOUNT ?? tx.TX_AMOUNT ?? tx.amount), method: t,
+        payer: str(tx.PAYOR_ID_NAME),
+        relatedChargeId: str(tx.MATCH_CHARGE_TX_ID),
+        paymentSource: str(tx.PAYMENT_SOURCE_C_NAME ?? tx.PAYMENT_SRC_HA_C_NAME),
+        outstandingAmount: num(tx.OUTSTANDING_AMT),
+        insuranceAmount: num(tx.INSURANCE_AMT),
+        patientAmount: num(tx.PATIENT_AMT),
         _epic: epic(tx),
+      });
+    }
+
+    // --- Transaction actions (ARPB_TX_ACTIONS) ---
+    // Available via Object.assign as tx.actions
+    for (const a of (tx.actions ?? [])) {
+      transactionActions.push({
+        transactionId: sid(tx.TX_ID),
+        line: num(a.LINE),
+        actionType: str(a.ACTION_TYPE_C_NAME),
+        actionDate: toISODate(a.ACTION_DATE),
+        actionAmount: num(a.ACTION_AMOUNT),
+        denialCode: str(a.DENIAL_CODE),
+        denialCodeName: str(a.DENIAL_CODE_REMIT_CODE_NAME),
+        remittanceCode: str(a.RMC_ID_REMIT_CODE_NAME),
+        remittanceCodeTwo: str(a.RMC_TWO_ID_REMIT_CODE_NAME),
+        remittanceCodeThree: str(a.RMC_THREE_ID_REMIT_CODE_NAME),
+        remittanceCodeFour: str(a.RMC_FOUR_ID_REMIT_CODE_NAME),
+        outstandingBefore: num(a.OUT_AMOUNT_BEFORE),
+        outstandingAfter: num(a.OUT_AMOUNT_AFTER),
+        insuranceBefore: num(a.INS_AMOUNT_BEFORE),
+        insuranceAfter: num(a.INS_AMOUNT_AFTER),
+        payorId: str(a.PAYOR_ID),
+        paymentPayorId: str(a.PMT_PAYOR_ID),
+        coverageBefore: str(a.BEFORE_CVG_ID),
+        coverageAfter: str(a.AFTER_CVG_ID),
+        actionRemitCodes: str(a.ACTION_REMIT_CODES),
+        actionComment: str(a.ACTION_COMMENT),
+        _epic: epic(a),
+      });
+    }
+
+    // --- EOB line items (PMT_EOB_INFO_I) ---
+    // Available via Object.assign as tx.eob_info_i
+    for (const e of (tx.eob_info_i ?? [])) {
+      eobLineItems.push({
+        paymentTransactionId: sid(tx.TX_ID),
+        chargeTransactionId: str(e.PEOB_TX_ID),
+        line: num(e.LINE),
+        coveredAmount: num(e.CVD_AMT),
+        nonCoveredAmount: num(e.NONCVD_AMT),
+        deductibleAmount: num(e.DED_AMT),
+        copayAmount: num(e.COPAY_AMT),
+        coinsuranceAmount: num(e.COINS_AMT),
+        cobAmount: num(e.COB_AMT),
+        paidAmount: num(e.PAID_AMT),
+        claimControlNumber: str(e.ICN),
+        denialCodes: str(e.DENIAL_CODES),
+        winningDenialName: str(e.WIN_DENIAL_ID_REMIT_CODE_NAME),
+        actionType: str(e.PEOB_ACTION_NAME_C_NAME ?? e.PEOB_ACTION_C_NAME),
+        actionAmount: num(e.ACTION_AMT),
+        invoiceNumber: str(e.INVOICE_NUM),
+        matchDate: toISODate(e.TX_MATCH_DATE),
+        _epic: epic(e),
       });
     }
   }
 
-  const claims = (r.billing?.claims ?? []).map((c: any): Claim => ({
-    id: sid(c.RECORD_ID ?? c.CLAIM_ID),
-    submitDate: toISODate(c.CREATE_DT),
-    status: str(c.CLAIM_STATUS_C_NAME ?? c.CLM_CVG_SEQ_CD),
-    totalCharged: num(c.TTL_CHG_AMT),
-    totalPaid: num(c.CLM_CVG_AMT_PAID),
-    payer: str(c.CLM_CVG_PYR_NAM),
-    provider: str(c.REND_PROV_NAM_LAST ? 
-      [c.REND_PROV_NAM_LAST, c.REND_PROV_NAM_FIRST].filter(Boolean).join(', ') : null),
-    invoiceNumber: str(c.INV_NUM),
-    _epic: epic(c),
-  }));
+  // --- Claims (CLM_VALUES) ---
+  const claims = (r.billing?.claims ?? []).map((c: any): Claim => {
+    // Build billing provider detail if NPI or name present
+    const hasBilProv = c.BIL_PROV_NPI || c.BIL_PROV_NAM_LAST;
+    const bilProvAddr = [c.BIL_PROV_ADDR_1, c.BIL_PROV_ADDR_2, c.BIL_PROV_CITY,
+      c.BIL_PROV_STATE, c.BIL_PROV_ZIP].filter(Boolean).join(', ');
+    const pyrAddr = [c.PYR_ADDR_1, c.PYR_ADDR_2, c.PYR_CITY,
+      c.PYR_STATE, c.PYR_ZIP].filter(Boolean).join(', ');
+    // Billing type = facility code + frequency code
+    const billingType = (c.BILL_TYP_FAC_CD || c.BILL_TYP_FREQ_CD)
+      ? [c.BILL_TYP_FAC_CD, c.BILL_TYP_FREQ_CD].filter(Boolean).join('')
+      : null;
 
+    return {
+      id: sid(c.RECORD_ID ?? c.CLAIM_ID ?? c.CLM_VALUES_ID),
+      submitDate: toISODate(c.CREATE_DT ?? c.SUBMIT_DATE),
+      status: str(c.CLAIM_STATUS_C_NAME ?? c.CLM_CVG_SEQ_CD),
+      totalCharged: num(c.TTL_CHG_AMT ?? c.TOTAL_CHARGES),
+      totalPaid: num(c.CLM_CVG_AMT_PAID ?? c.TOTAL_PAID),
+      payer: str(c.CLM_CVG_PYR_NAM ?? c.PAYOR_ID_NAME),
+      provider: str(c.REND_PROV_NAM_LAST ?
+        [c.REND_PROV_NAM_LAST, c.REND_PROV_NAM_FIRST].filter(Boolean).join(', ') : null),
+      invoiceNumber: str(c.INV_NUM),
+      claimControlNumber: str(c.ICN),
+      payerIdentifier: str(c.CLM_CVG_PYR_ID),
+      filingSequence: str(c.CLM_CVG_SEQ_CD),
+      filingIndicator: str(c.CLM_CVG_FILING_IND),
+      groupNumber: str(c.CLM_CVG_GRP_NUM),
+      groupName: str(c.CLM_CVG_GRP_NAM),
+      billingType,
+      billingProviderDetail: hasBilProv ? {
+        name: str(c.BIL_PROV_NAM_LAST
+          ? [c.BIL_PROV_NAM_LAST, c.BIL_PROV_NAM_FIRST].filter(Boolean).join(', ')
+          : null),
+        npi: str(c.BIL_PROV_NPI),
+        taxonomy: str(c.BIL_PROV_TAXONOMY),
+        taxId: str(c.BIL_PROV_TAXID),
+        address: bilProvAddr || null,
+      } : null,
+      payerAddress: pyrAddr || null,
+      _epic: epic(c),
+    };
+  });
+
+  // --- Accounts ---
   const accounts: BillingAccount[] = [
     ...(r.billing?.guarantorAccounts ?? []).map((a: any): BillingAccount => ({
       id: sid(a.ACCOUNT_ID), type: 'Professional',
       name: str(a.ACCOUNT_NAME), accountClass: str(a.ACCT_FIN_CLASS_C_NAME),
       billingStatus: str(a.BILLING_STATUS_C_NAME),
-      totalCharges: null, totalPayments: null, // ACCOUNT table has no charge/payment totals in EHI export
-      balance: num(a.TOTAL_BALANCE), _epic: epic(a),
+      totalCharges: num(a.TOTAL_CHARGES), totalPayments: num(a.TOTAL_PAYMENTS),
+      balance: num(a.TOTAL_BALANCE),
+      accountType: str(a.ACCOUNT_TYPE_C_NAME),
+      financialClass: str(a.FIN_CLASS_C_NAME),
+      insuranceBalance: num(a.HB_INSURANCE_BALAN),
+      selfPayBalance: num(a.HB_SELFPAY_BALANCE),
+      lastInsPaymentDate: toISODate(a.HB_LAST_INS_PMT_DT),
+      lastPatPaymentDate: toISODate(a.HB_LAST_SP_PMT_DT),
+      lastPatPaymentAmount: num(a.LAST_PAT_PMT_AMT),
+      admissionSource: null, admissionType: null, patientDischargeStatus: null,
+      codingStatus: null, primaryPayorId: null, firstBilledDate: null, invoiceNumber: null,
+      _epic: epic(a),
     })),
     ...(r.billing?.hospitalAccounts ?? []).map((h: any): BillingAccount => ({
       id: sid(h.HSP_ACCOUNT_ID), type: 'Hospital',
       name: str(h.HSP_ACCOUNT_NAME),
       accountClass: str(h.ACCT_CLASS_HA_C_NAME),
       billingStatus: str(h.ACCT_BILLSTS_HA_C_NAME),
-      totalCharges: num(h.TOT_CHGS),
-      totalPayments: null, // HSP_ACCOUNT has no payment total column in EHI export
-      balance: null, // HSP_ACCOUNT has no balance column in EHI export
+      totalCharges: num(h.TOT_CHGS ?? h.TOT_CHARGES),
+      totalPayments: num(h.TOT_PAYMENTS),
+      balance: num(h.ACCT_BALANCE),
+      accountType: null, financialClass: str(h.ACCT_FIN_CLASS_C_NAME),
+      insuranceBalance: null, selfPayBalance: null,
+      lastInsPaymentDate: null, lastPatPaymentDate: null, lastPatPaymentAmount: null,
+      admissionSource: str(h.ADMISSION_SOURCE_C_NAME),
+      admissionType: str(h.ADMISSION_TYPE_C_NAME),
+      patientDischargeStatus: str(h.PATIENT_STATUS_C_NAME),
+      codingStatus: str(h.CODING_STATUS_C_NAME),
+      primaryPayorId: str(h.PRIMARY_PAYOR_ID),
+      firstBilledDate: toISODate(h.FIRST_BILLED_DATE),
+      invoiceNumber: str(h.BASE_INV_NUM),
       _epic: epic(h),
     })),
   ];
 
-  return { charges, payments, claims, accounts };
+  // --- Collection events (FRONT_END_PMT_COLL_HX) ---
+  // Stored as copay_collection children on encounters
+  const collectionEvents: CollectionEvent[] = [];
+  for (const enc of r.encounters) {
+    const coll = (enc as any).copay_collection as any[] | undefined;
+    if (!coll?.length) continue;
+    for (const c of coll) {
+      const mkGroup = (due: unknown, paid: unknown, collected: unknown) => {
+        const d = num(due), p = num(paid), co = num(collected);
+        return (d != null || p != null || co != null) ? { due: d, paid: p, collected: co } : null;
+      };
+      collectionEvents.push({
+        visitId: sid(c.PAT_ENC_CSN_ID ?? (enc as any).PAT_ENC_CSN_ID),
+        line: num(c.LINE),
+        date: toISODate(c.CONTACT_DATE),
+        collectionInstant: toISODateTime(c.COLL_INSTANT_UTC_DTTM),
+        workflowType: str(c.COLL_WORKFLOW_TYPE_C_NAME),
+        eventType: str(c.EVENT_TYPE_C_NAME),
+        pbCopay: mkGroup(c.PB_COPAY_DUE, c.PB_COPAY_PAID, c.PB_COPAY_COLL),
+        hbCopay: mkGroup(c.HB_COPAY_DUE, c.HB_COPAY_PAID, c.HB_COPAY_COLL),
+        pbPrepay: mkGroup(c.PB_PREPAY_DUE, c.PB_PREPAY_PAID, c.PB_PREPAY_COLL),
+        hbPrepay: mkGroup(c.HB_PREPAY_DUE, c.HB_PREPAY_PAID, c.HB_PREPAY_COLL),
+        pbPreviousBalance: mkGroup(c.PB_PREV_BAL_DUE, c.PB_PREV_BAL_PAID, c.PB_PREV_BAL_COLL),
+        hbPreviousBalance: mkGroup(c.HB_PREV_BAL_DUE, c.HB_PREV_BAL_PAID, c.HB_PREV_BAL_COLL),
+        visitBalance: mkGroup(c.VIS_BAL_DUE, c.VIS_BAL_PAID, c.VIS_BAL_COLL),
+        prepayDiscountOffered: num(c.PREPAY_DISCOUNT_OFFERED),
+        nonCollectionReason: str(c.RSN_NON_COLL_AMT_C_NAME),
+        nonCollectionComment: str(c.RSN_NON_COLL_AMT_COMMENT),
+        _epic: epic(c),
+      });
+    }
+  }
+
+  return { charges, payments, claims, accounts, transactionActions, eobLineItems, collectionEvents };
 }
 
 // ─── Goals ─────────────────────────────────────────────────────────────────
