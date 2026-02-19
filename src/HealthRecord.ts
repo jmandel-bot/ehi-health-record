@@ -1075,9 +1075,9 @@ function projectAllergy(a: any): Allergy {
   return {
     id: sid(a.ALLERGY_ID),
     allergen: a.allergenName ?? a.ALLERGEN_ID_ALLERGEN_NAME ?? 'Unknown',
-    type: str(a.ALLERGY_TYPE_C_NAME), // audit:optional
+    type: str(a.SEVERITY_C_NAME ?? a.ALLERGY_TYPE_C_NAME), // Epic's SEVERITY_C_NAME is actually the allergy type ("Allergy", "Intolerance")
     reactions: (a.reactions ?? []).map((r: any) => r.REACTION_NAME ?? r.REACTION_C_NAME ?? 'Unknown'), // REACTION_NAME audit:optional
-    severity: str(a.SEVERITY_C_NAME ?? a.ALLERGY_SEVERITY_C_NAME),
+    severity: str(a.ALLERGY_SEVERITY_C_NAME),
     status: str(a.ALRGY_STATUS_C_NAME),
     dateNoted: toISODate(a.DATE_NOTED),
     _epic: epic(a),
@@ -1088,7 +1088,7 @@ function projectProblem(p: any): Problem {
   return {
     id: sid(p.PROBLEM_LIST_ID),
     name: p.diagnosisName ?? p._dx_name ?? 'Unknown',
-    icdCode: str(p.DX_ID),
+    icdCode: str(p.CURRENT_ICD10_LIST ?? p._icd10) ?? null,
     dateOfOnset: toISODate(p.NOTED_DATE ?? p.DATE_OF_ENTRY),
     dateResolved: toISODate(p.RESOLVED_DATE),
     status: str(p.PROBLEM_STATUS_C_NAME) ?? (p.RESOLVED_DATE ? 'Resolved' : 'Active'),
@@ -1102,15 +1102,15 @@ function projectMedication(m: any): Medication {
   return {
     id: sid(m.ORDER_MED_ID),
     name: m.AMB_MED_DISP_NAME ?? m.DISPLAY_NAME ?? m.DESCRIPTION ?? 'Unknown',
-    genericName: str(m.DESCRIPTION),
+    genericName: str(m._generic_name ?? m.GENERIC_NAME) ?? str(m.DESCRIPTION),
     dose, route: str(m.MED_ROUTE_C_NAME),
     frequency: str(m.HV_DISCR_FREQ_ID_FREQ_NAME),
-    sig: str(m.SIG), // audit:optional — some exports inline SIG on ORDER_MED
+    sig: str(m.signature?.[0]?.SIG_TEXT ?? m.SIG), // signature child array from ORDER_MED_SIG; fall back to inline SIG
     startDate: toISODate(m.START_DATE), endDate: toISODate(m.END_DATE),
     status: str(m.ORDER_STATUS_C_NAME),
     prescriber: str(m.ORD_CREATR_USER_ID_NAME),
     pharmacy: str(m.PHARMACY_ID_PHARMACY_NAME),
-    associatedDiagnoses: (m.associatedDiagnoses ?? []).map((d: any) => d.DX_NAME ?? String(d.DX_ID)),
+    associatedDiagnoses: (m.diagnoses ?? m.associatedDiagnoses ?? []).map((d: any) => d._dx_name ?? d.DX_NAME ?? String(d.DX_ID)),
     quantity: str(m.QUANTITY),
     refills: num(m.REFILLS),
     refillsRemaining: num(m.REFILLS_REMAINING),
@@ -1136,7 +1136,7 @@ function projectImmunization(i: any): Immunization {
     dose: structuredDose ?? str(i.DOSE),
     lotNumber: str(i.LOT),
     manufacturer: str(i.MFG_C_NAME),
-    administeredBy: str(i.ENTRY_USER_ID_NAME),
+    administeredBy: str(i.GIVEN_BY_USER_ID_NAME ?? i.ENTRY_USER_ID_NAME),
     status: str(i.IMMNZTN_STATUS_C_NAME),
     product: str(i.IMM_PRODUCT),
     ndcCode: str(i.NDC_NUM_ID_NDC_CODE),
@@ -1166,10 +1166,12 @@ function projectVisit(v: any, r: R): Visit {
     checkedInBy: str(v.CHECKIN_USER_ID_NAME),
     closedDate: toISODate(v.ENC_CLOSE_DATE),
     closedBy: str(v.ENC_CLOSED_USER_ID_NAME),
-    reasonsForVisit: v.reasonsForVisit ?? [],
+    reasonsForVisit: (v.reasonsForVisit ?? []).map((rfv: any) =>
+      typeof rfv === 'string' ? rfv : (rfv._reason_name ?? rfv.REASON_VISIT_NAME ?? rfv.ENC_REASON_NAME ?? null)
+    ).filter(Boolean),
     diagnoses: (v.diagnoses ?? []).map((dx: any, i: number): VisitDiagnosis => ({
       name: dx._dx_name ?? dx.DX_NAME ?? `Diagnosis ${dx.DX_ID}`,
-      icdCode: str(dx.DX_ID), isPrimary: dx.PRIMARY_DX_YN === 'Y' || i === 0,
+      icdCode: str(dx.CURRENT_ICD10_LIST ?? dx._icd10) ?? null, isPrimary: dx.PRIMARY_DX_YN === 'Y' || i === 0,
       _epic: epic(dx),
     })),
     orders: (v.orders ?? []).map((o: any) => projectOrder(o, r)),
@@ -1271,10 +1273,11 @@ function projectSocialHistory(r: R): SocialHistoryTimeline | null {
   const tl = r.socialHistory;
   if (!tl?.snapshots?.length) return null;
 
-  // Build all snapshots, most recent first
+  // Build all snapshots (oldest-first, matching timeline order)
   const all: SocialHistory[] = tl.snapshots.map((s: any) => projectOneSocialHistory(s.data));
+  if (all.length === 0) return null;
 
-  // Deduplicate: only keep a snapshot if its content differs from the next-newer one
+  // Deduplicate: only keep a snapshot if its content differs from the previous one
   const deduped: SocialHistory[] = [all[0]];
   for (let i = 1; i < all.length; i++) {
     if (socialHistoryDiffers(all[i], all[i - 1])) {
@@ -1282,9 +1285,10 @@ function projectSocialHistory(r: R): SocialHistoryTimeline | null {
     }
   }
 
+  // Current = most recent (last); prior = everything before it (oldest-first)
   return {
-    current: deduped[0],
-    prior: deduped.slice(1),
+    current: deduped[deduped.length - 1],
+    prior: deduped.slice(0, -1),
   };
 }
 
@@ -1427,7 +1431,7 @@ function projectMessage(m: any): Message {
     to: str(m.TO_USER_ID_NAME),
     subject: str(m.SUBJECT), body: m.plainText || null,
     status: str(m.MSG_STATUS_C_NAME ?? m.RECORD_STATUS_C_NAME), // MSG_STATUS_C_NAME audit:optional
-    threadId: str(m.THREAD_ID),
+    threadId: str(m._thread_id ?? m.THREAD_ID),
     _epic: epic(m),
   };
 }
@@ -1533,7 +1537,7 @@ function projectBilling(r: R): BillingSummary {
         id: sid(tx.TX_ID), date: toISODate(tx.SERVICE_DATE ?? tx.serviceDate),
         service: str(tx._procedure_name ?? tx.PROC_NAME ?? tx.PROCEDURE_DESC ?? tx.DFLT_PROC_DESC ?? tx.PROC_ID),
         amount: num(tx.AMOUNT ?? tx.TX_AMOUNT ?? tx.amount),
-        provider: str(tx.SERV_PROVIDER_ID_NAME),
+        provider: str(tx._provider_name ?? tx.SERV_PROVIDER_ID_NAME),
         visitId: str(tx.VISIT_NUMBER),
         diagnosisCodes: dxCodes,
         // ARPB_TRANSACTIONS enrichment
@@ -1595,8 +1599,8 @@ function projectBilling(r: R): BillingSummary {
       payments.push({
         id: sid(tx.TX_ID), date: toISODate(tx.POST_DATE ?? tx.postDate),
         amount: num(tx.AMOUNT ?? tx.TX_AMOUNT ?? tx.amount), method: t,
-        payer: str(tx.PAYOR_ID_NAME),
-        relatedChargeId: str(tx.MATCH_CHARGE_TX_ID),
+        payer: str(tx._payor_name ?? tx.PAYOR_ID_NAME),
+        relatedChargeId: str(tx.match_history?.[0]?.MTCH_TX_HX_ID ?? tx.MATCH_CHARGE_TX_ID),
         paymentSource: str(tx.PAYMENT_SOURCE_C_NAME ?? tx.PAYMENT_SRC_HA_C_NAME),
         outstandingAmount: num(tx.OUTSTANDING_AMT),
         insuranceAmount: num(tx.INSURANCE_AMT),

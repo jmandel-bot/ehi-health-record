@@ -346,6 +346,7 @@ export class Encounter {
     this.contactDate = raw.CONTACT_DATE as string;
     this.encounterType = raw.ENC_TYPE_C_NAME as string; // audit:optional — not in every EHI export
     this.visitProviderName = raw._visit_provider as string;
+    this.departmentName = (raw._department ?? raw.DEPARTMENT_NAME) as string;
     this.diagnoses = (raw.diagnoses as EpicDiagnosisRow[]) ?? [];
     this.reasonsForVisit = (raw.reasons_for_visit as EpicRow[]) ?? [];
     this.orders = ((raw.orders as EpicRow[]) ?? []).map(o => new Order(o));

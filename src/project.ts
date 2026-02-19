@@ -596,6 +596,12 @@ function projectMedications(patId: unknown): EpicRow[] {
         if (c.length > 0) row[spec.key] = c;
       }
     }
+    // Enrich: generic name from CLARITY_MEDICATION
+    row._generic_name = lookupName("CLARITY_MEDICATION", "MEDICATION_ID", "GENERIC_NAME", row.MEDICATION_ID);
+    // Enrich: diagnosis names on medication diagnoses
+    for (const dx of (row.diagnoses as EpicRow[] ?? [])) {
+      dx._dx_name = lookupName("CLARITY_EDG", "DX_ID", "DX_NAME", dx.DX_ID);
+    }
   }
   return rows;
 }
@@ -641,6 +647,11 @@ function projectEncounter(csn: CSN): EpicRow {
   // Resolve diagnosis names
   for (const dx of (enc.diagnoses as EpicRow[] ?? [])) {
     dx._dx_name = lookupName("CLARITY_EDG", "DX_ID", "DX_NAME", dx.DX_ID);
+  }
+
+  // Resolve reason-for-visit names
+  for (const rfv of (enc.reasons_for_visit as EpicRow[] ?? [])) {
+    rfv._reason_name = lookupName("CL_RSN_FOR_VISIT", "REASON_VISIT_ID", "REASON_VISIT_NAME", rfv.ENC_REASON_ID);
   }
 
   // Appointment & disposition (1:1 extensions)
@@ -739,6 +750,8 @@ function projectBilling(patId: unknown): EpicRow {
   for (const tx of txRows) {
     attachChildren(tx, tx.TX_ID, txChildren);
     tx._procedure_name = lookupName("CLARITY_EAP", "PROC_ID", "PROC_NAME", tx.PROC_ID);
+    tx._provider_name = lookupName("CLARITY_SER", "PROV_ID", "PROV_NAME", tx.SERV_PROVIDER_ID);
+    tx._payor_name = lookupName("CLARITY_EPM", "PAYOR_ID", "PAYOR_NAME", tx.PAYOR_ID);
   }
 
   // Visits — via encounter CSN chain
@@ -947,6 +960,20 @@ function projectMessages(patId: unknown): EpicRow[] {
       msg.extracted_text = stripRtf(rtfParts.join('\n'));
     }
   }
+
+  // Enrich messages with _thread_id from MYC_CONVO_MSGS
+  if (tableExists("MYC_CONVO_MSGS")) {
+    const convoMsgs = q(`SELECT THREAD_ID, MESSAGE_ID FROM MYC_CONVO_MSGS`);
+    const msgToThread = new Map<string, unknown>();
+    for (const cm of convoMsgs) {
+      msgToThread.set(String(cm.MESSAGE_ID), cm.THREAD_ID);
+    }
+    for (const msg of rows) {
+      const tid = msgToThread.get(String(msg.MESSAGE_ID));
+      if (tid != null) msg._thread_id = tid;
+    }
+  }
+
   return rows;
 }
 
